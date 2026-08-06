@@ -1,56 +1,69 @@
-type BriseDevice = {
-  id: number;
-  name: string;
-  model: string;
-  state: boolean;
-  temperature: number;
-  humidity: number;
-  mode: string;
-  fanSpeed: string;
-  consumption: number;
+import {
+  AC_MODES,
+  DEVICE_MODES,
+  FAN_SPEEDS,
+} from "@/constants/brise";
+
+import { AutoRefresh } from "@/components/dashboard/AutoRefresh";
+
+type DashboardDevice = {
+  deviceId: number;
+  online: boolean;
+  config: {
+    MODEL?: string;
+    name?: string;
+    btu?: number;
+  } | null;
+  variables: {
+    temperature?: number;
+    humidity?: number;
+    consumption?: number;
+    consumptionEstimated?: number;
+    state?: boolean;
+  } | null;
+  parameters: {
+    modeDevice?: number;
+    modeAC?: number;
+    fanSpeed?: number;
+    setpointCool?: number;
+    setpointHeat?: number;
+    ecoCool?: number;
+    ecoHeat?: number;
+  } | null;
 };
 
-const devices: BriseDevice[] = [
-  {
-    id: 123456,
-    name: "Sala dos Nobreaks",
-    model: "Brise Lite-R",
-    state: true,
-    temperature: 22.8,
-    humidity: 70.4,
-    mode: "Eco",
-    fanSpeed: "Alta",
-    consumption: 0,
-  },
-  {
-    id: 123457,
-    name: "Sala Administrativa",
-    model: "Brise Lite-R",
-    state: false,
-    temperature: 25.1,
-    humidity: 68.2,
-    mode: "Manual",
-    fanSpeed: "Média",
-    consumption: 18,
-  },
-  {
-    id: 123458,
-    name: "Sala de Servidores",
-    model: "Brise Lite-R",
-    state: true,
-    temperature: 20.7,
-    humidity: 61.5,
-    mode: "Eco",
-    fanSpeed: "Alta",
-    consumption: 32,
-  },
-];
+type DashboardResponse = {
+  total: number;
+  online: number;
+  offline: number;
+  devices: DashboardDevice[];
+};
 
-export default function Home() {
-  const onlineDevices = devices.filter((device) => device.state).length;
+async function getDashboard(): Promise<DashboardResponse> {
+  const response = await fetch(
+    "http://localhost:3000/api/brise/dashboard",
+    {
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Não foi possível carregar os dispositivos.");
+  }
+
+  return response.json();
+}
+
+export default async function Home() {
+  const dashboard = await getDashboard();
+
+  const activeDevices = dashboard.devices.filter(
+    (device) => device.variables?.state === true,
+  ).length;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-8">
+    <AutoRefresh />
       <div className="mx-auto max-w-7xl">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
@@ -62,20 +75,25 @@ export default function Home() {
           </p>
         </header>
 
-        <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
             title="Total de dispositivos"
-            value={String(devices.length)}
+            value={String(dashboard.total)}
           />
 
           <SummaryCard
-            title="Ligados"
-            value={String(onlineDevices)}
+            title="Respondendo"
+            value={String(dashboard.online)}
           />
 
           <SummaryCard
-            title="Desligados"
-            value={String(devices.length - onlineDevices)}
+            title="Sem resposta"
+            value={String(dashboard.offline)}
+          />
+
+          <SummaryCard
+            title="Ar-condicionados ligados"
+            value={String(activeDevices)}
           />
         </section>
 
@@ -85,8 +103,11 @@ export default function Home() {
           </h2>
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {devices.map((device) => (
-              <DeviceCard key={device.id} device={device} />
+            {dashboard.devices.map((device) => (
+              <DeviceCard
+                key={device.deviceId}
+                device={device}
+              />
             ))}
           </div>
         </section>
@@ -105,56 +126,124 @@ function SummaryCard({
   return (
     <article className="rounded-xl bg-white p-5 shadow-sm">
       <p className="text-sm font-medium text-gray-500">{title}</p>
-      <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+
+      <p className="mt-2 text-3xl font-bold text-gray-900">
+        {value}
+      </p>
     </article>
   );
 }
 
-function DeviceCard({ device }: { device: BriseDevice }) {
+function DeviceCard({
+  device,
+}: {
+  device: DashboardDevice;
+}) {
+  const name =
+    device.config?.name || `Dispositivo ${device.deviceId}`;
+
+  const model = device.config?.MODEL || "Modelo indisponível";
+
+  const isRunning = device.variables?.state === true;
+
+  const modeDevice =
+    device.parameters?.modeDevice !== undefined
+      ? DEVICE_MODES[device.parameters.modeDevice]
+      : "Indisponível";
+
+  const modeAC =
+    device.parameters?.modeAC !== undefined
+      ? AC_MODES[device.parameters.modeAC]
+      : "Indisponível";
+
+  const fanSpeed =
+    device.parameters?.fanSpeed !== undefined
+      ? FAN_SPEEDS[device.parameters.fanSpeed]
+      : "Indisponível";
+
   return (
     <article className="rounded-2xl bg-white p-6 shadow-sm">
       <header className="mb-5 flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            {device.name}
+            {name}
           </h3>
 
           <p className="mt-1 text-sm text-gray-500">
-            {device.model} · Nº {device.id}
+            {model} · Nº {device.deviceId}
           </p>
         </div>
 
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            device.state
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          {device.state ? "Ligado" : "Desligado"}
-        </span>
+        <StatusBadge
+          online={device.online}
+          running={isRunning}
+        />
       </header>
 
-      <div className="grid grid-cols-2 gap-4">
-        <DeviceInfo
-          label="Temperatura"
-          value={`${device.temperature.toFixed(1).replace(".", ",")} °C`}
-        />
+      {device.online ? (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            <DeviceInfo
+              label="Temperatura"
+              value={formatTemperature(
+                device.variables?.temperature,
+              )}
+            />
 
-        <DeviceInfo
-          label="Umidade"
-          value={`${device.humidity.toFixed(1).replace(".", ",")}%`}
-        />
+            <DeviceInfo
+              label="Umidade"
+              value={formatPercentage(
+                device.variables?.humidity,
+              )}
+            />
 
-        <DeviceInfo label="Modo" value={device.mode} />
+            <DeviceInfo
+              label="Modo"
+              value={modeDevice}
+            />
 
-        <DeviceInfo label="Ventilação" value={device.fanSpeed} />
+            <DeviceInfo
+              label="Modo do ar"
+              value={modeAC}
+            />
 
-        <DeviceInfo
-          label="Consumo"
-          value={`${device.consumption} kWh`}
-        />
-      </div>
+            <DeviceInfo
+              label="Ventilação"
+              value={fanSpeed}
+            />
+
+            <DeviceInfo
+              label="Consumo estimado"
+              value={formatConsumption(
+                device.variables?.consumptionEstimated,
+              )}
+            />
+          </div>
+
+          <div className="mt-5 border-t border-gray-100 pt-4">
+            <p className="text-sm text-gray-500">
+              Capacidade
+            </p>
+
+            <p className="font-semibold text-gray-800">
+              {device.config?.btu
+                ? `${device.config.btu.toLocaleString("pt-BR")} BTU`
+                : "Indisponível"}
+            </p>
+          </div>
+        </>
+      ) : (
+        <div className="rounded-lg bg-gray-100 p-4">
+          <p className="font-medium text-gray-700">
+            Dispositivo sem resposta
+          </p>
+
+          <p className="mt-1 text-sm text-gray-500">
+            O equipamento pode estar desligado, offline ou com
+            credenciais inválidas.
+          </p>
+        </div>
+      )}
 
       <button
         type="button"
@@ -163,6 +252,36 @@ function DeviceCard({ device }: { device: BriseDevice }) {
         Ver detalhes
       </button>
     </article>
+  );
+}
+
+function StatusBadge({
+  online,
+  running,
+}: {
+  online: boolean;
+  running: boolean;
+}) {
+  if (!online) {
+    return (
+      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+        Sem resposta
+      </span>
+    );
+  }
+
+  if (running) {
+    return (
+      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+        Ligado
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700">
+      Desligado
+    </span>
   );
 }
 
@@ -179,7 +298,39 @@ function DeviceInfo({
         {label}
       </p>
 
-      <p className="mt-1 font-semibold text-gray-800">{value}</p>
+      <p className="mt-1 font-semibold text-gray-800">
+        {value}
+      </p>
     </div>
   );
+}
+
+function formatTemperature(value?: number) {
+  if (value === undefined) {
+    return "Indisponível";
+  }
+
+  return `${value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })} °C`;
+}
+
+function formatPercentage(value?: number) {
+  if (value === undefined) {
+    return "Indisponível";
+  }
+
+  return `${value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })}%`;
+}
+
+function formatConsumption(value?: number) {
+  if (value === undefined) {
+    return "Indisponível";
+  }
+
+  return `${value.toLocaleString("pt-BR")} kWh`;
 }
