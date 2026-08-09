@@ -2,6 +2,9 @@
 
 import type { DashboardDevice } from "@/types/dashboard";
 
+
+import { DeviceControl } from "./DeviceControl";
+
 import {
   AC_MODES,
   DEVICE_MODES,
@@ -269,6 +272,7 @@ export function DeviceDetailsModal({
                 )}
               />
             </ModalSection>
+            <DeviceControl device={device} />
           </div>
         )}
       </div>
