@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 import type { DashboardDevice } from "@/types/dashboard";
-import { ScheduleBatchModal } from "./ScheduleBatchModal";
+
+import { ScheduleModal } from "./ScheduleModal";
 
 interface ScheduleManagerProps {
   devices: DashboardDevice[];
@@ -24,7 +25,7 @@ export function ScheduleManager({
         Agendamentos
       </button>
 
-      <ScheduleBatchModal
+      <ScheduleModal
         devices={devices}
         open={open}
         onClose={() => setOpen(false)}

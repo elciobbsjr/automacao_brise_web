@@ -5,11 +5,16 @@ import {
   BriseApiError,
 } from "@/lib/brise-api";
 
+
+
 import type {
   BriseSchedule,
   CreateScheduleRequest,
+  DeleteScheduleRequest,
   ScheduleBatchResult,
+  ToggleScheduleRequest,
 } from "@/types/schedule";
+
 
 export async function POST(request: Request) {
   try {
@@ -96,6 +101,83 @@ export async function POST(request: Request) {
           error instanceof Error
             ? error.message
             : "Erro desconhecido ao criar agendamentos.",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const body =
+      (await request.json()) as DeleteScheduleRequest;
+
+    if (
+      !Number.isInteger(body.scheduleId) ||
+      body.scheduleId <= 0
+    ) {
+      return NextResponse.json(
+        {
+          error: "ID do agendamento inválido.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    if (
+      !Array.isArray(body.deviceIds) ||
+      body.deviceIds.length === 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Selecione pelo menos um dispositivo.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    const results = await Promise.all(
+      body.deviceIds.map((deviceId) =>
+        deleteScheduleFromDevice(
+          deviceId,
+          body.scheduleId,
+        ),
+      ),
+    );
+
+    const successCount =
+      results.filter(
+        (result) => result.success,
+      ).length;
+
+    const failureCount =
+      results.length - successCount;
+
+    return NextResponse.json({
+      success: failureCount === 0,
+
+      scheduleId: body.scheduleId,
+
+      total: results.length,
+      successCount,
+      failureCount,
+
+      results,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido ao excluir agendamento.",
       },
       {
         status: 500,
@@ -284,4 +366,215 @@ function validateScheduleRequest(
   }
 
   return null;
+}
+
+async function deleteScheduleFromDevice(
+  deviceId: number,
+  scheduleId: number,
+): Promise<ScheduleBatchResult> {
+  try {
+    await briseRequest(
+      `/device/${deviceId}/schedules/${scheduleId}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    return {
+      deviceId,
+      success: true,
+    };
+  } catch (error) {
+    if (
+      error instanceof
+      BriseApiError
+    ) {
+      return {
+        deviceId,
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      deviceId,
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Erro desconhecido.",
+    };
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const body =
+      (await request.json()) as ToggleScheduleRequest;
+
+    if (
+      !body.schedule ||
+      !Number.isInteger(
+        body.schedule.scheduleId,
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Agendamento inválido.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    if (
+      !Array.isArray(body.deviceIds) ||
+      body.deviceIds.length === 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Selecione pelo menos um dispositivo.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    if (
+      typeof body.enable !== "boolean"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Estado do agendamento inválido.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    const results =
+      await Promise.all(
+        body.deviceIds.map(
+          (deviceId) =>
+            updateScheduleState(
+              deviceId,
+              body.schedule,
+              body.enable,
+            ),
+        ),
+      );
+
+    const successCount =
+      results.filter(
+        (result) =>
+          result.success,
+      ).length;
+
+    const failureCount =
+      results.length -
+      successCount;
+
+    return NextResponse.json({
+      success:
+        failureCount === 0,
+
+      scheduleId:
+        body.schedule.scheduleId,
+
+      total:
+        results.length,
+
+      successCount,
+
+      failureCount,
+
+      results,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido ao alterar agendamento.",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+}
+
+async function updateScheduleState(
+  deviceId: number,
+  schedule: ToggleScheduleRequest["schedule"],
+  enable: boolean,
+): Promise<ScheduleBatchResult> {
+  try {
+    await briseRequest(
+      `/device/${deviceId}/schedules/${schedule.scheduleId}`,
+      {
+        method: "PUT",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          name:
+            schedule.name,
+
+          enable,
+
+          dateStart:
+            schedule.dateStart,
+
+          dateEnd:
+            schedule.dateEnd,
+
+          repetitionMode:
+            schedule.repetitionMode,
+
+          repetitionValue:
+            schedule.repetitionValue,
+
+          parameter:
+            schedule.parameter,
+        }),
+      },
+    );
+
+    return {
+      deviceId,
+      success: true,
+    };
+  } catch (error) {
+    if (
+      error instanceof
+      BriseApiError
+    ) {
+      return {
+        deviceId,
+        success: false,
+        error:
+          error.message,
+      };
+    }
+
+    return {
+      deviceId,
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Erro desconhecido.",
+    };
+  }
 }

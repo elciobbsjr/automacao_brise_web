@@ -54,3 +54,64 @@ export interface ScheduleBatchResult {
   success: boolean;
   error?: string;
 }
+
+export interface GroupedSchedule {
+  scheduleId: number;
+
+  name: string;
+  enable: boolean;
+
+  dateStart: number;
+  dateEnd: number;
+
+  repetitionMode: number;
+  repetitionValue: number;
+
+  parameter: BriseScheduleParameters;
+
+  deviceIds: number[];
+  devicesCount: number;
+}
+
+export interface ScheduleListResponse {
+  totalDevices: number;
+  successDevices: number;
+  failedDevices: number;
+  totalSchedules: number;
+
+  schedules: GroupedSchedule[];
+}
+
+export interface DeleteScheduleRequest {
+  scheduleId: number;
+  deviceIds: number[];
+}
+
+export interface DeleteScheduleResponse {
+  success: boolean;
+  scheduleId: number;
+
+  total: number;
+  successCount: number;
+  failureCount: number;
+
+  results: ScheduleBatchResult[];
+}
+
+
+export interface ToggleScheduleRequest {
+  schedule: GroupedSchedule;
+  deviceIds: number[];
+  enable: boolean;
+}
+
+export interface ToggleScheduleResponse {
+  success: boolean;
+  scheduleId: number;
+
+  total: number;
+  successCount: number;
+  failureCount: number;
+
+  results: ScheduleBatchResult[];
+}
