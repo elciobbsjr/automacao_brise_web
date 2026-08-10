@@ -12,7 +12,9 @@ export default async function Home() {
       <AutoRefresh />
 
       <div className="mx-auto max-w-7xl">
-        <DashboardHeader />
+        <DashboardHeader
+          devices={dashboard.devices}
+        />
 
         <DashboardSummary dashboard={dashboard} />
 
