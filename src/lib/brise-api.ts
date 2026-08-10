@@ -67,5 +67,18 @@ export async function briseRequest<T>(
     );
   }
 
-  return (await response.json()) as T;
+  const text = await response.text();
+
+  if (!text) {
+    return undefined as T;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new BriseApiError(
+      "A API Brise retornou uma resposta inválida.",
+      502,
+    );
+  }
 }

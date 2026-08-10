@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 
 import type { DashboardDevice } from "@/types/dashboard";
 
+import type {
+  ControlStatus,
+  DeviceParameters,
+} from "@/types/device-control";
+
+import {
+  updateDeviceParameters,
+  waitForDeviceConfirmation,
+} from "@/services/brise-control.service";
+
 interface DeviceControlProps {
   device: DashboardDevice;
 }
@@ -29,7 +39,7 @@ export function DeviceControl({
   );
 
   const [setpointCool, setSetpointCool] =
-    useState(parameters?.setpointCool ?? 23);
+  useState(parameters?.setpointCool ?? 0);
 
   const [setpointHeat, setSetpointHeat] =
     useState(parameters?.setpointHeat ?? 0);
@@ -46,11 +56,19 @@ export function DeviceControl({
   const [message, setMessage] =
     useState("");
 
+  const [controlStatus, setControlStatus] =
+  useState<ControlStatus>("idle");
+
+  const [acEnabled, setAcEnabled] = useState(
+  (parameters?.setpointCool ?? 0) > 0,
+);
     useEffect(() => {
   if (!parameters) {
     return;
   }
 
+
+    setAcEnabled((parameters.setpointCool ?? 0) > 0);
     setModeDevice(parameters.modeDevice ?? 1);
     setModeAC(parameters.modeAC ?? 0);
     setFanSpeed(parameters.fanSpeed ?? 1);
@@ -62,10 +80,13 @@ export function DeviceControl({
     setEcoHeat(parameters.ecoHeat ?? 0);
 
     setMessage("");
+    setControlStatus("idle");
     }, [
     device.deviceId,
     parameters,
     ]);
+
+    
 
     function validateParameters(): string | null {
   if (modeDevice < 0 || modeDevice > 3) {
@@ -88,12 +109,15 @@ export function DeviceControl({
     return "O modo Automático só pode ser utilizado no modo Eco.";
   }
 
-  if (
-    setpointCool !== 0 &&
-    (setpointCool < 18 || setpointCool > 28)
-  ) {
-    return "A temperatura de refrigeração deve estar entre 18 °C e 28 °C ou ser 0 para desativar.";
-  }
+    if (
+    effectiveSetpointCool !== 0 &&
+    (
+        effectiveSetpointCool < 18 ||
+        effectiveSetpointCool > 28
+    )
+    ) {
+    return "A temperatura deve estar entre 18 °C e 28 °C.";
+    }
 
   if (
     setpointHeat !== 0 &&
@@ -116,58 +140,78 @@ export function DeviceControl({
   return null;
 }
 
-  async function handleSave() {
+    const effectiveSetpointCool = acEnabled ? setpointCool : 0;
+
+async function handleSave() {
+  const validationError = validateParameters();
+
+  if (validationError) {
+    setControlStatus("error");
+    setMessage(validationError);
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Deseja aplicar estas alterações no dispositivo ${device.deviceId}?`,
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const targetParameters: DeviceParameters = {
+    modeDevice,
+    modeAC,
+    fanSpeed,
+    setpointCool: effectiveSetpointCool,
+    setpointHeat,
+    ecoCool,
+    ecoHeat,
+  };
+
   try {
     setLoading(true);
-    setMessage("");
 
-    const validationError = validateParameters();
+    setControlStatus("sending");
+    setMessage("Enviando comando...");
 
-    if (validationError) {
-      setMessage(validationError);
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Deseja aplicar estas alterações no dispositivo ${device.deviceId}?`,
+    await updateDeviceParameters(
+      device.deviceId,
+      targetParameters,
     );
 
-    if (!confirmed) {
-      return;
-    }
+    setControlStatus("waiting");
 
-    const response = await fetch(
-      `/api/brise/devices/${device.deviceId}/parameters`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          modeDevice,
-          modeAC,
-          fanSpeed,
-          setpointCool,
-          setpointHeat,
-          ecoCool,
-          ecoHeat,
-        }),
-      },
+    setMessage(
+      "Comando enviado. Aguardando confirmação do dispositivo...",
     );
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        result.error ||
-          "Não foi possível enviar o comando.",
+    const deviceConfirmed =
+      await waitForDeviceConfirmation(
+        device.deviceId,
+        targetParameters,
       );
-    }
-
-    setMessage("Alterações enviadas com sucesso.");
 
     router.refresh();
+
+    if (deviceConfirmed) {
+      setControlStatus("confirmed");
+
+      setMessage(
+        "Alteração confirmada pelo dispositivo.",
+      );
+
+      return;
+    }
+
+    setControlStatus("warning");
+
+    setMessage(
+      "O comando foi enviado, mas o dispositivo ainda não confirmou a alteração.",
+    );
   } catch (error) {
+    setControlStatus("error");
+
     setMessage(
       error instanceof Error
         ? error.message
@@ -250,20 +294,81 @@ export function DeviceControl({
           </select>
         </ControlField>
 
-        <ControlField label="Temperatura de refrigeração">
-            <input
-            type="number"
-            min={0}
-            max={28}
-            value={setpointCool}
-            disabled={modeAC === 1}
-            onChange={(event) =>
-                setSetpointCool(Number(event.target.value))
-            }
-            className="w-full rounded-lg border border-gray-200 p-2.5 disabled:bg-gray-100 disabled:text-gray-400"
-            />
+        <ControlField label="Estado do ar-condicionado">
+            <div className="flex gap-2">
+                <button
+                type="button"
+                onClick={() => {
+                setAcEnabled(true);
+
+                if (setpointCool === 0) {
+                    setSetpointCool(23);
+                }
+                }}
+                className={`flex-1 rounded-lg px-4 py-2.5 font-medium transition ${
+                    acEnabled
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+                >
+                Ligado
+                </button>
+
+                <button
+                type="button"
+                onClick={() => setAcEnabled(false)}
+                className={`flex-1 rounded-lg px-4 py-2.5 font-medium transition ${
+                    !acEnabled
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+                >
+                Desligado
+                </button>
+            </div>
         </ControlField>
 
+        <ControlField label="Temperatura">
+        <div className="flex items-center gap-2">
+            <button
+            type="button"
+            disabled={!acEnabled || setpointCool <= 18}
+            onClick={() =>
+                setSetpointCool((value) =>
+                Math.max(18, value - 1),
+                )
+            }
+            className="rounded-lg border border-gray-200 px-4 py-2.5 font-bold disabled:cursor-not-allowed disabled:opacity-40"
+            >
+            −
+            </button>
+
+            <div className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-center font-semibold">
+            {acEnabled
+                ? `${setpointCool || 23} °C`
+                : "Desligado"}
+            </div>
+
+            <button
+            type="button"
+            disabled={!acEnabled || setpointCool >= 28}
+            onClick={() =>
+                setSetpointCool((value) =>
+                Math.min(28, value === 0 ? 23 : value + 1),
+                )
+            }
+            className="rounded-lg border border-gray-200 px-4 py-2.5 font-bold disabled:cursor-not-allowed disabled:opacity-40"
+            >
+            +
+            </button>
+        </div>
+        </ControlField>
+
+        <div className="sm:col-span-2 mt-3 border-t border-gray-200 pt-4">
+            <p className="text-sm font-semibold text-gray-700">
+                Configurações avançadas
+            </p>
+        </div>
         <ControlField label="Temperatura de aquecimento">
         <input
         type="number"
@@ -309,11 +414,12 @@ export function DeviceControl({
         </ControlField>
       </div>
 
-      {message && (
-        <p className="mt-4 text-sm text-gray-700">
-          {message}
-        </p>
-      )}
+        {message && (
+        <ControlFeedback
+            status={controlStatus}
+            message={message}
+        />
+        )}
 
       <button
         type="button"
@@ -321,9 +427,11 @@ export function DeviceControl({
         disabled={loading}
         className="mt-5 rounded-lg bg-gray-900 px-5 py-2.5 font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading
-          ? "Enviando..."
-          : "Aplicar alterações"}
+        {controlStatus === "waiting"
+        ? "Confirmando..."
+        : loading
+            ? "Enviando..."
+            : "Aplicar alterações"}
       </button>
     </section>
   );
@@ -344,5 +452,41 @@ function ControlField({
 
       {children}
     </label>
+  );
+}
+
+function ControlFeedback({
+  status,
+  message,
+}: {
+  status: ControlStatus;
+  message: string;
+}) {
+  const styles: Record<
+    ControlStatus,
+    string
+  > = {
+    idle: "",
+    sending:
+      "bg-blue-50 text-blue-700 border-blue-100",
+    waiting:
+      "bg-yellow-50 text-yellow-700 border-yellow-100",
+    confirmed:
+      "bg-green-50 text-green-700 border-green-100",
+    warning:
+      "bg-yellow-50 text-yellow-700 border-yellow-100",
+    error:
+      "bg-red-50 text-red-700 border-red-100",
+  };
+
+  return (
+    <div
+      className={`mt-4 rounded-lg border px-4 py-3 text-sm font-medium ${styles[status]}`}
+    >
+      {status === "confirmed" && "✓ "}
+      {status === "error" && "Erro: "}
+
+      {message}
+    </div>
   );
 }

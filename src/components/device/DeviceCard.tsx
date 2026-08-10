@@ -152,7 +152,7 @@ export function DeviceCard({
         device={device}
         open={detailsOpen}
         onClose={() => setDetailsOpen(false)}
-        />
+      />
     </article>
   );
 }
