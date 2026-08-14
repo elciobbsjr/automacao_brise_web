@@ -115,3 +115,30 @@ export interface ToggleScheduleResponse {
 
   results: ScheduleBatchResult[];
 }
+
+export interface UpdateScheduleRequest {
+  scheduleId: number;
+  deviceIds: number[];
+
+  name: string;
+  enable: boolean;
+
+  dateStart: number;
+  dateEnd: number;
+
+  repetitionMode: number;
+  repetitionValue: number;
+
+  parameter: BriseScheduleParameters;
+}
+
+export interface UpdateScheduleResponse {
+  success: boolean;
+  scheduleId: number;
+
+  total: number;
+  successCount: number;
+  failureCount: number;
+
+  results: ScheduleBatchResult[];
+}

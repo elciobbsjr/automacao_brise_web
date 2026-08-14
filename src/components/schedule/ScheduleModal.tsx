@@ -128,7 +128,9 @@ export function ScheduleModal({
         </div>
 
         {tab === "list" ? (
-          <ScheduleList />
+          <ScheduleList
+            devices={devices}
+          />
         ) : (
           <ScheduleForm
             devices={devices}

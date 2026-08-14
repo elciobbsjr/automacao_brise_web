@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ScheduleDeleteModal } from "./ScheduleDeleteModal";
-import { ScheduleToggleModal } from "./ScheduleToggleModal";
+
+import type {
+  DashboardDevice,
+} from "@/types/dashboard";
 
 import type {
   GroupedSchedule,
@@ -21,25 +23,53 @@ import {
   getSchedules,
 } from "@/services/schedule.service";
 
-export function ScheduleList() {
+import {
+  ScheduleDeleteModal,
+} from "./ScheduleDeleteModal";
 
-    const [
+import {
+  ScheduleToggleModal,
+} from "./ScheduleToggleModal";
+
+import {
+  ScheduleEditModal,
+} from "./ScheduleEditModal";
+
+interface ScheduleListProps {
+  devices: DashboardDevice[];
+}
+
+export function ScheduleList({
+  devices,
+}: ScheduleListProps) {
+  const [
     scheduleToToggle,
     setScheduleToToggle,
-    ] =
+  ] =
     useState<GroupedSchedule | null>(
-        null,
+      null,
     );
 
-    const [
+  const [
     scheduleToDelete,
     setScheduleToDelete,
-    ] =
+  ] =
     useState<GroupedSchedule | null>(
-        null,
+      null,
     );
+
+  const [
+    scheduleToEdit,
+    setScheduleToEdit,
+  ] =
+    useState<GroupedSchedule | null>(
+      null,
+    );
+
   const [data, setData] =
-    useState<ScheduleListResponse | null>(null);
+    useState<ScheduleListResponse | null>(
+      null,
+    );
 
   const [loading, setLoading] =
     useState(true);
@@ -112,8 +142,6 @@ export function ScheduleList() {
     );
   }
 
-
-
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-4">
@@ -136,70 +164,97 @@ export function ScheduleList() {
         </button>
       </div>
 
-<div className="grid gap-4">
-  {data.schedules.map(
-    (schedule, index) => (
-      <ScheduleCard
-        key={`${schedule.scheduleId}-${index}`}
-        schedule={schedule}
-        onDelete={() =>
-          setScheduleToDelete(
-            schedule,
-          )
+      <div className="grid gap-4">
+        {data.schedules.map(
+          (schedule, index) => (
+            <ScheduleCard
+              key={`${schedule.scheduleId}-${index}`}
+              schedule={schedule}
+              onEdit={() =>
+                setScheduleToEdit(
+                  schedule,
+                )
+              }
+              onDelete={() =>
+                setScheduleToDelete(
+                  schedule,
+                )
+              }
+              onToggle={() =>
+                setScheduleToToggle(
+                  schedule,
+                )
+              }
+            />
+          ),
+        )}
+      </div>
+
+      <ScheduleDeleteModal
+        schedule={scheduleToDelete}
+        open={
+          scheduleToDelete !== null
         }
-        onToggle={() =>
-          setScheduleToToggle(
-            schedule,
-          )
+        onClose={() =>
+          setScheduleToDelete(null)
         }
+        onDeleted={() => {
+          setScheduleToDelete(null);
+          loadSchedules();
+        }}
       />
-    ),
-  )}
-</div>
 
-<ScheduleDeleteModal
-  schedule={scheduleToDelete}
-  open={
-    scheduleToDelete !== null
-  }
-  onClose={() =>
-    setScheduleToDelete(null)
-  }
-  onDeleted={() => {
-    setScheduleToDelete(null);
-    loadSchedules();
-  }}
-/>
+      <ScheduleToggleModal
+        schedule={scheduleToToggle}
+        open={
+          scheduleToToggle !== null
+        }
+        onClose={() =>
+          setScheduleToToggle(null)
+        }
+        onUpdated={() => {
+          setScheduleToToggle(null);
+          loadSchedules();
+        }}
+      />
 
-<ScheduleToggleModal
-  schedule={scheduleToToggle}
-  open={
-    scheduleToToggle !== null
-  }
-  onClose={() =>
-    setScheduleToToggle(null)
-  }
-  onUpdated={() => {
-    setScheduleToToggle(null);
-    loadSchedules();
-  }}
-/>
-</section>
+      <ScheduleEditModal
+        schedule={scheduleToEdit}
+        devices={devices}
+        open={
+          scheduleToEdit !== null
+        }
+        onClose={() =>
+          setScheduleToEdit(null)
+        }
+        onUpdated={() => {
+          setScheduleToEdit(null);
+          loadSchedules();
+        }}
+      />
+    </section>
   );
 }
 
 function ScheduleCard({
   schedule,
+  onEdit,
   onDelete,
   onToggle,
 }: {
   schedule: GroupedSchedule;
+  onEdit: () => void;
   onDelete: () => void;
   onToggle: () => void;
 }) {
+  const valid =
+    isScheduleValid(
+      schedule,
+    );
+
   const selectedDays =
-    decodeWeekDays(
-      schedule.repetitionValue,
+    getSelectedDays(
+      schedule,
     );
 
   const dayLabels =
@@ -226,39 +281,79 @@ function ScheduleCard({
 
   const temperature =
     schedule.parameter
-      .setpointCool;
+      ?.setpointCool;
 
   return (
-    <article className="rounded-2xl bg-white p-5 shadow-sm">
+    <article
+      className={`rounded-2xl border p-5 shadow-sm ${
+        valid
+          ? "border-transparent bg-white"
+          : "border-amber-200 bg-amber-50/40"
+      }`}
+    >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-semibold text-gray-900">
-              {schedule.name}
+              {isValidScheduleName(
+                schedule.name,
+              )
+                ? schedule.name
+                : "Agendamento sem nome"}
             </h3>
 
-            <span
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                schedule.enable
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-200 text-gray-600"
-              }`}
-            >
-              {schedule.enable
-                ? "Ativo"
-                : "Inativo"}
-            </span>
+            {valid ? (
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  schedule.enable
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-200 text-gray-600"
+                }`}
+              >
+                {schedule.enable
+                  ? "Ativo"
+                  : "Inativo"}
+              </span>
+            ) : (
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                Incompleto
+              </span>
+            )}
           </div>
 
           <p className="mt-1 text-sm text-gray-500">
-            ID {schedule.scheduleId}
+            ID{" "}
+            {Number.isFinite(
+              schedule.scheduleId,
+            )
+              ? schedule.scheduleId
+              : "indisponível"}
           </p>
         </div>
 
         <div className="text-sm text-gray-600">
-          {schedule.devicesCount} dispositivo(s)
+          {schedule.deviceIds?.length ??
+            0}{" "}
+          dispositivo(s)
         </div>
       </div>
+
+      {!valid && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p className="text-sm font-medium text-amber-800">
+            Agendamento incompleto
+          </p>
+
+          <p className="mt-1 text-xs text-amber-700">
+            Alguns dados deste
+            agendamento não foram
+            retornados corretamente.
+            Para evitar alterações
+            incorretas, a edição e a
+            ativação foram bloqueadas.
+          </p>
+        </div>
+      )}
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <ScheduleInfo
@@ -266,29 +361,36 @@ function ScheduleCard({
           value={
             dayLabels.length > 0
               ? dayLabels.join(" • ")
-              : "Sem repetição"
+              : valid
+                ? "Sem repetição"
+                : "Indisponível"
           }
         />
 
         <ScheduleInfo
           label="Horário"
-          value={`${startTime} → ${endTime}`}
+          value={
+            startTime ===
+              "Indisponível" ||
+            endTime ===
+              "Indisponível"
+              ? "Indisponível"
+              : `${startTime} → ${endTime}`
+          }
         />
 
         <ScheduleInfo
           label="Temperatura"
-          value={
-            temperature === 0
-              ? "Desligado"
-              : `${temperature} °C`
-          }
+          value={formatTemperature(
+            temperature,
+          )}
         />
 
         <ScheduleInfo
           label="Ventilação"
           value={formatFanSpeed(
             schedule.parameter
-              .fanSpeed,
+              ?.fanSpeed,
           )}
         />
       </div>
@@ -299,9 +401,15 @@ function ScheduleCard({
         </p>
 
         <p className="mt-1 text-sm text-gray-700">
-          {schedule.deviceIds.join(
-            ", ",
-          )}
+          {Array.isArray(
+            schedule.deviceIds,
+          ) &&
+          schedule.deviceIds.length >
+            0
+            ? schedule.deviceIds.join(
+                ", ",
+              )
+            : "Nenhum dispositivo associado"}
         </p>
       </div>
 
@@ -315,27 +423,54 @@ function ScheduleCard({
 
         <button
           type="button"
-          className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700"
+          onClick={onEdit}
+          disabled={!valid}
+          title={
+            valid
+              ? "Editar agendamento"
+              : "Agendamentos incompletos não podem ser editados."
+          }
+          className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Editar
         </button>
 
         <button
-        type="button"
-        onClick={onToggle}
-        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700"
+          type="button"
+          onClick={onToggle}
+          disabled={!valid}
+          title={
+            valid
+              ? schedule.enable
+                ? "Desativar agendamento"
+                : "Ativar agendamento"
+              : "Agendamentos incompletos não podem ser ativados ou desativados."
+          }
+          className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-        {schedule.enable
+          {schedule.enable
             ? "Desativar"
             : "Ativar"}
         </button>
 
         <button
-        type="button"
-        onClick={onDelete}
-        className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700"
+          type="button"
+          onClick={onDelete}
+          disabled={
+            !hasValidDeleteData(
+              schedule,
+            )
+          }
+          title={
+            hasValidDeleteData(
+              schedule,
+            )
+              ? "Excluir agendamento"
+              : "Não há informações suficientes para excluir este agendamento."
+          }
+          className="rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-        Excluir
+          Excluir
         </button>
       </div>
     </article>
@@ -362,9 +497,198 @@ function ScheduleInfo({
   );
 }
 
-function formatFanSpeed(
-  value: number,
+function isScheduleValid(
+  schedule: GroupedSchedule,
 ) {
+  if (
+    !Number.isInteger(
+      schedule.scheduleId,
+    ) ||
+    schedule.scheduleId <= 0
+  ) {
+    return false;
+  }
+
+  if (
+    !isValidScheduleName(
+      schedule.name,
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    !isValidTimestamp(
+      schedule.dateStart,
+    ) ||
+    !isValidTimestamp(
+      schedule.dateEnd,
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    schedule.dateEnd <=
+    schedule.dateStart
+  ) {
+    return false;
+  }
+
+  if (
+    !Array.isArray(
+      schedule.deviceIds,
+    ) ||
+    schedule.deviceIds.length ===
+      0
+  ) {
+    return false;
+  }
+
+  if (!schedule.parameter) {
+    return false;
+  }
+
+  const fanSpeed =
+    schedule.parameter.fanSpeed;
+
+  if (
+    !Number.isFinite(
+      fanSpeed,
+    ) ||
+    fanSpeed < 1 ||
+    fanSpeed > 3
+  ) {
+    return false;
+  }
+
+  const setpointCool =
+    schedule.parameter
+      .setpointCool;
+
+  if (
+    !Number.isFinite(
+      setpointCool,
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    setpointCool !== 0 &&
+    (
+      setpointCool < 18 ||
+      setpointCool > 28
+    )
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function hasValidDeleteData(
+  schedule: GroupedSchedule,
+) {
+  return (
+    Number.isInteger(
+      schedule.scheduleId,
+    ) &&
+    schedule.scheduleId > 0 &&
+    Array.isArray(
+      schedule.deviceIds,
+    ) &&
+    schedule.deviceIds.length > 0
+  );
+}
+
+function isValidScheduleName(
+  name?: string | null,
+) {
+  return (
+    typeof name === "string" &&
+    name.trim().length > 0
+  );
+}
+
+function isValidTimestamp(
+  timestamp?: number | null,
+) {
+  if (
+    timestamp === undefined ||
+    timestamp === null ||
+    !Number.isFinite(timestamp) ||
+    timestamp <= 0
+  ) {
+    return false;
+  }
+
+  const date =
+    new Date(
+      timestamp * 1000,
+    );
+
+  return !Number.isNaN(
+    date.getTime(),
+  );
+}
+
+function getSelectedDays(
+  schedule: GroupedSchedule,
+) {
+  if (
+    !Number.isFinite(
+      schedule.repetitionValue,
+    )
+  ) {
+    return [];
+  }
+
+  try {
+    return decodeWeekDays(
+      schedule.repetitionValue,
+    );
+  } catch {
+    return [];
+  }
+}
+
+function formatTemperature(
+  value?: number | null,
+) {
+  if (
+    value === undefined ||
+    value === null ||
+    !Number.isFinite(value)
+  ) {
+    return "Indisponível";
+  }
+
+  if (value === 0) {
+    return "Desligado";
+  }
+
+  if (
+    value < 18 ||
+    value > 28
+  ) {
+    return "Indisponível";
+  }
+
+  return `${value} °C`;
+}
+
+function formatFanSpeed(
+  value?: number | null,
+) {
+  if (
+    value === undefined ||
+    value === null ||
+    !Number.isFinite(value)
+  ) {
+    return "Indisponível";
+  }
+
   const speeds: Record<
     number,
     string
@@ -384,32 +708,29 @@ function formatScheduleTime(
   timestamp?: number | null,
 ) {
   if (
-    timestamp === undefined ||
-    timestamp === null ||
-    !Number.isFinite(timestamp)
-  ) {
-    return "Indisponível";
-  }
-
-  const date = new Date(
-    timestamp * 1000,
-  );
-
-  if (
-    Number.isNaN(
-      date.getTime(),
+    !isValidTimestamp(
+      timestamp,
     )
   ) {
     return "Indisponível";
   }
 
-  return new Intl.DateTimeFormat(
-    "pt-BR",
-    {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone:
-        "America/Fortaleza",
-    },
-  ).format(date);
+  const date =
+    new Date(
+      timestamp! * 1000,
+    );
+
+  try {
+    return new Intl.DateTimeFormat(
+      "pt-BR",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone:
+          "America/Fortaleza",
+      },
+    ).format(date);
+  } catch {
+    return "Indisponível";
+  }
 }

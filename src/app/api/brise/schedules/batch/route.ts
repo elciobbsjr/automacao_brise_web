@@ -5,8 +5,6 @@ import {
   BriseApiError,
 } from "@/lib/brise-api";
 
-
-
 import type {
   BriseSchedule,
   CreateScheduleRequest,
@@ -14,7 +12,6 @@ import type {
   ScheduleBatchResult,
   ToggleScheduleRequest,
 } from "@/types/schedule";
-
 
 export async function POST(request: Request) {
   try {

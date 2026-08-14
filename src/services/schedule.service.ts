@@ -5,6 +5,8 @@ import type {
   DeleteScheduleResponse,
   ToggleScheduleResponse,
   GroupedSchedule,
+  UpdateScheduleRequest,
+  UpdateScheduleResponse,
 } from "@/types/schedule";
 
 
@@ -127,6 +129,40 @@ export async function toggleBatchSchedule(
     throw new Error(
       result.error ||
         "Não foi possível alterar o agendamento.",
+    );
+  }
+
+  return result;
+}
+
+
+
+export async function updateBatchSchedule(
+  schedule: UpdateScheduleRequest,
+): Promise<UpdateScheduleResponse> {
+  const response = await fetch(
+    "/api/brise/schedules/batch/update",
+    {
+      method: "PUT",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+
+      body: JSON.stringify(
+        schedule,
+      ),
+    },
+  );
+
+  const result =
+    await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.error ||
+        "Não foi possível editar o agendamento.",
     );
   }
 
