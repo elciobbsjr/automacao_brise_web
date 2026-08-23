@@ -23,17 +23,24 @@ import {
 } from "./DashboardGroupFilter";
 
 import {
-  ALL_GROUPS_KEY,
   filterDevicesByGroup,
   getAvailableGroups,
 } from "@/utils/device-groups";
 
 interface DashboardDevicesProps {
   devices: DashboardDevice[];
+
+  selectedGroup: string;
+
+  onGroupChange: (
+    group: string,
+  ) => void;
 }
 
 export function DashboardDevices({
   devices,
+  selectedGroup,
+  onGroupChange,
 }: DashboardDevicesProps) {
   const [search, setSearch] =
     useState("");
@@ -44,14 +51,6 @@ export function DashboardDevices({
   ] =
     useState<DeviceFilter>(
       "all",
-    );
-
-  const [
-    selectedGroup,
-    setSelectedGroup,
-  ] =
-    useState(
-      ALL_GROUPS_KEY,
     );
 
   const groups =
@@ -166,16 +165,27 @@ export function DashboardDevices({
       filter,
     ]);
 
+  function handleGroupChange(
+    group: string,
+  ) {
+    onGroupChange(group);
+
+    // Ao mudar de prédio/local,
+    // limpamos os filtros secundários.
+    setFilter("all");
+    setSearch("");
+  }
+
   return (
     <section>
       <div className="mb-5">
         <div className="mb-3 flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-slate-900">
               Locais
             </h2>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-slate-500">
               Selecione o prédio
               ou grupo que deseja
               visualizar.
@@ -188,23 +198,18 @@ export function DashboardDevices({
           selectedGroup={
             selectedGroup
           }
-          onChange={(group) => {
-            setSelectedGroup(
-              group,
-            );
-
-            setFilter("all");
-            setSearch("");
-          }}
+          onChange={
+            handleGroupChange
+          }
         />
       </div>
 
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-slate-900">
           Dispositivos
         </h2>
 
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-slate-500">
           {
             filteredDevices.length
           }{" "}
@@ -246,13 +251,12 @@ export function DashboardDevices({
           )}
         </div>
       ) : (
-        <div className="rounded-xl bg-white p-8 text-center shadow-sm">
-          <p className="font-medium text-gray-700">
-            Nenhum dispositivo
-            encontrado.
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <p className="font-medium text-slate-700">
+            Nenhum dispositivo encontrado.
           </p>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             Altere a busca,
             selecione outro
             filtro ou escolha

@@ -1,28 +1,30 @@
-
 "use client";
-import { useState } from "react";
-import type { DashboardDevice } from "@/types/dashboard";
-
-
-
-
-import { DeviceDetailsModal } from "./DeviceDetailsModal";
 
 import {
-  AC_MODES,
-  DEVICE_MODES,
-  FAN_SPEEDS,
-} from "@/constants/brise";
+  useState,
+} from "react";
+
+import type {
+  DashboardDevice,
+} from "@/types/dashboard";
 
 import {
-  formatBtu,
+  DeviceDetailsModal,
+} from "./DeviceDetailsModal";
+
+import {
+  DeviceQuickControl,
+} from "./DeviceQuickControl";
+
+import {
   formatConsumption,
   formatPercentage,
   formatTemperature,
 } from "@/utils/formatters";
 
-import { DeviceInfo } from "./DeviceInfo";
-import { DeviceStatusBadge } from "./DeviceStatusBadge";
+import {
+  DeviceStatusBadge,
+} from "./DeviceStatusBadge";
 
 interface DeviceCardProps {
   device: DashboardDevice;
@@ -31,7 +33,11 @@ interface DeviceCardProps {
 export function DeviceCard({
   device,
 }: DeviceCardProps) {
-    const [detailsOpen, setDetailsOpen] = useState(false);
+  const [
+    detailsOpen,
+    setDetailsOpen,
+  ] = useState(false);
+
   const name =
     device.config?.name ||
     `Dispositivo ${device.deviceId}`;
@@ -41,118 +47,158 @@ export function DeviceCard({
     "Modelo indisponível";
 
   const isRunning =
-    device.variables?.state === true;
+    device.variables
+      ?.state === true;
 
-  const modeDevice =
-    device.parameters?.modeDevice !== undefined
-      ? DEVICE_MODES[device.parameters.modeDevice]
-      : "Indisponível";
+  const temperature =
+    formatTemperature(
+      device.variables
+        ?.temperature,
+    );
 
-  const modeAC =
-    device.parameters?.modeAC !== undefined
-      ? AC_MODES[device.parameters.modeAC]
-      : "Indisponível";
+  const humidity =
+    formatPercentage(
+      device.variables
+        ?.humidity,
+    );
 
-  const fanSpeed =
-    device.parameters?.fanSpeed !== undefined
-      ? FAN_SPEEDS[device.parameters.fanSpeed]
-      : "Indisponível";
+  const consumption =
+    formatConsumption(
+      device.variables
+        ?.consumptionEstimated,
+    );
 
   return (
-    <article className="rounded-2xl bg-white p-6 shadow-sm">
-      <header className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            {name}
-          </h3>
+    <>
+      <article className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
+        <header className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h3 className="truncate text-lg font-semibold text-slate-900">
+              {name}
+            </h3>
 
-          <p className="mt-1 text-sm text-gray-500">
-            {model} · Nº {device.deviceId}
-          </p>
-        </div>
-
-        <DeviceStatusBadge
-          online={device.online}
-          running={isRunning}
-        />
-      </header>
-
-      {device.online ? (
-        <>
-          <div className="grid grid-cols-2 gap-4">
-            <DeviceInfo
-              label="Temperatura"
-              value={formatTemperature(
-                device.variables?.temperature,
-              )}
-            />
-
-            <DeviceInfo
-              label="Umidade"
-              value={formatPercentage(
-                device.variables?.humidity,
-              )}
-            />
-
-            <DeviceInfo
-              label="Modo"
-              value={modeDevice}
-            />
-
-            <DeviceInfo
-              label="Modo do ar"
-              value={modeAC}
-            />
-
-            <DeviceInfo
-              label="Ventilação"
-              value={fanSpeed}
-            />
-
-            <DeviceInfo
-              label="Consumo estimado"
-              value={formatConsumption(
-                device.variables?.consumptionEstimated,
-              )}
-            />
-          </div>
-
-          <div className="mt-5 border-t border-gray-100 pt-4">
-            <p className="text-sm text-gray-500">
-              Capacidade
-            </p>
-
-            <p className="font-semibold text-gray-800">
-              {formatBtu(device.config?.btu)}
+            <p className="mt-1 truncate text-sm text-slate-500">
+              {model} · Nº{" "}
+              {device.deviceId}
             </p>
           </div>
-        </>
-      ) : (
-        <div className="rounded-lg bg-gray-100 p-4">
-          <p className="font-medium text-gray-700">
-            Dispositivo sem resposta
-          </p>
 
-          <p className="mt-1 text-sm text-gray-500">
-            O equipamento pode estar desligado,
-            offline ou com credenciais inválidas.
-          </p>
-        </div>
-      )}
+          <div className="shrink-0">
+            <DeviceStatusBadge
+              online={
+                device.online
+              }
+              running={
+                isRunning
+              }
+            />
+          </div>
+        </header>
 
-        <button
-        type="button"
-        onClick={() => setDetailsOpen(true)}
-        className="mt-6 w-full rounded-lg bg-gray-900 px-4 py-2.5 font-medium text-white transition hover:bg-gray-700"
-        >
-        Ver detalhes
-        </button>
+        {device.online ? (
+          <>
+            <div className="py-7 text-center">
+              <p className="text-5xl font-bold tracking-tight text-slate-900">
+                {temperature}
+              </p>
 
-        <DeviceDetailsModal
+              <p className="mt-2 text-sm font-medium text-slate-500">
+                Temperatura ambiente
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Metric
+                label="Umidade"
+                value={humidity}
+              />
+
+              <Metric
+                label="Consumo estimado"
+                value={consumption}
+              />
+            </div>
+
+            <DeviceQuickControl
+              device={device}
+            />
+
+            <div className="mt-auto pt-4">
+              <button
+                type="button"
+                onClick={() =>
+                  setDetailsOpen(
+                    true,
+                  )
+                }
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+              >
+                Ver detalhes
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-1 flex-col items-center justify-center py-9 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50">
+                <span className="h-3 w-3 rounded-full bg-amber-500" />
+              </div>
+
+              <p className="mt-4 font-semibold text-slate-800">
+                Sem comunicação
+              </p>
+
+              <p className="mt-2 max-w-xs text-sm leading-6 text-slate-500">
+                Não foi possível obter
+                as informações atuais
+                deste equipamento.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setDetailsOpen(
+                  true,
+                )
+              }
+              className="mt-4 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Ver detalhes
+            </button>
+          </>
+        )}
+      </article>
+
+      <DeviceDetailsModal
         device={device}
         open={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
+        onClose={() =>
+          setDetailsOpen(
+            false,
+          )
+        }
       />
-    </article>
+    </>
+  );
+}
+
+function Metric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl bg-slate-50 p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        {label}
+      </p>
+
+      <p className="mt-1.5 text-base font-bold text-slate-800">
+        {value}
+      </p>
+    </div>
   );
 }
