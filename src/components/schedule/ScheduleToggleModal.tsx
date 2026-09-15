@@ -71,8 +71,11 @@ export function ScheduleToggleModal({
     return null;
   }
 
+  const currentSchedule =
+    schedule;
+
   const targetEnable =
-    !schedule.enable;
+    !currentSchedule.enable;
 
   const actionLabel =
     targetEnable
@@ -81,7 +84,7 @@ export function ScheduleToggleModal({
 
   const allSelected =
     selectedDevices.length ===
-    schedule.deviceIds.length;
+    currentSchedule.deviceIds.length;
 
   function toggleDevice(
     deviceId: number,
@@ -104,7 +107,7 @@ export function ScheduleToggleModal({
 
   function selectAll() {
     setSelectedDevices(
-      schedule.deviceIds,
+      currentSchedule.deviceIds,
     );
   }
 
@@ -126,7 +129,7 @@ export function ScheduleToggleModal({
 
     const confirmed =
       window.confirm(
-        `${actionLabel} o agendamento "${schedule.name}" em ${selectedDevices.length} dispositivo(s)?`,
+        `${actionLabel} o agendamento "${currentSchedule.name}" em ${selectedDevices.length} dispositivo(s)?`,
       );
 
     if (!confirmed) {
@@ -142,7 +145,7 @@ export function ScheduleToggleModal({
 
       const result =
         await toggleBatchSchedule(
-          schedule,
+          currentSchedule,
           selectedDevices,
           targetEnable,
         );
@@ -199,7 +202,7 @@ export function ScheduleToggleModal({
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
-              {schedule.name}
+              {currentSchedule.name}
             </p>
           </div>
 
@@ -239,7 +242,7 @@ export function ScheduleToggleModal({
         </div>
 
         <div className="max-h-64 space-y-2 overflow-y-auto">
-          {schedule.deviceIds.map(
+          {currentSchedule.deviceIds.map(
             (deviceId) => {
               const selected =
                 selectedDevices.includes(

@@ -69,9 +69,12 @@ export function ScheduleDeleteModal({
     return null;
   }
 
+  const currentSchedule =
+    schedule;
+
   const allSelected =
     selectedDevices.length ===
-    schedule.deviceIds.length;
+    currentSchedule.deviceIds.length;
 
   function toggleDevice(
     deviceId: number,
@@ -92,7 +95,7 @@ export function ScheduleDeleteModal({
 
   function selectAll() {
     setSelectedDevices(
-      schedule.deviceIds,
+      currentSchedule.deviceIds,
     );
   }
 
@@ -113,7 +116,7 @@ export function ScheduleDeleteModal({
 
     const confirmed =
       window.confirm(
-        `Excluir o agendamento "${schedule.name}" de ${selectedDevices.length} dispositivo(s)?`,
+        `Excluir o agendamento "${currentSchedule.name}" de ${selectedDevices.length} dispositivo(s)?`,
       );
 
     if (!confirmed) {
@@ -129,7 +132,7 @@ export function ScheduleDeleteModal({
 
       const result =
         await deleteBatchSchedule(
-          schedule.scheduleId,
+          currentSchedule.scheduleId,
           selectedDevices,
         );
 
@@ -185,7 +188,7 @@ export function ScheduleDeleteModal({
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
-              {schedule.name}
+              {currentSchedule.name}
             </p>
           </div>
 
@@ -201,7 +204,7 @@ export function ScheduleDeleteModal({
         <p className="mb-4 text-sm text-gray-600">
           Este agendamento está associado a{" "}
           <strong>
-            {schedule.devicesCount}
+            {currentSchedule.devicesCount}
           </strong>{" "}
           dispositivo(s). Escolha de quais deseja removê-lo.
         </p>
@@ -225,7 +228,7 @@ export function ScheduleDeleteModal({
         </div>
 
         <div className="max-h-64 space-y-2 overflow-y-auto">
-          {schedule.deviceIds.map(
+          {currentSchedule.deviceIds.map(
             (deviceId) => {
               const selected =
                 selectedDevices.includes(
