@@ -23,27 +23,35 @@ import {
 } from "./DashboardGroupFilter";
 
 import {
-  filterDevicesByGroup,
+  ALL_GROUPS_KEY,
+  UNGROUPED_KEY,
+  filterDevicesByHierarchy,
   getAvailableGroups,
+  getAvailableGroupsAtLevel,
+  type DeviceGroupSelection,
+  type GroupLevel,
 } from "@/utils/device-groups";
 
 interface DashboardDevicesProps {
   devices: DashboardDevice[];
 
-  selectedGroup: string;
+  groupSelection:
+    DeviceGroupSelection;
 
-  onGroupChange: (
-    group: string,
+  onGroupSelectionChange: (
+    selection: DeviceGroupSelection,
   ) => void;
 }
 
 export function DashboardDevices({
   devices,
-  selectedGroup,
-  onGroupChange,
+  groupSelection,
+  onGroupSelectionChange,
 }: DashboardDevicesProps) {
-  const [search, setSearch] =
-    useState("");
+  const [
+    search,
+    setSearch,
+  ] = useState("");
 
   const [
     filter,
@@ -53,7 +61,15 @@ export function DashboardDevices({
       "all",
     );
 
-  const groups =
+  /*
+   * NÍVEL 1
+   *
+   * Todos
+   * Fórum
+   * Sede
+   * Sem grupo
+   */
+  const level1Groups =
     useMemo(
       () =>
         getAvailableGroups(
@@ -62,16 +78,108 @@ export function DashboardDevices({
       [devices],
     );
 
+  /*
+   * NÍVEL 2
+   *
+   * Só calculamos quando um
+   * prédio/local específico estiver
+   * selecionado.
+   */
+  const level2Groups =
+    useMemo(() => {
+      if (
+        groupSelection.level1 ===
+          ALL_GROUPS_KEY ||
+        groupSelection.level1 ===
+          UNGROUPED_KEY
+      ) {
+        return [];
+      }
+
+      return getAvailableGroupsAtLevel(
+        devices,
+        2,
+        groupSelection,
+      );
+    }, [
+      devices,
+      groupSelection,
+    ]);
+
+  /*
+   * NÍVEL 3
+   *
+   * Só aparece depois que um setor
+   * específico foi selecionado.
+   */
+  const level3Groups =
+    useMemo(() => {
+      if (
+        groupSelection.level1 ===
+          ALL_GROUPS_KEY ||
+        groupSelection.level1 ===
+          UNGROUPED_KEY ||
+        groupSelection.level2 ===
+          ALL_GROUPS_KEY
+      ) {
+        return [];
+      }
+
+      return getAvailableGroupsAtLevel(
+        devices,
+        3,
+        groupSelection,
+      );
+    }, [
+      devices,
+      groupSelection,
+    ]);
+
+  /*
+   * NÍVEL 4
+   *
+   * Só aparece depois que uma
+   * subdivisão específica foi
+   * selecionada.
+   */
+  const level4Groups =
+    useMemo(() => {
+      if (
+        groupSelection.level1 ===
+          ALL_GROUPS_KEY ||
+        groupSelection.level1 ===
+          UNGROUPED_KEY ||
+        groupSelection.level2 ===
+          ALL_GROUPS_KEY ||
+        groupSelection.level3 ===
+          ALL_GROUPS_KEY
+      ) {
+        return [];
+      }
+
+      return getAvailableGroupsAtLevel(
+        devices,
+        4,
+        groupSelection,
+      );
+    }, [
+      devices,
+      groupSelection,
+    ]);
+
+  /*
+   * Aplica toda a hierarquia.
+   */
   const devicesByGroup =
     useMemo(
       () =>
-        filterDevicesByGroup(
+        filterDevicesByHierarchy(
           devices,
-          selectedGroup,
+          groupSelection,
         ),
       [
         devices,
-        selectedGroup,
+        groupSelection,
       ],
     );
 
@@ -125,7 +233,9 @@ export function DashboardDevices({
               normalizedSearch,
             );
 
-          if (!matchesSearch) {
+          if (
+            !matchesSearch
+          ) {
             return false;
           }
 
@@ -166,37 +276,128 @@ export function DashboardDevices({
     ]);
 
   function handleGroupChange(
-    group: string,
+    level: GroupLevel,
+    value: string,
   ) {
-    onGroupChange(group);
+    let nextSelection: DeviceGroupSelection;
 
-    // Ao mudar de prédio/local,
-    // limpamos os filtros secundários.
+    /*
+     * Quando alteramos um nível,
+     * todos os níveis abaixo dele
+     * são resetados.
+     *
+     * Exemplo:
+     *
+     * Sede
+     * → SEMEQ
+     * → Manutenção
+     *
+     * Se trocar Sede por Fórum,
+     * SEMEQ e Manutenção deixam
+     * de fazer sentido.
+     */
+    switch (level) {
+      case 1:
+        nextSelection = {
+          level1: value,
+
+          level2:
+            ALL_GROUPS_KEY,
+
+          level3:
+            ALL_GROUPS_KEY,
+
+          level4:
+            ALL_GROUPS_KEY,
+        };
+
+        break;
+
+      case 2:
+        nextSelection = {
+          ...groupSelection,
+
+          level2: value,
+
+          level3:
+            ALL_GROUPS_KEY,
+
+          level4:
+            ALL_GROUPS_KEY,
+        };
+
+        break;
+
+      case 3:
+        nextSelection = {
+          ...groupSelection,
+
+          level3: value,
+
+          level4:
+            ALL_GROUPS_KEY,
+        };
+
+        break;
+
+      case 4:
+        nextSelection = {
+          ...groupSelection,
+
+          level4: value,
+        };
+
+        break;
+    }
+
+    onGroupSelectionChange(
+      nextSelection,
+    );
+
+    /*
+     * Mantemos o comportamento
+     * que você já tinha:
+     *
+     * ao trocar de local/setor,
+     * limpamos busca e filtro de
+     * ligado/desligado.
+     */
     setFilter("all");
     setSearch("");
   }
 
   return (
     <section>
-      <div className="mb-5">
-        <div className="mb-3 flex items-center justify-between gap-4">
+      <div className="mb-6">
+        <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">
               Locais
             </h2>
 
             <p className="mt-1 text-sm text-slate-500">
-              Selecione o prédio
-              ou grupo que deseja
-              visualizar.
+              Selecione o prédio,
+              setor ou área que
+              deseja visualizar.
             </p>
           </div>
         </div>
 
         <DashboardGroupFilter
-          groups={groups}
-          selectedGroup={
-            selectedGroup
+          selection={
+            groupSelection
+          }
+          level1Groups={
+            level1Groups
+          }
+          level2Groups={
+            level2Groups
+          }
+          level3Groups={
+            level3Groups
+          }
+          level4Groups={
+            level4Groups
           }
           onChange={
             handleGroupChange

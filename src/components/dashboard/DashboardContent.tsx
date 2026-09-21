@@ -1,14 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useMemo,
+  useState,
+} from "react";
 
 import type {
   DashboardResponse,
 } from "@/types/dashboard";
 
 import {
-  ALL_GROUPS_KEY,
-  filterDevicesByGroup,
+  createDefaultGroupSelection,
+  filterDevicesByHierarchy,
+  type DeviceGroupSelection,
 } from "@/utils/device-groups";
 
 import {
@@ -27,22 +31,36 @@ export function DashboardContent({
   dashboard,
 }: DashboardContentProps) {
   const [
-    selectedGroup,
-    setSelectedGroup,
-  ] = useState(
-    ALL_GROUPS_KEY,
-  );
+    groupSelection,
+    setGroupSelection,
+  ] =
+    useState<DeviceGroupSelection>(
+      createDefaultGroupSelection,
+    );
 
+  /*
+   * Estes são os dispositivos que
+   * alimentam os cards de resumo.
+   *
+   * Portanto, ao selecionar:
+   *
+   * Sede
+   * → SEMEQ
+   * → Manutenção
+   *
+   * os números do topo também serão
+   * recalculados somente para esse grupo.
+   */
   const selectedDevices =
     useMemo(
       () =>
-        filterDevicesByGroup(
+        filterDevicesByHierarchy(
           dashboard.devices,
-          selectedGroup,
+          groupSelection,
         ),
       [
         dashboard.devices,
-        selectedGroup,
+        groupSelection,
       ],
     );
 
@@ -58,11 +76,11 @@ export function DashboardContent({
         devices={
           dashboard.devices
         }
-        selectedGroup={
-          selectedGroup
+        groupSelection={
+          groupSelection
         }
-        onGroupChange={
-          setSelectedGroup
+        onGroupSelectionChange={
+          setGroupSelection
         }
       />
     </>
