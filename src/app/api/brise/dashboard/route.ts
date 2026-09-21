@@ -1,226 +1,30 @@
-import "server-only";
+import { NextResponse } from "next/server";
 
-import { briseRequest } from "@/lib/brise-api";
+import { getDashboard } from "@/services/brise.service";
 
-import type {
-  DashboardResponse,
-} from "@/types/dashboard";
-
-interface ApiDevice {
-  deviceId: number;
-}
-
-interface DevicesResponse {
-  devices: ApiDevice[];
-}
-
-type RequestResult =
-  | {
-      success: true;
-      data: Record<string, unknown>;
-    }
-  | {
-      success: false;
-      error: string;
-    };
-
-const CONCURRENCY_LIMIT = 4;
-
-async function safelyRequest(
-  endpoint: string,
-): Promise<RequestResult> {
+export async function GET() {
   try {
-    const data =
-      await briseRequest<
-        Record<string, unknown>
-      >(endpoint);
+    const dashboard = await getDashboard();
 
-    return {
-      success: true,
-      data,
-    };
+    return NextResponse.json(dashboard);
   } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Erro desconhecido ao consultar a API Brise.",
-    };
-  }
-}
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Erro desconhecido ao carregar o painel.";
 
-async function getDeviceDetails(
-  deviceId: number,
-) {
-  const [
-    config,
-    variables,
-    parameters,
-  ] = await Promise.all([
-    safelyRequest(
-      `/device/${deviceId}/configs`,
-    ),
-
-    safelyRequest(
-      `/device/${deviceId}/variables`,
-    ),
-
-    safelyRequest(
-      `/device/${deviceId}/parameters`,
-    ),
-  ]);
-
-  const safeConfig =
-    config.success
-      ? (() => {
-          const {
-            USRID,
-            USRPASS,
-            ...rest
-          } = config.data;
-
-          return rest;
-        })()
-      : null;
-
-  return {
-    deviceId,
-
-    online:
-      config.success ||
-      variables.success ||
-      parameters.success,
-
-    config: safeConfig,
-
-    variables:
-      variables.success
-        ? variables.data
-        : null,
-
-    parameters:
-      parameters.success
-        ? parameters.data
-        : null,
-
-    errors: {
-      config:
-        config.success
-          ? null
-          : config.error,
-
-      variables:
-        variables.success
-          ? null
-          : variables.error,
-
-      parameters:
-        parameters.success
-          ? null
-          : parameters.error,
-    },
-  };
-}
-
-async function processWithConcurrencyLimit<
-  T,
-  R,
->(
-  items: T[],
-  limit: number,
-  worker: (
-    item: T,
-  ) => Promise<R>,
-): Promise<R[]> {
-  const results: R[] =
-    new Array(items.length);
-
-  let nextIndex = 0;
-
-  async function runWorker() {
-    while (true) {
-      const currentIndex =
-        nextIndex;
-
-      if (
-        currentIndex >=
-        items.length
-      ) {
-        return;
-      }
-
-      nextIndex += 1;
-
-      results[currentIndex] =
-        await worker(
-          items[currentIndex],
-        );
-    }
-  }
-
-  const workerCount =
-    Math.min(
-      limit,
-      items.length,
+    console.error(
+      "Erro na rota do dashboard:",
+      error,
     );
 
-  await Promise.all(
-    Array.from(
+    return NextResponse.json(
       {
-        length:
-          workerCount,
+        error: message,
       },
-      () => runWorker(),
-    ),
-  );
-
-  return results;
-}
-
-export async function getDashboard(): Promise<DashboardResponse> {
-  const data =
-    await briseRequest<
-      DevicesResponse
-    >(
-      "/user/devices",
-    );
-
-  if (
-    !Array.isArray(
-      data.devices,
-    )
-  ) {
-    throw new Error(
-      "A API Brise retornou uma lista de dispositivos inválida.",
+      {
+        status: 500,
+      },
     );
   }
-
-  const devices =
-    await processWithConcurrencyLimit(
-      data.devices,
-      CONCURRENCY_LIMIT,
-
-      (device) =>
-        getDeviceDetails(
-          device.deviceId,
-        ),
-    );
-
-  const online =
-    devices.filter(
-      (device) =>
-        device.online,
-    ).length;
-
-  const offline =
-    devices.length -
-    online;
-
-  return {
-    total: devices.length,
-    online,
-    offline,
-    devices,
-  };
 }
