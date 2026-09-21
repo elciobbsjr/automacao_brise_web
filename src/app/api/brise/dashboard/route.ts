@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
+import "server-only";
 
-import {
-  briseRequest,
-} from "@/lib/brise-api";
+import { briseRequest } from "@/lib/brise-api";
+
+import type {
+  DashboardResponse,
+} from "@/types/dashboard";
 
 interface ApiDevice {
   deviceId: number;
@@ -40,7 +42,6 @@ async function safelyRequest(
   } catch (error) {
     return {
       success: false,
-
       error:
         error instanceof Error
           ? error.message
@@ -91,8 +92,7 @@ async function getDeviceDetails(
       variables.success ||
       parameters.success,
 
-    config:
-      safeConfig,
+    config: safeConfig,
 
     variables:
       variables.success
@@ -171,7 +171,6 @@ async function processWithConcurrencyLimit<
         length:
           workerCount,
       },
-
       () => runWorker(),
     ),
   );
@@ -179,80 +178,49 @@ async function processWithConcurrencyLimit<
   return results;
 }
 
-export async function GET() {
-  try {
-    const data =
-      await briseRequest<
-        DevicesResponse
-      >(
-        "/user/devices",
-      );
-
-    if (
-      !Array.isArray(
-        data.devices,
-      )
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "A API Brise retornou uma lista de dispositivos inválida.",
-        },
-        {
-          status: 502,
-        },
-      );
-    }
-
-    const devices =
-      await processWithConcurrencyLimit(
-        data.devices,
-        CONCURRENCY_LIMIT,
-
-        (device) =>
-          getDeviceDetails(
-            device.deviceId,
-          ),
-      );
-
-    const online =
-      devices.filter(
-        (device) =>
-          device.online,
-      ).length;
-
-    const offline =
-      devices.length -
-      online;
-
-    return NextResponse.json({
-      total:
-        devices.length,
-
-      online,
-
-      offline,
-
-      devices,
-    });
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Erro desconhecido ao carregar o painel.";
-
-    console.error(
-      "Erro na rota do dashboard:",
-      error,
+export async function getDashboard(): Promise<DashboardResponse> {
+  const data =
+    await briseRequest<
+      DevicesResponse
+    >(
+      "/user/devices",
     );
 
-    return NextResponse.json(
-      {
-        error: message,
-      },
-      {
-        status: 500,
-      },
+  if (
+    !Array.isArray(
+      data.devices,
+    )
+  ) {
+    throw new Error(
+      "A API Brise retornou uma lista de dispositivos inválida.",
     );
   }
+
+  const devices =
+    await processWithConcurrencyLimit(
+      data.devices,
+      CONCURRENCY_LIMIT,
+
+      (device) =>
+        getDeviceDetails(
+          device.deviceId,
+        ),
+    );
+
+  const online =
+    devices.filter(
+      (device) =>
+        device.online,
+    ).length;
+
+  const offline =
+    devices.length -
+    online;
+
+  return {
+    total: devices.length,
+    online,
+    offline,
+    devices,
+  };
 }
