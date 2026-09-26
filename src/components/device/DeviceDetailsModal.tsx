@@ -25,9 +25,21 @@ import {
   formatTemperature,
 } from "@/utils/formatters";
 
+import {
+  formatDetectedState,
+  formatMovementState,
+  formatShutdownReason,
+  getDeviceStateDiagnostic,
+  type DeviceDetectedState,
+  type DeviceMovementState,
+  type DeviceShutdownReason,
+} from "@/utils/device-diagnostics";
+
 interface DeviceDetailsModalProps {
   device: DashboardDevice;
+
   open: boolean;
+
   onClose: () => void;
 }
 
@@ -49,28 +61,48 @@ export function DeviceDetailsModal({
     "Modelo indisponível";
 
   const modeDevice =
-    device.parameters?.modeDevice !== undefined
+    device.parameters?.modeDevice !==
+    undefined
       ? DEVICE_MODES[
-          device.parameters.modeDevice
+          device.parameters
+            .modeDevice
         ]
       : "Indisponível";
 
   const modeAC =
-    device.parameters?.modeAC !== undefined
+    device.parameters?.modeAC !==
+    undefined
       ? AC_MODES[
-          device.parameters.modeAC
+          device.parameters
+            .modeAC
         ]
       : "Indisponível";
 
   const fanSpeed =
-    device.parameters?.fanSpeed !== undefined
+    device.parameters?.fanSpeed !==
+    undefined
       ? FAN_SPEEDS[
-          device.parameters.fanSpeed
+          device.parameters
+            .fanSpeed
         ]
       : "Indisponível";
 
   const isRunning =
     device.variables?.state === true;
+
+  /*
+   * Diagnóstico do dispositivo:
+   *
+   * state
+   * ACC
+   * ON
+   * OFF
+   * WM
+   */
+  const diagnostic =
+    getDeviceStateDiagnostic(
+      device,
+    );
 
   return (
     <div
@@ -92,7 +124,9 @@ export function DeviceDetailsModal({
                 <div className="flex flex-wrap items-center gap-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Dispositivo Nº{" "}
-                    {device.deviceId}
+                    {
+                      device.deviceId
+                    }
                   </p>
 
                   <DeviceStatusBadge
@@ -133,6 +167,10 @@ export function DeviceDetailsModal({
             ) : (
               <div className="grid gap-7 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_480px] xl:grid-cols-[minmax(0,1.15fr)_540px] 2xl:grid-cols-[minmax(0,1.2fr)_580px]">
                 <div className="min-w-0 space-y-6">
+                  {/* =================================
+                      MÉTRICAS PRINCIPAIS
+                      ================================= */}
+
                   <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <PrimaryMetric
                       label="Estado"
@@ -141,7 +179,7 @@ export function DeviceDetailsModal({
                           ? "Ligado"
                           : "Desligado"
                       }
-                      helper="Estado atual do ar"
+                      helper="Estado informado pelo Brise"
                     />
 
                     <PrimaryMetric
@@ -172,6 +210,10 @@ export function DeviceDetailsModal({
                     />
                   </section>
 
+                  {/* =================================
+                      LEITURAS
+                      ================================= */}
+
                   <ModalSection
                     title="Leituras atuais"
                     description="Informações coletadas pelo equipamento."
@@ -200,6 +242,10 @@ export function DeviceDetailsModal({
                       )}
                     />
                   </ModalSection>
+
+                  {/* =================================
+                      OPERAÇÃO
+                      ================================= */}
 
                   <ModalSection
                     title="Operação"
@@ -258,6 +304,10 @@ export function DeviceDetailsModal({
                       )}
                     />
                   </ModalSection>
+
+                  {/* =================================
+                      CONFIGURAÇÃO
+                      ================================= */}
 
                   <ModalSection
                     title="Configuração"
@@ -325,43 +375,90 @@ export function DeviceDetailsModal({
                     />
                   </ModalSection>
 
+                  {/* =================================
+                      DIAGNÓSTICO
+                      ================================= */}
+
+                  <DeviceDiagnosticSection
+                    logicalState={
+                      diagnostic.logicalState
+                    }
+                    physicalState={
+                      diagnostic.physicalState
+                    }
+                    divergent={
+                      diagnostic.divergent
+                    }
+                    distanceToOn={
+                      diagnostic
+                        .accelerometer
+                        .distanceToOn
+                    }
+                    distanceToOff={
+                      diagnostic
+                        .accelerometer
+                        .distanceToOff
+                    }
+                    wm={
+                      diagnostic.wm
+                    }
+                    movementState={
+                      diagnostic.movementState
+                    }
+                    shutdownReason={
+                      diagnostic.shutdownReason
+                    }
+                  />
+
+                  {/* =================================
+                      DADOS TÉCNICOS DOS SENSORES
+                      ================================= */}
+
                   <ModalSection
-                    title="Contadores técnicos"
-                    description="Informações internas disponibilizadas pelo equipamento."
+                    title="Dados técnicos dos sensores"
+                    description="Valores brutos utilizados pelo equipamento para monitoramento e diagnóstico."
                   >
+                    <DetailItem
+                      label="Leitura atual (ACC)"
+                      value={formatCounter(
+                        device.variables
+                          ?.ACC,
+                      )}
+                      helper="Leitura atual do acelerômetro."
+                    />
+
+                    <DetailItem
+                      label="Referência ligado (ON)"
+                      value={formatCounter(
+                        device.variables
+                          ?.ON,
+                      )}
+                      helper="Valor de calibração da máquina ligada."
+                    />
+
+                    <DetailItem
+                      label="Referência desligado (OFF)"
+                      value={formatCounter(
+                        device.variables
+                          ?.OFF,
+                      )}
+                      helper="Valor de calibração da máquina desligada."
+                    />
+
                     <DetailItem
                       label="WM"
                       value={formatCounter(
                         device.variables
                           ?.WM,
                       )}
-                    />
-
-                    <DetailItem
-                      label="ON"
-                      value={formatCounter(
-                        device.variables
-                          ?.ON,
-                      )}
-                    />
-
-                    <DetailItem
-                      label="OFF"
-                      value={formatCounter(
-                        device.variables
-                          ?.OFF,
-                      )}
-                    />
-
-                    <DetailItem
-                      label="ACC"
-                      value={formatCounter(
-                        device.variables
-                          ?.ACC,
-                      )}
+                      helper="Valor bruto relacionado à lógica de ausência de movimento."
                     />
                   </ModalSection>
                 </div>
+
+                {/* =================================
+                    CONTROLE
+                    ================================= */}
 
                 <aside className="lg:sticky lg:top-6 lg:self-start">
                   <div className="rounded-3xl border border-white/50 bg-white/70 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.12)] backdrop-blur-2xl xl:p-7">
@@ -380,7 +477,9 @@ export function DeviceDetailsModal({
                     </div>
 
                     <DeviceControl
-                      device={device}
+                      device={
+                        device
+                      }
                     />
                   </div>
                 </aside>
@@ -392,6 +491,464 @@ export function DeviceDetailsModal({
     </div>
   );
 }
+
+/* ==========================================
+   DIAGNÓSTICO
+   ========================================== */
+
+function DeviceDiagnosticSection({
+  logicalState,
+  physicalState,
+  divergent,
+  distanceToOn,
+  distanceToOff,
+  wm,
+  movementState,
+  shutdownReason,
+}: {
+  logicalState:
+    DeviceDetectedState;
+
+  physicalState:
+    DeviceDetectedState;
+
+  divergent: boolean;
+
+  distanceToOn:
+    number | null;
+
+  distanceToOff:
+    number | null;
+
+  wm:
+    number | null;
+
+  movementState:
+    DeviceMovementState;
+
+  shutdownReason:
+    DeviceShutdownReason;
+}) {
+  const hasCompleteDiagnostic =
+    logicalState !==
+      "unknown" &&
+    physicalState !==
+      "unknown";
+
+  const absenceDetected =
+    movementState ===
+    "absence";
+
+  return (
+    <section
+      className={`rounded-3xl border p-5 shadow-sm backdrop-blur-xl sm:p-6 ${
+        divergent
+          ? "border-amber-200/80 bg-amber-50/70"
+          : "border-white/50 bg-white/70"
+      }`}
+    >
+      <div className="mb-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">
+              Diagnóstico do equipamento
+            </h3>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Estado informado pelo
+              Brise, estado físico
+              detectado e informações
+              do sensor de movimento.
+            </p>
+          </div>
+
+          <DiagnosticBadge
+            available={
+              hasCompleteDiagnostic
+            }
+            divergent={
+              divergent
+            }
+          />
+        </div>
+      </div>
+
+      {/* ESTADOS */}
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <DiagnosticStateCard
+          label="Estado informado"
+          value={formatDetectedState(
+            logicalState,
+          )}
+          helper="Estado informado pelo Brise"
+          state={
+            logicalState
+          }
+        />
+
+        <DiagnosticStateCard
+          label="Estado físico"
+          value={formatDetectedState(
+            physicalState,
+          )}
+          helper="Detectado pelo acelerômetro"
+          state={
+            physicalState
+          }
+        />
+
+        <DiagnosticSituationCard
+          available={
+            hasCompleteDiagnostic
+          }
+          divergent={
+            divergent
+          }
+        />
+      </div>
+
+      {/* MOVIMENTO */}
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <MovementDiagnosticCard
+          label="Movimento"
+          value={formatMovementState(
+            movementState,
+          )}
+          helper={
+            absenceDetected
+              ? "O sensor informou ausência de movimento."
+              : wm === null
+                ? "WM indisponível."
+                : `WM = ${wm}. Este valor ainda não foi mapeado.`
+          }
+          warning={
+            absenceDetected
+          }
+        />
+
+        <MovementDiagnosticCard
+          label="Motivo do desligamento"
+          value={formatShutdownReason(
+            shutdownReason,
+          )}
+          helper={
+            shutdownReason ===
+            "absence"
+              ? "O Brise informou o equipamento desligado após ausência de movimento."
+              : shutdownReason ===
+                  "device_on"
+                ? "O equipamento continua informado como ligado."
+                : "Não foi possível identificar o motivo do desligamento."
+          }
+          warning={
+            shutdownReason ===
+            "absence"
+          }
+        />
+      </div>
+
+      {/* DISTÂNCIAS */}
+
+      {physicalState !==
+        "unknown" && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <DiagnosticDistance
+            label="Distância para Ligado"
+            value={
+              distanceToOn
+            }
+          />
+
+          <DiagnosticDistance
+            label="Distância para Desligado"
+            value={
+              distanceToOff
+            }
+          />
+        </div>
+      )}
+
+      {/* EXPLICAÇÃO */}
+
+      <div className="mt-4 rounded-2xl border border-slate-200/70 bg-slate-50/70 px-4 py-3">
+        <p className="text-xs leading-5 text-slate-500">
+          O estado físico é
+          determinado comparando a
+          leitura ACC com as
+          referências ON e OFF. A
+          referência mais próxima
+          indica o estado detectado
+          da máquina.
+        </p>
+
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          Para o sensor de movimento,
+          atualmente apenas{" "}
+          <strong>
+            WM = 0
+          </strong>{" "}
+          possui interpretação
+          confirmada: ausência de
+          movimento. Outros valores
+          permanecem sem
+          classificação até serem
+          identificados.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ==========================================
+   BADGE DO DIAGNÓSTICO
+   ========================================== */
+
+function DiagnosticBadge({
+  available,
+  divergent,
+}: {
+  available: boolean;
+  divergent: boolean;
+}) {
+  if (!available) {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
+        <span className="h-2 w-2 rounded-full bg-slate-400" />
+
+        Diagnóstico incompleto
+      </span>
+    );
+  }
+
+  if (divergent) {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-700">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+
+        Divergência detectada
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+
+      Estados compatíveis
+    </span>
+  );
+}
+
+/* ==========================================
+   CARD DE ESTADO
+   ========================================== */
+
+function DiagnosticStateCard({
+  label,
+  value,
+  helper,
+  state,
+}: {
+  label: string;
+
+  value: string;
+
+  helper: string;
+
+  state:
+    DeviceDetectedState;
+}) {
+  const indicatorClass =
+    state === "on"
+      ? "bg-emerald-500"
+      : state === "off"
+        ? "bg-slate-400"
+        : "bg-amber-400";
+
+  return (
+    <div className="rounded-2xl border border-white/60 bg-white/70 p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        {label}
+      </p>
+
+      <div className="mt-3 flex items-center gap-2">
+        <span
+          className={`h-2.5 w-2.5 rounded-full ${indicatorClass}`}
+        />
+
+        <p className="font-semibold text-slate-900">
+          {value}
+        </p>
+      </div>
+
+      <p className="mt-1 text-xs text-slate-500">
+        {helper}
+      </p>
+    </div>
+  );
+}
+
+/* ==========================================
+   SITUAÇÃO
+   ========================================== */
+
+function DiagnosticSituationCard({
+  available,
+  divergent,
+}: {
+  available: boolean;
+
+  divergent: boolean;
+}) {
+  let value =
+    "Indeterminado";
+
+  let helper =
+    "Dados insuficientes para comparação.";
+
+  let indicatorClass =
+    "bg-slate-400";
+
+  if (available) {
+    if (divergent) {
+      value =
+        "Divergência";
+
+      helper =
+        "O estado físico não corresponde ao estado informado.";
+
+      indicatorClass =
+        "bg-amber-500";
+    } else {
+      value =
+        "Normal";
+
+      helper =
+        "Os dois estados são compatíveis.";
+
+      indicatorClass =
+        "bg-emerald-500";
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/60 bg-white/70 p-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        Situação
+      </p>
+
+      <div className="mt-3 flex items-center gap-2">
+        <span
+          className={`h-2.5 w-2.5 rounded-full ${indicatorClass}`}
+        />
+
+        <p className="font-semibold text-slate-900">
+          {value}
+        </p>
+      </div>
+
+      <p className="mt-1 text-xs leading-5 text-slate-500">
+        {helper}
+      </p>
+    </div>
+  );
+}
+
+/* ==========================================
+   MOVIMENTO / AUSÊNCIA
+   ========================================== */
+
+function MovementDiagnosticCard({
+  label,
+  value,
+  helper,
+  warning,
+}: {
+  label: string;
+
+  value: string;
+
+  helper: string;
+
+  warning: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-4 ${
+        warning
+          ? "border-amber-200 bg-amber-50/70"
+          : "border-white/60 bg-white/70"
+      }`}
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+        {label}
+      </p>
+
+      <div className="mt-3 flex items-center gap-2">
+        <span
+          className={`h-2.5 w-2.5 rounded-full ${
+            warning
+              ? "bg-amber-500"
+              : "bg-slate-400"
+          }`}
+        />
+
+        <p
+          className={`font-semibold ${
+            warning
+              ? "text-amber-900"
+              : "text-slate-900"
+          }`}
+        >
+          {value}
+        </p>
+      </div>
+
+      <p
+        className={`mt-1 text-xs leading-5 ${
+          warning
+            ? "text-amber-700"
+            : "text-slate-500"
+        }`}
+      >
+        {helper}
+      </p>
+    </div>
+  );
+}
+
+/* ==========================================
+   DISTÂNCIA DO ACELERÔMETRO
+   ========================================== */
+
+function DiagnosticDistance({
+  label,
+  value,
+}: {
+  label: string;
+
+  value: number | null;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50/70 px-4 py-3">
+      <span className="text-xs font-medium text-slate-500">
+        {label}
+      </span>
+
+      <span className="font-mono text-sm font-semibold text-slate-700">
+        {formatCounter(
+          value,
+        )}
+      </span>
+    </div>
+  );
+}
+
+/* ==========================================
+   ESTADO OFFLINE
+   ========================================== */
 
 function OfflineState() {
   return (
@@ -415,14 +972,21 @@ function OfflineState() {
   );
 }
 
+/* ==========================================
+   SEÇÃO PADRÃO
+   ========================================== */
+
 function ModalSection({
   title,
   description,
   children,
 }: {
   title: string;
+
   description?: string;
-  children: React.ReactNode;
+
+  children:
+    React.ReactNode;
 }) {
   return (
     <section className="rounded-3xl border border-white/50 bg-white/70 p-5 shadow-sm backdrop-blur-xl sm:p-6">
@@ -445,13 +1009,19 @@ function ModalSection({
   );
 }
 
+/* ==========================================
+   MÉTRICA PRINCIPAL
+   ========================================== */
+
 function PrimaryMetric({
   label,
   value,
   helper,
 }: {
   label: string;
+
   value: string;
+
   helper: string;
 }) {
   return (
@@ -471,12 +1041,20 @@ function PrimaryMetric({
   );
 }
 
+/* ==========================================
+   ITEM DE DETALHES
+   ========================================== */
+
 function DetailItem({
   label,
   value,
+  helper,
 }: {
   label: string;
+
   value: string;
+
+  helper?: string;
 }) {
   return (
     <div className="rounded-2xl border border-white/40 bg-slate-50/70 p-4 backdrop-blur">
@@ -487,9 +1065,19 @@ function DetailItem({
       <p className="mt-1.5 font-semibold text-slate-800">
         {value}
       </p>
+
+      {helper && (
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          {helper}
+        </p>
+      )}
     </div>
   );
 }
+
+/* ==========================================
+   FORMATADORES LOCAIS
+   ========================================== */
 
 function formatSetpoint(
   value?: number,
@@ -508,10 +1096,13 @@ function formatSetpoint(
 }
 
 function formatCounter(
-  value?: number,
+  value?:
+    | number
+    | null,
 ) {
   if (
-    value === undefined
+    value === undefined ||
+    value === null
   ) {
     return "Indisponível";
   }

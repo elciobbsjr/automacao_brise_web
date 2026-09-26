@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -26,6 +27,11 @@ import {
   DeviceStatusBadge,
 } from "./DeviceStatusBadge";
 
+import {
+  formatDetectedState,
+  getDeviceStateDiagnostic,
+} from "@/utils/device-diagnostics";
+
 interface DeviceCardProps {
   device: DashboardDevice;
 }
@@ -47,8 +53,8 @@ export function DeviceCard({
     "Modelo indisponível";
 
   const isRunning =
-    device.variables
-      ?.state === true;
+    device.variables?.state ===
+    true;
 
   const temperature =
     formatTemperature(
@@ -68,6 +74,114 @@ export function DeviceCard({
         ?.consumptionEstimated,
     );
 
+  const diagnostic =
+    getDeviceStateDiagnostic(
+      device,
+    );
+
+  /*
+   * Ao carregar ou atualizar a
+   * página, verifica se a URL
+   * informa que este dispositivo
+   * deve estar aberto.
+   *
+   * Exemplo:
+   *
+   * /?device=105679
+   */
+  useEffect(() => {
+    function syncModalWithUrl() {
+      const params =
+        new URLSearchParams(
+          window.location.search,
+        );
+
+      const selectedDevice =
+        params.get("device");
+
+      setDetailsOpen(
+        selectedDevice ===
+          String(
+            device.deviceId,
+          ),
+      );
+    }
+
+    syncModalWithUrl();
+
+    /*
+     * Também mantém sincronizado
+     * caso a navegação do navegador
+     * altere a URL.
+     */
+    window.addEventListener(
+      "popstate",
+      syncModalWithUrl,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "popstate",
+        syncModalWithUrl,
+      );
+    };
+  }, [device.deviceId]);
+
+  function openDetails() {
+    setDetailsOpen(true);
+
+    const url =
+      new URL(
+        window.location.href,
+      );
+
+    url.searchParams.set(
+      "device",
+      String(
+        device.deviceId,
+      ),
+    );
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  }
+
+  function closeDetails() {
+    setDetailsOpen(false);
+
+    const url =
+      new URL(
+        window.location.href,
+      );
+
+    /*
+     * Só removemos o parâmetro
+     * se ele pertence a este
+     * dispositivo.
+     */
+    if (
+      url.searchParams.get(
+        "device",
+      ) ===
+      String(
+        device.deviceId,
+      )
+    ) {
+      url.searchParams.delete(
+        "device",
+      );
+    }
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  }
+
   return (
     <>
       <article className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-6">
@@ -79,7 +193,9 @@ export function DeviceCard({
 
             <p className="mt-1 truncate text-sm text-slate-500">
               {model} · Nº{" "}
-              {device.deviceId}
+              {
+                device.deviceId
+              }
             </p>
           </div>
 
@@ -119,6 +235,21 @@ export function DeviceCard({
               />
             </div>
 
+            {diagnostic.divergent && (
+              <DeviceDivergenceAlert
+                logicalState={
+                  formatDetectedState(
+                    diagnostic.logicalState,
+                  )
+                }
+                physicalState={
+                  formatDetectedState(
+                    diagnostic.physicalState,
+                  )
+                }
+              />
+            )}
+
             <DeviceQuickControl
               device={device}
             />
@@ -126,10 +257,8 @@ export function DeviceCard({
             <div className="mt-auto pt-4">
               <button
                 type="button"
-                onClick={() =>
-                  setDetailsOpen(
-                    true,
-                  )
+                onClick={
+                  openDetails
                 }
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
               >
@@ -157,10 +286,8 @@ export function DeviceCard({
 
             <button
               type="button"
-              onClick={() =>
-                setDetailsOpen(
-                  true,
-                )
+              onClick={
+                openDetails
               }
               className="mt-4 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
@@ -173,15 +300,74 @@ export function DeviceCard({
       <DeviceDetailsModal
         device={device}
         open={detailsOpen}
-        onClose={() =>
-          setDetailsOpen(
-            false,
-          )
+        onClose={
+          closeDetails
         }
       />
     </>
   );
 }
+
+/* ==========================================
+   ALERTA DE DIVERGÊNCIA
+   ========================================== */
+
+function DeviceDivergenceAlert({
+  logicalState,
+  physicalState,
+}: {
+  logicalState: string;
+  physicalState: string;
+}) {
+  return (
+    <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-4 w-4 text-amber-700"
+          >
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+            <path d="M10.3 3.6 2.4 17.3A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.7L13.7 3.6a2 2 0 0 0-3.4 0Z" />
+          </svg>
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-amber-900">
+            Estado físico divergente
+          </p>
+
+          <p className="mt-1 text-xs leading-5 text-amber-800">
+            Brise informa{" "}
+            <strong>
+              {logicalState}
+            </strong>
+            , mas o acelerômetro
+            detecta{" "}
+            <strong>
+              {physicalState}
+            </strong>
+            .
+          </p>
+
+          <p className="mt-1 text-xs text-amber-700">
+            Abra os detalhes para
+            visualizar o diagnóstico
+            completo.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ==========================================
+   MÉTRICA
+   ========================================== */
 
 function Metric({
   label,
