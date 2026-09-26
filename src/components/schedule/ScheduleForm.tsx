@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useState,
+} from "react";
 
-import type { DashboardDevice } from "@/types/dashboard";
+import type {
+  DashboardDevice,
+} from "@/types/dashboard";
 
 import {
   WEEK_DAYS,
@@ -17,8 +21,17 @@ import {
   createBatchSchedule,
 } from "@/services/schedule.service";
 
+import {
+  TemperatureDial,
+} from "@/components/device/control/TemperatureDial";
+
+import {
+  FanSpeedSelector,
+} from "@/components/device/control/FanSpeedSelector";
+
 interface ScheduleFormProps {
   devices: DashboardDevice[];
+
   onCreated?: () => void;
 }
 
@@ -32,8 +45,10 @@ export function ScheduleForm({
         device.online,
     );
 
-  const [name, setName] =
-    useState("");
+  const [
+    name,
+    setName,
+  ] = useState("");
 
   const [
     selectedDevices,
@@ -99,13 +114,21 @@ export function ScheduleForm({
   ] = useState("");
 
   const allSelected =
-    availableDevices.length > 0 &&
+    availableDevices.length >
+      0 &&
     selectedDevices.length ===
       availableDevices.length;
 
+  /* ==========================================
+     DISPOSITIVOS
+     ========================================== */
+
   function toggleAllDevices() {
     if (allSelected) {
-      setSelectedDevices([]);
+      setSelectedDevices(
+        [],
+      );
+
       return;
     }
 
@@ -137,15 +160,22 @@ export function ScheduleForm({
     );
   }
 
+  /* ==========================================
+     DIAS
+     ========================================== */
+
   function toggleDay(
     day: number,
   ) {
     setSelectedDays(
       (current) =>
-        current.includes(day)
+        current.includes(
+          day,
+        )
           ? current.filter(
               (value) =>
-                value !== day,
+                value !==
+                day,
             )
           : [
               ...current,
@@ -154,10 +184,40 @@ export function ScheduleForm({
     );
   }
 
+  /* ==========================================
+     TEMPERATURA
+     ========================================== */
+
+  function decreaseTemperature() {
+    setTemperature(
+      (value) =>
+        Math.max(
+          18,
+          value - 1,
+        ),
+    );
+  }
+
+  function increaseTemperature() {
+    setTemperature(
+      (value) =>
+        Math.min(
+          28,
+          value + 1,
+        ),
+    );
+  }
+
+  /* ==========================================
+     RESET
+     ========================================== */
+
   function resetForm() {
     setName("");
 
-    setSelectedDevices([]);
+    setSelectedDevices(
+      [],
+    );
 
     setSelectedDays([
       1,
@@ -198,6 +258,10 @@ export function ScheduleForm({
 
     setMessage("");
   }
+
+  /* ==========================================
+     CRIAÇÃO
+     ========================================== */
 
   async function handleSubmit() {
     if (!name.trim()) {
@@ -287,6 +351,12 @@ export function ScheduleForm({
         timeZone,
       );
 
+    /*
+     * Caso o horário final seja
+     * anterior ao inicial,
+     * consideramos que termina
+     * no dia seguinte.
+     */
     if (
       dateEnd <=
       dateStart
@@ -393,337 +463,943 @@ export function ScheduleForm({
   }
 
   return (
-    <div className="space-y-6">
-      <section>
-        <label
-          htmlFor="schedule-name"
-          className="mb-2 block text-sm font-medium text-gray-700"
-        >
-          Nome do agendamento
-        </label>
+    <div className="mx-auto max-w-[1120px]">
+      {/* ==========================================
+          CABEÇALHO
+          ========================================== */}
 
-        <input
-          id="schedule-name"
-          type="text"
-          maxLength={20}
-          value={name}
-          onChange={(event) =>
-            setName(
-              event.target.value,
-            )
-          }
-          placeholder="Ex.: Expediente"
-          autoComplete="off"
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
-        />
+      <div className="mb-6">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-blue-600" />
 
-        <p className="mt-1 text-xs text-gray-400">
-          {name.length}/20
-          caracteres
+          <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-blue-700">
+            Novo agendamento
+          </h3>
+        </div>
+
+        <p className="mt-2 text-sm text-slate-500">
+          Defina os equipamentos,
+          horários e parâmetros de
+          climatização da programação.
         </p>
-      </section>
+      </div>
 
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold text-gray-900">
-              Dispositivos
-            </h3>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
+        {/* ======================================
+            COLUNA PRINCIPAL
+            ====================================== */}
 
-            <p className="mt-1 text-xs text-gray-500">
-              {
-                selectedDevices.length
-              }{" "}
-              selecionado(s)
-            </p>
-          </div>
+        <div className="space-y-5">
+          {/* IDENTIFICAÇÃO */}
 
-          <button
-            type="button"
-            onClick={
-              toggleAllDevices
+          <FormSection
+            title="Identificação"
+            description="Dê um nome para reconhecer esta programação."
+            icon={
+              <TagIcon />
             }
-            className="text-sm font-medium text-gray-700 hover:text-gray-900"
+            tone="blue"
           >
-            {allSelected
-              ? "Desmarcar todos"
-              : "Selecionar todos"}
-          </button>
-        </div>
+            <label
+              htmlFor="schedule-name"
+              className="block"
+            >
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <span className="text-xs font-bold text-slate-700">
+                  Nome do agendamento
+                </span>
 
-        <div className="grid gap-2 sm:grid-cols-2">
-          {availableDevices.map(
-            (device) => {
-              const selected =
-                selectedDevices.includes(
-                  device.deviceId,
-                );
+                <span className="text-[10px] font-medium text-slate-400">
+                  {name.length}/20
+                </span>
+              </div>
 
-              return (
-                <label
-                  key={
-                    device.deviceId
-                  }
-                  className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition ${
-                    selected
-                      ? "border-gray-900 bg-gray-50"
-                      : "border-gray-200"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={
-                      selected
-                    }
-                    onChange={() =>
-                      toggleDevice(
+              <input
+                id="schedule-name"
+                type="text"
+                maxLength={20}
+                value={name}
+                onChange={(
+                  event,
+                ) =>
+                  setName(
+                    event.target
+                      .value,
+                  )
+                }
+                placeholder="Ex.: Expediente"
+                autoComplete="off"
+                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 text-sm font-medium text-slate-900 outline-none transition placeholder:font-normal placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100/60"
+              />
+            </label>
+          </FormSection>
+
+          {/* DISPOSITIVOS */}
+
+          <FormSection
+            title="Equipamentos"
+            description="Selecione os dispositivos que receberão o agendamento."
+            icon={
+              <EquipmentIcon />
+            }
+            tone="cyan"
+            trailing={
+              <span className="rounded-lg bg-cyan-50 px-2.5 py-1 text-[10px] font-bold text-cyan-700">
+                {
+                  selectedDevices.length
+                }{" "}
+                selecionado(s)
+              </span>
+            }
+          >
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <p className="text-xs text-slate-500">
+                Somente equipamentos
+                online estão disponíveis.
+              </p>
+
+              <button
+                type="button"
+                onClick={
+                  toggleAllDevices
+                }
+                className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold text-blue-700 transition hover:bg-blue-50"
+              >
+                {allSelected
+                  ? "Desmarcar todos"
+                  : "Selecionar todos"}
+              </button>
+            </div>
+
+            {availableDevices.length >
+            0 ? (
+              <div className="grid max-h-[300px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+                {availableDevices.map(
+                  (device) => {
+                    const selected =
+                      selectedDevices.includes(
                         device.deviceId,
-                      )
-                    }
-                  />
+                      );
 
-                  <div>
-                    <p className="font-medium text-gray-800">
-                      {device.config
+                    const deviceName =
+                      device.config
                         ?.name ||
-                        `Dispositivo ${device.deviceId}`}
-                    </p>
+                      `Dispositivo ${device.deviceId}`;
 
-                    <p className="text-xs text-gray-500">
-                      Nº{" "}
-                      {
-                        device.deviceId
-                      }
-                    </p>
-                  </div>
-                </label>
-              );
-            },
-          )}
-        </div>
-      </section>
+                    const model =
+                      device.config
+                        ?.MODEL ||
+                      "Modelo indisponível";
 
-      <section>
-        <h3 className="mb-3 font-semibold text-gray-900">
-          Dias da semana
-        </h3>
+                    return (
+                      <button
+                        key={
+                          device.deviceId
+                        }
+                        type="button"
+                        onClick={() =>
+                          toggleDevice(
+                            device.deviceId,
+                          )
+                        }
+                        className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${
+                          selected
+                            ? "border-blue-300 bg-blue-50/70 shadow-sm"
+                            : "border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white"
+                        }`}
+                      >
+                        <div
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                            selected
+                              ? "bg-blue-600 text-white"
+                              : "bg-slate-100 text-slate-400"
+                          }`}
+                        >
+                          {selected ? (
+                            <CheckIcon />
+                          ) : (
+                            <EquipmentSmallIcon />
+                          )}
+                        </div>
 
-        <div className="flex flex-wrap gap-2">
-          {WEEK_DAYS.map(
-            (day) => {
-              const selected =
-                selectedDays.includes(
-                  day.value,
-                );
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-bold text-slate-900">
+                            {
+                              deviceName
+                            }
+                          </p>
 
-              return (
-                <button
-                  key={
-                    day.value
+                          <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                            {model}
+                            {" · Nº "}
+                            {
+                              device.deviceId
+                            }
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/60 p-5 text-center">
+                <p className="text-sm font-bold text-amber-900">
+                  Nenhum equipamento
+                  online
+                </p>
+
+                <p className="mt-1 text-xs text-amber-700">
+                  Não existem dispositivos
+                  disponíveis para receber
+                  o agendamento.
+                </p>
+              </div>
+            )}
+          </FormSection>
+
+          {/* PERÍODO */}
+
+          <FormSection
+            title="Período"
+            description="Defina quando a programação deverá ser executada."
+            icon={
+              <CalendarIcon />
+            }
+            tone="indigo"
+          >
+            {/* DIAS */}
+
+            <div>
+              <p className="mb-2.5 text-xs font-bold text-slate-700">
+                Dias da semana
+              </p>
+
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+                {WEEK_DAYS.map(
+                  (day) => {
+                    const selected =
+                      selectedDays.includes(
+                        day.value,
+                      );
+
+                    return (
+                      <button
+                        key={
+                          day.value
+                        }
+                        type="button"
+                        onClick={() =>
+                          toggleDay(
+                            day.value,
+                          )
+                        }
+                        className={`h-10 rounded-xl border text-[11px] font-bold transition ${
+                          selected
+                            ? "border-blue-600 bg-blue-600 text-white shadow-[0_5px_14px_rgba(37,99,235,0.18)]"
+                            : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                        }`}
+                      >
+                        {
+                          day.shortLabel
+                        }
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+            </div>
+
+            {/* DATA */}
+
+            <div className="mt-5">
+              <label>
+                <span className="mb-2 block text-xs font-bold text-slate-700">
+                  Data de referência
+                </span>
+
+                <input
+                  type="date"
+                  value={
+                    scheduleDate
                   }
-                  type="button"
-                  onClick={() =>
-                    toggleDay(
-                      day.value,
+                  onChange={(
+                    event,
+                  ) =>
+                    setScheduleDate(
+                      event.target
+                        .value,
                     )
                   }
-                  className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                    selected
-                      ? "bg-gray-900 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 text-sm font-medium text-slate-900 outline-none transition hover:border-slate-300 hover:bg-white focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100/60"
+                />
+              </label>
+
+              <p className="mt-1.5 text-[10px] leading-4 text-slate-400">
+                Usada como referência
+                para calcular os horários
+                do agendamento.
+              </p>
+            </div>
+
+            {/* HORÁRIOS */}
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
+              <label>
+                <span className="mb-2 block text-xs font-bold text-slate-700">
+                  Início
+                </span>
+
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
+                    <ClockIcon />
+                  </span>
+
+                  <input
+                    type="time"
+                    value={
+                      startTime
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setStartTime(
+                        event.target
+                          .value,
+                      )
+                    }
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-3 text-sm font-bold text-slate-900 outline-none transition hover:border-slate-300 hover:bg-white focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100/60"
+                  />
+                </div>
+              </label>
+
+              <div className="hidden h-12 items-center justify-center text-slate-300 sm:flex">
+                <ArrowRightIcon />
+              </div>
+
+              <label>
+                <span className="mb-2 block text-xs font-bold text-slate-700">
+                  Término
+                </span>
+
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-blue-500">
+                    <ClockIcon />
+                  </span>
+
+                  <input
+                    type="time"
+                    value={
+                      endTime
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setEndTime(
+                        event.target
+                          .value,
+                      )
+                    }
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-3 text-sm font-bold text-slate-900 outline-none transition hover:border-slate-300 hover:bg-white focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100/60"
+                  />
+                </div>
+              </label>
+            </div>
+          </FormSection>
+        </div>
+
+        {/* ======================================
+            CONTROLE DA CLIMATIZAÇÃO
+            ====================================== */}
+
+        <aside className="xl:sticky xl:top-0 xl:self-start">
+          <div className="relative overflow-hidden rounded-[26px] border border-blue-100/80 bg-white/85 shadow-[0_16px_45px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400" />
+
+            <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-blue-100/50 blur-3xl" />
+
+            <div className="relative p-5">
+              {/* CABEÇALHO */}
+
+              <div className="mb-5 flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                  <RemoteIcon />
+                </div>
+
+                <div>
+                  <h4 className="text-base font-bold text-slate-950">
+                    Climatização
+                  </h4>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Parâmetros que serão
+                    aplicados pelo
+                    agendamento.
+                  </p>
+                </div>
+              </div>
+
+              {/* MODO FIXO */}
+
+              <div className="mb-4">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-400">
+                  Modo
+                </p>
+
+                <div className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/55 p-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white">
+                    <SnowflakeIcon />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-bold text-blue-950">
+                      Refrigeração
+                    </p>
+
+                    <p className="mt-0.5 text-[10px] text-blue-600">
+                      Modo Frio
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* TEMPERATURA */}
+
+              <TemperatureDial
+                value={
+                  temperature
+                }
+                enabled
+                mode="cool"
+                min={18}
+                max={28}
+                onDecrease={
+                  decreaseTemperature
+                }
+                onIncrease={
+                  increaseTemperature
+                }
+              />
+
+              {/* VENTILAÇÃO */}
+
+              <div className="mt-4 border-t border-slate-200/70 pt-4">
+                <FanSpeedSelector
+                  value={
+                    fanSpeed
+                  }
+                  onChange={
+                    setFanSpeed
+                  }
+                />
+              </div>
+
+              {/* ESTADO DO AGENDAMENTO */}
+
+              <div className="mt-5 border-t border-slate-200/70 pt-4">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">
+                      Estado do agendamento
+                    </p>
+
+                    <p className="mt-0.5 text-[10px] text-slate-400">
+                      Define se será criado
+                      ativo ou inativo.
+                    </p>
+                  </div>
+
+                  <span
+                    className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] ${
+                      enabled
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {enabled
+                      ? "Ativo"
+                      : "Inativo"}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEnabled(
+                      (value) =>
+                        !value,
+                    )
+                  }
+                  className={`relative mt-3 flex h-11 w-full items-center rounded-xl p-1 transition ${
+                    enabled
+                      ? "bg-emerald-500"
+                      : "bg-slate-200"
                   }`}
                 >
-                  {
-                    day.shortLabel
-                  }
+                  <span
+                    className={`absolute h-9 w-[calc(50%-6px)] rounded-lg bg-white shadow-md transition-all duration-200 ${
+                      enabled
+                        ? "left-[calc(50%+2px)]"
+                        : "left-1"
+                    }`}
+                  />
+
+                  <span
+                    className={`relative z-10 flex w-1/2 items-center justify-center text-xs font-bold transition ${
+                      !enabled
+                        ? "text-slate-900"
+                        : "text-white/80"
+                    }`}
+                  >
+                    Inativo
+                  </span>
+
+                  <span
+                    className={`relative z-10 flex w-1/2 items-center justify-center text-xs font-bold transition ${
+                      enabled
+                        ? "text-emerald-700"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    Ativo
+                  </span>
                 </button>
-              );
-            },
-          )}
-        </div>
-      </section>
+              </div>
 
-      <section>
-        <label>
-          <span className="mb-2 block text-sm font-medium text-gray-700">
-            Data de referência
-          </span>
+              {/* FEEDBACK */}
 
-          <input
-            type="date"
-            value={
-              scheduleDate
-            }
-            onChange={(
-              event,
-            ) =>
-              setScheduleDate(
-                event.target
-                  .value,
-              )
-            }
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900"
-          />
-        </label>
-      </section>
+              {message && (
+                <div
+                  className={`mt-4 flex items-start gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium leading-5 ${
+                    message.includes(
+                      "sucesso",
+                    )
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : message.includes(
+                            "Criando",
+                          )
+                        ? "border-blue-200 bg-blue-50 text-blue-700"
+                        : message.includes(
+                              "falhou",
+                            )
+                          ? "border-amber-200 bg-amber-50 text-amber-700"
+                          : "border-red-200 bg-red-50 text-red-700"
+                  }`}
+                >
+                  {loading ? (
+                    <LoadingIcon />
+                  ) : (
+                    <InfoIcon />
+                  )}
 
-      <section className="grid gap-4 sm:grid-cols-2">
-        <label>
-          <span className="mb-2 block text-sm font-medium text-gray-700">
-            Horário inicial
-          </span>
+                  <span>
+                    {message}
+                  </span>
+                </div>
+              )}
 
-          <input
-            type="time"
-            value={
-              startTime
-            }
-            onChange={(
-              event,
-            ) =>
-              setStartTime(
-                event.target
-                  .value,
-              )
-            }
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900"
-          />
-        </label>
+              {/* BOTÃO */}
 
-        <label>
-          <span className="mb-2 block text-sm font-medium text-gray-700">
-            Horário final
-          </span>
+              <button
+                type="button"
+                disabled={
+                  loading
+                }
+                onClick={
+                  handleSubmit
+                }
+                className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-bold text-white shadow-[0_8px_22px_rgba(15,23,42,0.16)] transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-[0_12px_28px_rgba(15,23,42,0.20)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <LoadingIcon />
 
-          <input
-            type="time"
-            value={
-              endTime
-            }
-            onChange={(
-              event,
-            ) =>
-              setEndTime(
-                event.target
-                  .value,
-              )
-            }
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900"
-          />
-        </label>
-      </section>
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlusIcon />
 
-      <section className="grid gap-4 sm:grid-cols-2">
-        <label>
-          <span className="mb-2 block text-sm font-medium text-gray-700">
-            Temperatura
-          </span>
+                    Criar agendamento
+                  </>
+                )}
+              </button>
 
-          <input
-            type="number"
-            min={18}
-            max={28}
-            value={
-              temperature
-            }
-            onChange={(
-              event,
-            ) =>
-              setTemperature(
-                Number(
-                  event.target
-                    .value,
-                ),
-              )
-            }
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900"
-          />
-        </label>
-
-        <label>
-          <span className="mb-2 block text-sm font-medium text-gray-700">
-            Ventilação
-          </span>
-
-          <select
-            value={
-              fanSpeed
-            }
-            onChange={(
-              event,
-            ) =>
-              setFanSpeed(
-                Number(
-                  event.target
-                    .value,
-                ),
-              )
-            }
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-gray-900"
-          >
-            <option
-              value={1}
-            >
-              Baixa
-            </option>
-
-            <option
-              value={2}
-            >
-              Média
-            </option>
-
-            <option
-              value={3}
-            >
-              Alta
-            </option>
-          </select>
-        </label>
-      </section>
-
-      <section>
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={
-              enabled
-            }
-            onChange={(
-              event,
-            ) =>
-              setEnabled(
-                event.target
-                  .checked,
-              )
-            }
-          />
-
-          <span className="text-sm font-medium text-gray-700">
-            Agendamento
-            habilitado
-          </span>
-        </label>
-      </section>
-
-      {message && (
-        <div className="rounded-lg bg-gray-100 p-4 text-sm text-gray-700">
-          {message}
-        </div>
-      )}
-
-      <button
-        type="button"
-        disabled={loading}
-        onClick={
-          handleSubmit
-        }
-        className="w-full rounded-lg bg-gray-900 px-5 py-3 font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading
-          ? "Criando..."
-          : "Criar agendamento"}
-      </button>
+              <p className="mt-2 text-center text-[10px] leading-4 text-slate-400">
+                A programação será
+                criada para todos os
+                equipamentos selecionados.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
+  );
+}
+
+/* ==========================================
+   SEÇÃO DO FORMULÁRIO
+   ========================================== */
+
+type FormTone =
+  | "blue"
+  | "cyan"
+  | "indigo";
+
+function FormSection({
+  title,
+  description,
+  icon,
+  tone,
+  trailing,
+  children,
+}: {
+  title: string;
+
+  description: string;
+
+  icon:
+    React.ReactNode;
+
+  tone: FormTone;
+
+  trailing?:
+    React.ReactNode;
+
+  children:
+    React.ReactNode;
+}) {
+  const styles = {
+    blue:
+      "bg-blue-50 text-blue-700",
+
+    cyan:
+      "bg-cyan-50 text-cyan-700",
+
+    indigo:
+      "bg-indigo-50 text-indigo-700",
+  };
+
+  return (
+    <section className="rounded-[24px] border border-slate-200/70 bg-white/75 p-5 shadow-sm backdrop-blur-xl">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${styles[tone]}`}
+          >
+            {icon}
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-slate-950">
+              {title}
+            </h4>
+
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              {description}
+            </p>
+          </div>
+        </div>
+
+        {trailing && (
+          <div className="shrink-0">
+            {trailing}
+          </div>
+        )}
+      </div>
+
+      {children}
+    </section>
+  );
+}
+
+/* ==========================================
+   ÍCONES
+   ========================================== */
+
+function TagIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M20 13 11 22l-9-9V4h9Z" />
+
+      <circle
+        cx="7"
+        cy="9"
+        r="1.5"
+      />
+    </svg>
+  );
+}
+
+function EquipmentIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="11"
+        rx="2"
+      />
+
+      <path d="M7 11h10" />
+      <path d="M8 16v2" />
+      <path d="M12 16v3" />
+      <path d="M16 16v2" />
+    </svg>
+  );
+}
+
+function EquipmentSmallIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="6"
+        width="18"
+        height="10"
+        rx="2"
+      />
+
+      <path d="M7 12h10" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="16"
+        rx="2"
+      />
+
+      <path d="M16 3v4" />
+      <path d="M8 3v4" />
+      <path d="M3 10h18" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="8"
+      />
+
+      <path d="M12 8v4l3 2" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+
+      <path d="m15 8 4 4-4 4" />
+    </svg>
+  );
+}
+
+function RemoteIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <rect
+        x="7"
+        y="2"
+        width="10"
+        height="20"
+        rx="3"
+      />
+
+      <circle
+        cx="12"
+        cy="7"
+        r="1.5"
+      />
+
+      <path d="M10 12h4" />
+      <path d="M10 16h4" />
+    </svg>
+  );
+}
+
+function SnowflakeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <path d="M12 2v20" />
+
+      <path d="M4.2 6.5l15.6 11" />
+
+      <path d="M19.8 6.5l-15.6 11" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="m5 12 4 4L19 6" />
+    </svg>
+  );
+}
+
+function CalendarPlusIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="16"
+        rx="2"
+      />
+
+      <path d="M16 3v4" />
+      <path d="M8 3v4" />
+      <path d="M3 10h18" />
+
+      <path d="M12 14v4" />
+      <path d="M10 16h4" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="mt-0.5 h-4 w-4 shrink-0"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+      />
+
+      <path d="M12 11v5" />
+
+      <path d="M12 8h.01" />
+    </svg>
+  );
+}
+
+function LoadingIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      className="h-4 w-4 animate-spin"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 1 1-9-9" />
+    </svg>
   );
 }

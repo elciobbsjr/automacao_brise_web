@@ -279,22 +279,13 @@ export function DashboardDevices({
     level: GroupLevel,
     value: string,
   ) {
-    let nextSelection: DeviceGroupSelection;
+    let nextSelection:
+      DeviceGroupSelection;
 
     /*
      * Quando alteramos um nível,
      * todos os níveis abaixo dele
      * são resetados.
-     *
-     * Exemplo:
-     *
-     * Sede
-     * → SEMEQ
-     * → Manutenção
-     *
-     * Se trocar Sede por Fórum,
-     * SEMEQ e Manutenção deixam
-     * de fazer sentido.
      */
     switch (level) {
       case 1:
@@ -356,32 +347,39 @@ export function DashboardDevices({
 
     /*
      * Mantemos o comportamento
-     * que você já tinha:
+     * atual:
      *
      * ao trocar de local/setor,
-     * limpamos busca e filtro de
-     * ligado/desligado.
+     * limpamos busca e filtros.
      */
     setFilter("all");
     setSearch("");
   }
 
   return (
-    <section>
-      <div className="mb-6">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">
+    <section className="space-y-8">
+      {/* ==========================================
+          NAVEGAÇÃO POR LOCAL
+          ========================================== */}
+
+      <div>
+        <div className="mb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-blue-600" />
+
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">
               Locais
             </h2>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Selecione o prédio,
-              setor ou área que
-              deseja visualizar.
-            </p>
           </div>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Selecione o prédio,
+            setor ou área que
+            deseja visualizar.
+          </p>
         </div>
+      </div>
 
         <DashboardGroupFilter
           selection={
@@ -405,66 +403,230 @@ export function DashboardDevices({
         />
       </div>
 
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-slate-900">
-          Dispositivos
-        </h2>
+      {/* ==========================================
+          DISPOSITIVOS
+          ========================================== */}
 
-        <span className="text-sm text-slate-500">
-          {
-            filteredDevices.length
-          }{" "}
-          exibido(s)
-        </span>
+      <div>
+        {/* CABEÇALHO */}
+
+        <div className="mb-5">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-cyan-600" />
+
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-cyan-700">
+              Dispositivos
+            </h2>
+          </div>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Consulte o estado,
+            temperatura e operação
+            dos equipamentos
+            encontrados.
+          </p>
+        </div>
+
+        {/* ======================================
+            FILTROS
+            ====================================== */}
+
+        <div className="relative mb-6 overflow-hidden rounded-[24px] border border-white/80 bg-white/70 shadow-[0_10px_35px_rgba(15,23,42,0.055)] backdrop-blur-xl">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white via-white/90 to-slate-50/70" />
+
+          <div className="relative p-4 sm:p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                  <FilterIcon />
+                </div>
+
+                <div>
+                  <p className="text-sm font-bold text-slate-900">
+                    Busca e filtros
+                  </p>
+
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    Refine os
+                    equipamentos
+                    exibidos abaixo.
+                  </p>
+                </div>
+              </div>
+
+              {(search !== "" ||
+                filter !==
+                  "all") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch(
+                      "",
+                    );
+
+                    setFilter(
+                      "all",
+                    );
+                  }}
+                  className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </div>
+
+            <DeviceFilters
+              search={search}
+              filter={filter}
+              total={
+                devicesByGroup.length
+              }
+              onCount={
+                onCount
+              }
+              offCount={
+                offCount
+              }
+              offlineCount={
+                offlineCount
+              }
+              onSearchChange={
+                setSearch
+              }
+              onFilterChange={
+                setFilter
+              }
+            />
+          </div>
+        </div>
+
+        {/* ======================================
+            GRADE DE DISPOSITIVOS
+            ====================================== */}
+
+        {filteredDevices.length >
+        0 ? (
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {filteredDevices.map(
+              (device) => (
+                <DeviceCard
+                  key={
+                    device.deviceId
+                  }
+                  device={
+                    device
+                  }
+                />
+              ),
+            )}
+          </div>
+        ) : (
+          <EmptyDevicesState />
+        )}
       </div>
+    </section>
+  );
+}
 
-      <DeviceFilters
-        search={search}
-        filter={filter}
-        total={
-          devicesByGroup.length
-        }
-        onCount={onCount}
-        offCount={offCount}
-        offlineCount={
-          offlineCount
-        }
-        onSearchChange={
-          setSearch
-        }
-        onFilterChange={
-          setFilter
-        }
+/* ==========================================
+   ESTADO VAZIO
+   ========================================== */
+
+function EmptyDevicesState() {
+  return (
+    <div className="relative overflow-hidden rounded-[26px] border border-white/80 bg-white/70 p-10 text-center shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white via-white/80 to-blue-50/50" />
+
+      <div className="relative">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 shadow-sm">
+          <SearchEmptyIcon />
+        </div>
+
+        <h3 className="mt-5 text-lg font-bold tracking-tight text-slate-900">
+          Nenhum dispositivo encontrado
+        </h3>
+
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+          Altere a busca,
+          selecione outro filtro
+          ou escolha outro local
+          para visualizar os
+          equipamentos.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ==========================================
+   ÍCONES
+   ========================================== */
+
+function LocationIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4 text-blue-600"
+      aria-hidden="true"
+    >
+      <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+
+      <circle
+        cx="12"
+        cy="10"
+        r="2.5"
+      />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M4 6h16" />
+
+      <path d="M7 12h10" />
+
+      <path d="M10 18h4" />
+    </svg>
+  );
+}
+
+function SearchEmptyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <circle
+        cx="11"
+        cy="11"
+        r="7"
       />
 
-      {filteredDevices.length >
-      0 ? (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {filteredDevices.map(
-            (device) => (
-              <DeviceCard
-                key={
-                  device.deviceId
-                }
-                device={device}
-              />
-            ),
-          )}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <p className="font-medium text-slate-700">
-            Nenhum dispositivo encontrado.
-          </p>
+      <path d="m20 20-4-4" />
 
-          <p className="mt-1 text-sm text-slate-500">
-            Altere a busca,
-            selecione outro
-            filtro ou escolha
-            outro local.
-          </p>
-        </div>
-      )}
-    </section>
+      <path d="M8.5 11h5" />
+    </svg>
   );
 }
