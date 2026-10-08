@@ -28,6 +28,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "src/components/device/DeviceDetailsModal.tsx", "src/components/device/DeviceCard.tsx"  ],
   "exclude": ["node_modules"]
 }

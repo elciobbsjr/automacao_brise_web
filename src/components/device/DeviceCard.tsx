@@ -33,6 +33,10 @@ import {
   getDeviceStateDiagnostic,
 } from "@/utils/device-diagnostics";
 
+import {
+  getSensorCalibrationDiagnostic,
+} from "@/utils/sensor-calibration";
+
 interface DeviceCardProps {
   device: DashboardDevice;
 }
@@ -77,6 +81,11 @@ export function DeviceCard({
 
   const diagnostic =
     getDeviceStateDiagnostic(
+      device,
+    );
+
+  const calibration =
+    getSensorCalibrationDiagnostic(
       device,
     );
 
@@ -363,7 +372,9 @@ export function DeviceCard({
                   DIVERGÊNCIA
                   ================================== */}
 
-              {diagnostic.divergent && (
+              {calibration.needsRecalibration ? (
+                <DeviceCalibrationAlert />
+              ) : diagnostic.divergent ? (
                 <DeviceDivergenceAlert
                   logicalState={
                     formatDetectedState(
@@ -376,7 +387,7 @@ export function DeviceCard({
                     )
                   }
                 />
-              )}
+              ) : null}
 
               {/* ==================================
                   CONTROLE RÁPIDO
@@ -515,6 +526,45 @@ function DeviceDivergenceAlert({
                 {physicalState}
               </strong>
               .
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ==========================================
+   ALERTA DE RECALIBRAÇÃO
+   ========================================== */
+
+function DeviceCalibrationAlert() {
+  return (
+    <div className="mt-3 overflow-hidden rounded-xl border border-amber-300/90 bg-gradient-to-r from-amber-50 via-orange-50/70 to-red-50/50">
+      <div className="flex">
+        <div className="w-1 shrink-0 bg-amber-500" />
+
+        <div className="flex flex-1 items-start gap-3 p-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+            <WarningIcon />
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-bold text-amber-950">
+                Recalibração necessária
+              </p>
+
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-amber-700">
+                Calibração
+              </span>
+            </div>
+
+            <p className="mt-1 text-[11px] leading-4 text-amber-800">
+              As referências ON/OFF do acelerômetro
+              estão inconsistentes. Recalibre o
+              equipamento para evitar uma indicação
+              incorreta do estado físico.
             </p>
           </div>
         </div>

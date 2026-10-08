@@ -41,6 +41,10 @@ import {
   type DeviceShutdownReason,
 } from "@/utils/device-diagnostics";
 
+import {
+  getSensorCalibrationDiagnostic,
+} from "@/utils/sensor-calibration";
+
 interface DeviceDetailsModalProps {
   device: DashboardDevice;
   open: boolean;
@@ -95,6 +99,21 @@ export function DeviceDetailsModal({
     getDeviceStateDiagnostic(
       device,
     );
+
+  const calibration =
+    getSensorCalibrationDiagnostic(
+      device,
+    );
+
+  const physicalStateForDisplay:
+    DeviceDetectedState =
+      calibration.needsRecalibration
+        ? "unknown"
+        : diagnostic.physicalState;
+
+  const divergentForDisplay =
+    !calibration.needsRecalibration &&
+    diagnostic.divergent;
 
   return (
     <div
@@ -254,6 +273,16 @@ export function DeviceDetailsModal({
                       }
                     />
                   </section>
+
+                  {calibration.needsRecalibration && (
+                    <CalibrationWarning
+                      on={calibration.on}
+                      off={calibration.off}
+                      reason={
+                        calibration.reason
+                      }
+                    />
+                  )}
 
                   {/* LEITURAS */}
 
@@ -426,7 +455,8 @@ export function DeviceDetailsModal({
                     title="Diagnóstico do equipamento"
                     description="Estado físico, acelerômetro e sensor de movimento."
                     tone={
-                      diagnostic.divergent
+                      calibration.needsRecalibration ||
+                      divergentForDisplay
                         ? "amber"
                         : "emerald"
                     }
@@ -436,13 +466,17 @@ export function DeviceDetailsModal({
                     trailing={
                       <DiagnosticBadge
                         available={
+                          !calibration.needsRecalibration &&
                           diagnostic.logicalState !==
                             "unknown" &&
-                          diagnostic.physicalState !==
+                          physicalStateForDisplay !==
                             "unknown"
                         }
                         divergent={
-                          diagnostic.divergent
+                          divergentForDisplay
+                        }
+                        needsRecalibration={
+                          calibration.needsRecalibration
                         }
                       />
                     }
@@ -452,10 +486,16 @@ export function DeviceDetailsModal({
                         diagnostic.logicalState
                       }
                       physicalState={
-                        diagnostic.physicalState
+                        physicalStateForDisplay
                       }
                       divergent={
-                        diagnostic.divergent
+                        divergentForDisplay
+                      }
+                      needsRecalibration={
+                        calibration.needsRecalibration
+                      }
+                      calibrationReason={
+                        calibration.reason
                       }
                       distanceToOn={
                         diagnostic
@@ -483,8 +523,16 @@ export function DeviceDetailsModal({
 
                   <CollapsibleSection
                     title="Dados técnicos dos sensores"
-                    description="ACC, ON, OFF e WM utilizados pelo diagnóstico."
-                    tone="violet"
+                    description={
+                      calibration.needsRecalibration
+                        ? "Referências ON/OFF inconsistentes. Recalibração recomendada."
+                        : "ACC, ON, OFF e WM utilizados pelo diagnóstico."
+                    }
+                    tone={
+                      calibration.needsRecalibration
+                        ? "amber"
+                        : "violet"
+                    }
                     icon={
                       <SensorIcon />
                     }
@@ -573,6 +621,70 @@ export function DeviceDetailsModal({
 }
 
 /* ==========================================
+   AVISO DE RECALIBRAÇÃO
+   ========================================== */
+
+function CalibrationWarning({
+  on,
+  off,
+  reason,
+}: {
+  on: number | null;
+  off: number | null;
+  reason: string | null;
+}) {
+  return (
+    <section className="overflow-hidden rounded-[22px] border border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50/70 to-red-50/40 shadow-sm">
+      <div className="flex">
+        <div className="w-1.5 shrink-0 bg-amber-500" />
+
+        <div className="flex flex-1 items-start gap-4 p-4 sm:p-5">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+            <SensorIcon />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-bold text-amber-950">
+                Recalibração necessária
+              </h3>
+
+              <span className="rounded-full border border-amber-200 bg-white/70 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-amber-700">
+                Sensor
+              </span>
+            </div>
+
+            <p className="mt-1.5 text-xs leading-5 text-amber-800">
+              As referências do acelerômetro estão
+              inconsistentes. Para evitar indicar um
+              estado físico incorreto, o diagnóstico
+              pelo ACC fica indisponível até uma nova
+              calibração.
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-lg border border-amber-200 bg-white/70 px-3 py-1.5 font-mono text-[10px] font-bold text-amber-900">
+                ON: {formatCounter(on)}
+              </span>
+
+              <span className="rounded-lg border border-amber-200 bg-white/70 px-3 py-1.5 font-mono text-[10px] font-bold text-amber-900">
+                OFF: {formatCounter(off)}
+              </span>
+            </div>
+
+            {reason && (
+              <p className="mt-2 text-[11px] leading-5 text-amber-700">
+                {reason}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ==========================================
    DIAGNÓSTICO
    ========================================== */
 
@@ -580,6 +692,8 @@ function DeviceDiagnosticContent({
   logicalState,
   physicalState,
   divergent,
+  needsRecalibration,
+  calibrationReason,
   distanceToOn,
   distanceToOff,
   wm,
@@ -593,6 +707,12 @@ function DeviceDiagnosticContent({
     DeviceDetectedState;
 
   divergent: boolean;
+
+  needsRecalibration:
+    boolean;
+
+  calibrationReason:
+    string | null;
 
   distanceToOn:
     number | null;
@@ -610,6 +730,7 @@ function DeviceDiagnosticContent({
     DeviceShutdownReason;
 }) {
   const hasCompleteDiagnostic =
+    !needsRecalibration &&
     logicalState !==
       "unknown" &&
     physicalState !==
@@ -621,6 +742,27 @@ function DeviceDiagnosticContent({
 
   return (
     <div>
+      {needsRecalibration && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+              <SensorIcon />
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-amber-950">
+                Diagnóstico físico suspenso
+              </p>
+
+              <p className="mt-1 text-[11px] leading-5 text-amber-800">
+                {calibrationReason ||
+                  "As referências ON/OFF precisam ser recalibradas antes de classificar o estado físico."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ESTADOS */}
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -637,10 +779,18 @@ function DeviceDiagnosticContent({
 
         <DiagnosticStateCard
           label="Estado físico"
-          value={formatDetectedState(
-            physicalState,
-          )}
-          helper="Detectado pelo acelerômetro"
+          value={
+            needsRecalibration
+              ? "Indisponível"
+              : formatDetectedState(
+                  physicalState,
+                )
+          }
+          helper={
+            needsRecalibration
+              ? "Aguardando nova calibração"
+              : "Detectado pelo acelerômetro"
+          }
           state={
             physicalState
           }
@@ -652,6 +802,9 @@ function DeviceDiagnosticContent({
           }
           divergent={
             divergent
+          }
+          needsRecalibration={
+            needsRecalibration
           }
         />
       </div>
@@ -699,8 +852,9 @@ function DeviceDiagnosticContent({
 
       {/* DISTÂNCIAS */}
 
-      {physicalState !==
-        "unknown" && (
+      {!needsRecalibration &&
+        physicalState !==
+          "unknown" && (
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <DiagnosticDistance
             label="Distância para Ligado"
@@ -722,12 +876,9 @@ function DeviceDiagnosticContent({
 
       <div className="mt-4 rounded-xl border border-slate-200/70 bg-slate-50/70 px-4 py-3">
         <p className="text-[11px] leading-5 text-slate-500">
-          O estado físico é obtido
-          comparando ACC com as
-          referências ON e OFF. A
-          referência mais próxima
-          representa o estado
-          detectado da máquina.
+          {needsRecalibration
+            ? "O estado físico não é classificado enquanto as referências ON e OFF estiverem inconsistentes. Após a recalibração, o sistema volta a comparar ACC com as duas referências."
+            : "O estado físico é obtido comparando ACC com as referências ON e OFF. A referência mais próxima representa o estado detectado da máquina."}
         </p>
 
         <p className="mt-1 text-[11px] leading-5 text-slate-500">
@@ -750,10 +901,22 @@ function DeviceDiagnosticContent({
 function DiagnosticBadge({
   available,
   divergent,
+  needsRecalibration,
 }: {
   available: boolean;
   divergent: boolean;
+  needsRecalibration: boolean;
 }) {
+  if (needsRecalibration) {
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-700">
+        <span className="h-2 w-2 rounded-full bg-amber-500" />
+
+        Recalibração necessária
+      </span>
+    );
+  }
+
   if (!available) {
     return (
       <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-600">
@@ -836,9 +999,11 @@ function DiagnosticStateCard({
 function DiagnosticSituationCard({
   available,
   divergent,
+  needsRecalibration,
 }: {
   available: boolean;
   divergent: boolean;
+  needsRecalibration: boolean;
 }) {
   let value =
     "Indeterminado";
@@ -849,7 +1014,16 @@ function DiagnosticSituationCard({
   let indicatorClass =
     "bg-slate-400";
 
-  if (available) {
+  if (needsRecalibration) {
+    value =
+      "Recalibração";
+
+    helper =
+      "Referências ON/OFF inconsistentes.";
+
+    indicatorClass =
+      "bg-amber-500";
+  } else if (available) {
     if (divergent) {
       value =
         "Divergência";
