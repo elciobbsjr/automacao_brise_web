@@ -41,25 +41,109 @@ interface DashboardDevicesProps {
   onGroupSelectionChange: (
     selection: DeviceGroupSelection,
   ) => void;
+
+  /*
+   * Estes campos permitem que
+   * DashboardContent controle os
+   * filtros através dos cards
+   * de monitoramento.
+   *
+   * São opcionais para preservar
+   * o funcionamento anterior
+   * deste componente.
+   */
+  search?: string;
+
+  filter?: DeviceFilter;
+
+  onSearchChange?: (
+    value: string,
+  ) => void;
+
+  onFilterChange?: (
+    filter: DeviceFilter,
+  ) => void;
 }
 
 export function DashboardDevices({
   devices,
   groupSelection,
   onGroupSelectionChange,
+  search:
+    controlledSearch,
+  filter:
+    controlledFilter,
+  onSearchChange,
+  onFilterChange,
 }: DashboardDevicesProps) {
+  /*
+   * Mantemos os estados internos
+   * existentes como fallback.
+   *
+   * Dessa forma, o componente
+   * continua funcionando mesmo
+   * sem receber os filtros do pai.
+   */
   const [
-    search,
-    setSearch,
+    internalSearch,
+    setInternalSearch,
   ] = useState("");
 
   const [
-    filter,
-    setFilter,
+    internalFilter,
+    setInternalFilter,
   ] =
     useState<DeviceFilter>(
       "all",
     );
+
+  /*
+   * Quando DashboardContent fornecer
+   * os valores, utilizamos os valores
+   * compartilhados.
+   *
+   * Caso contrário, utilizamos
+   * os estados internos anteriores.
+   */
+  const search =
+    controlledSearch ??
+    internalSearch;
+
+  const filter =
+    controlledFilter ??
+    internalFilter;
+
+  /*
+   * Mantemos os mesmos nomes
+   * utilizados no restante do arquivo.
+   *
+   * Assim praticamente nenhuma
+   * lógica existente precisa
+   * ser alterada.
+   */
+  function setSearch(
+    value: string,
+  ) {
+    if (onSearchChange) {
+      onSearchChange(value);
+
+      return;
+    }
+
+    setInternalSearch(value);
+  }
+
+  function setFilter(
+    value: DeviceFilter,
+  ) {
+    if (onFilterChange) {
+      onFilterChange(value);
+
+      return;
+    }
+
+    setInternalFilter(value);
+  }
 
   /*
    * NÍVEL 1
@@ -353,6 +437,7 @@ export function DashboardDevices({
      * limpamos busca e filtros.
      */
     setFilter("all");
+
     setSearch("");
   }
 
@@ -364,22 +449,22 @@ export function DashboardDevices({
 
       <div>
         <div className="mb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-blue-600" />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-blue-600" />
 
-            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">
-              Locais
-            </h2>
+              <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">
+                Locais
+              </h2>
+            </div>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Selecione o prédio,
+              setor ou área que
+              deseja visualizar.
+            </p>
           </div>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Selecione o prédio,
-            setor ou área que
-            deseja visualizar.
-          </p>
         </div>
-      </div>
 
         <DashboardGroupFilter
           selection={
@@ -407,7 +492,10 @@ export function DashboardDevices({
           DISPOSITIVOS
           ========================================== */}
 
-      <div>
+      <div
+        id="dispositivos"
+        className="scroll-mt-6"
+      >
         {/* CABEÇALHO */}
 
         <div className="mb-5">

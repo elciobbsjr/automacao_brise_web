@@ -23,6 +23,10 @@ import {
   DashboardDevices,
 } from "./DashboardDevices";
 
+import type {
+  DeviceFilter,
+} from "./DeviceFilters";
+
 interface DashboardContentProps {
   dashboard: DashboardResponse;
 }
@@ -39,17 +43,32 @@ export function DashboardContent({
     );
 
   /*
-   * Estes são os dispositivos que
-   * alimentam os cards de resumo.
+   * Busca e filtro agora ficam neste
+   * componente porque precisam ser
+   * compartilhados entre:
    *
-   * Portanto, ao selecionar:
+   * - os cards de monitoramento;
+   * - a área de dispositivos.
+   */
+  const [
+    search,
+    setSearch,
+  ] = useState("");
+
+  const [
+    filter,
+    setFilter,
+  ] =
+    useState<DeviceFilter>(
+      "all",
+    );
+
+  /*
+   * Dispositivos utilizados nos
+   * cards de resumo.
    *
-   * Sede
-   * → SEMEQ
-   * → Manutenção
-   *
-   * os números do topo também serão
-   * recalculados somente para esse grupo.
+   * Os valores continuam respeitando
+   * o local atualmente selecionado.
    */
   const selectedDevices =
     useMemo(
@@ -64,11 +83,45 @@ export function DashboardContent({
       ],
     );
 
+  /*
+   * Clique nos cards de monitoramento.
+   *
+   * Além de aplicar o filtro,
+   * limpa uma eventual busca anterior
+   * e leva o usuário até a área
+   * de dispositivos.
+   */
+  function handleSummaryFilter(
+    nextFilter: DeviceFilter,
+  ) {
+    setSearch("");
+
+    setFilter(
+      nextFilter,
+    );
+
+    window.requestAnimationFrame(
+      () => {
+        document
+          .getElementById(
+            "dispositivos",
+          )
+          ?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+      },
+    );
+  }
+
   return (
     <>
       <DashboardSummary
         devices={
           selectedDevices
+        }
+        onFilterSelect={
+          handleSummaryFilter
         }
       />
 
@@ -81,6 +134,18 @@ export function DashboardContent({
         }
         onGroupSelectionChange={
           setGroupSelection
+        }
+        search={
+          search
+        }
+        filter={
+          filter
+        }
+        onSearchChange={
+          setSearch
+        }
+        onFilterChange={
+          setFilter
         }
       />
     </>

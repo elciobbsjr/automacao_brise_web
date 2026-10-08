@@ -6,12 +6,21 @@ import {
   SummaryCard,
 } from "./SummaryCard";
 
+import type {
+  DeviceFilter,
+} from "./DeviceFilters";
+
 interface DashboardSummaryProps {
   devices: DashboardDevice[];
+
+  onFilterSelect: (
+    filter: DeviceFilter,
+  ) => void;
 }
 
 export function DashboardSummary({
   devices,
+  onFilterSelect,
 }: DashboardSummaryProps) {
   const total =
     devices.length;
@@ -65,6 +74,11 @@ export function DashboardSummary({
           value={String(total)}
           description="Total monitorado"
           status="neutral"
+          onClick={() =>
+            onFilterSelect(
+              "all",
+            )
+          }
         />
 
         <SummaryCard
@@ -74,6 +88,11 @@ export function DashboardSummary({
           )}
           description="Em operação"
           status="on"
+          onClick={() =>
+            onFilterSelect(
+              "on",
+            )
+          }
         />
 
         <SummaryCard
@@ -83,6 +102,11 @@ export function DashboardSummary({
           )}
           description="Disponíveis e desligados"
           status="off"
+          onClick={() =>
+            onFilterSelect(
+              "off",
+            )
+          }
         />
 
         <SummaryCard
@@ -92,6 +116,11 @@ export function DashboardSummary({
           )}
           description="Verificar conexão"
           status="offline"
+          onClick={() =>
+            onFilterSelect(
+              "offline",
+            )
+          }
         />
       </div>
     </section>
