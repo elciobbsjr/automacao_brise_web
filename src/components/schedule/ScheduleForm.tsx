@@ -29,6 +29,10 @@ import {
   FanSpeedSelector,
 } from "@/components/device/control/FanSpeedSelector";
 
+import {
+  ScheduleDeviceGroupSelector,
+} from "./ScheduleDeviceGroupSelector";
+
 interface ScheduleFormProps {
   devices: DashboardDevice[];
 
@@ -113,52 +117,9 @@ export function ScheduleForm({
     setMessage,
   ] = useState("");
 
-  const allSelected =
-    availableDevices.length >
-      0 &&
-    selectedDevices.length ===
-      availableDevices.length;
-
   /* ==========================================
      DISPOSITIVOS
      ========================================== */
-
-  function toggleAllDevices() {
-    if (allSelected) {
-      setSelectedDevices(
-        [],
-      );
-
-      return;
-    }
-
-    setSelectedDevices(
-      availableDevices.map(
-        (device) =>
-          device.deviceId,
-      ),
-    );
-  }
-
-  function toggleDevice(
-    deviceId: number,
-  ) {
-    setSelectedDevices(
-      (current) =>
-        current.includes(
-          deviceId,
-        )
-          ? current.filter(
-              (id) =>
-                id !==
-                deviceId,
-            )
-          : [
-              ...current,
-              deviceId,
-            ],
-    );
-  }
 
   /* ==========================================
      DIAS
@@ -536,9 +497,11 @@ export function ScheduleForm({
 
           {/* DISPOSITIVOS */}
 
+          {/* DISPOSITIVOS */}
+
           <FormSection
             title="Equipamentos"
-            description="Selecione os dispositivos que receberão o agendamento."
+            description="Selecione os equipamentos que receberão o agendamento."
             icon={
               <EquipmentIcon />
             }
@@ -552,96 +515,20 @@ export function ScheduleForm({
               </span>
             }
           >
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <p className="text-xs text-slate-500">
-                Somente equipamentos
-                online estão disponíveis.
-              </p>
-
-              <button
-                type="button"
-                onClick={
-                  toggleAllDevices
-                }
-                className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold text-blue-700 transition hover:bg-blue-50"
-              >
-                {allSelected
-                  ? "Desmarcar todos"
-                  : "Selecionar todos"}
-              </button>
-            </div>
 
             {availableDevices.length >
             0 ? (
-              <div className="grid max-h-[300px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
-                {availableDevices.map(
-                  (device) => {
-                    const selected =
-                      selectedDevices.includes(
-                        device.deviceId,
-                      );
-
-                    const deviceName =
-                      device.config
-                        ?.name ||
-                      `Dispositivo ${device.deviceId}`;
-
-                    const model =
-                      device.config
-                        ?.MODEL ||
-                      "Modelo indisponível";
-
-                    return (
-                      <button
-                        key={
-                          device.deviceId
-                        }
-                        type="button"
-                        onClick={() =>
-                          toggleDevice(
-                            device.deviceId,
-                          )
-                        }
-                        className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${
-                          selected
-                            ? "border-blue-300 bg-blue-50/70 shadow-sm"
-                            : "border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white"
-                        }`}
-                      >
-                        <div
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                            selected
-                              ? "bg-blue-600 text-white"
-                              : "bg-slate-100 text-slate-400"
-                          }`}
-                        >
-                          {selected ? (
-                            <CheckIcon />
-                          ) : (
-                            <EquipmentSmallIcon />
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-bold text-slate-900">
-                            {
-                              deviceName
-                            }
-                          </p>
-
-                          <p className="mt-0.5 truncate text-[10px] text-slate-400">
-                            {model}
-                            {" · Nº "}
-                            {
-                              device.deviceId
-                            }
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  },
-                )}
-              </div>
+              <ScheduleDeviceGroupSelector
+                devices={
+                  availableDevices
+                }
+                selectedDeviceIds={
+                  selectedDevices
+                }
+                onSelectionChange={
+                  setSelectedDevices
+                }
+              />
             ) : (
               <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/60 p-5 text-center">
                 <p className="text-sm font-bold text-amber-900">
@@ -1169,30 +1056,6 @@ function EquipmentIcon() {
   );
 }
 
-function EquipmentSmallIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
-      <rect
-        x="3"
-        y="6"
-        width="18"
-        height="10"
-        rx="2"
-      />
-
-      <path d="M7 12h10" />
-    </svg>
-  );
-}
 
 function CalendarIcon() {
   return (
@@ -1316,22 +1179,7 @@ function SnowflakeIcon() {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
-      <path d="m5 12 4 4L19 6" />
-    </svg>
-  );
-}
+
 
 function CalendarPlusIcon() {
   return (
