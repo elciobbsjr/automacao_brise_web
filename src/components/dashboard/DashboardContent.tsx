@@ -64,6 +64,23 @@ export function DashboardContent({
     );
 
   /*
+   * Controla a nova navegação
+   * hierárquica iniciada através
+   * dos cards de monitoramento.
+   *
+   * false:
+   * comportamento normal da tela.
+   *
+   * true:
+   * exibe os grupos que possuem
+   * equipamentos do status escolhido.
+   */
+  const [
+    statusNavigationActive,
+    setStatusNavigationActive,
+  ] = useState(false);
+
+  /*
    * Dispositivos utilizados nos
    * cards de resumo.
    *
@@ -86,20 +103,53 @@ export function DashboardContent({
   /*
    * Clique nos cards de monitoramento.
    *
-   * Além de aplicar o filtro,
-   * limpa uma eventual busca anterior
-   * e leva o usuário até a área
-   * de dispositivos.
+   * Agora não exibimos imediatamente
+   * todos os equipamentos daquele
+   * status.
+   *
+   * Primeiro ativamos a navegação
+   * hierárquica por grupos.
    */
   function handleSummaryFilter(
     nextFilter: DeviceFilter,
   ) {
+    /*
+     * Uma busca antiga poderia esconder
+     * grupos ou equipamentos da nova
+     * navegação.
+     */
     setSearch("");
 
+    /*
+     * Mantemos o status escolhido:
+     *
+     * all
+     * on
+     * off
+     * offline
+     */
     setFilter(
       nextFilter,
     );
 
+    /*
+     * Ativa a navegação:
+     *
+     * Local
+     * → Setor
+     * → Subdivisão
+     * → Área
+     * → Equipamentos
+     */
+    setStatusNavigationActive(
+      true,
+    );
+
+    /*
+     * Leva o usuário até a área
+     * em que a nova navegação
+     * será exibida.
+     */
     window.requestAnimationFrame(
       () => {
         document
@@ -111,6 +161,83 @@ export function DashboardContent({
             block: "start",
           });
       },
+    );
+  }
+
+  /*
+   * Quando o usuário utiliza os
+   * filtros normais da área de
+   * dispositivos, saímos do modo
+   * de navegação por status.
+   *
+   * Isso preserva o funcionamento
+   * que já existia anteriormente.
+   */
+  function handleDeviceFilterChange(
+    nextFilter: DeviceFilter,
+  ) {
+    setFilter(
+      nextFilter,
+    );
+
+    setStatusNavigationActive(
+      false,
+    );
+  }
+
+  /*
+   * Chamado quando o usuário percorreu
+   * a hierarquia iniciada pelo card
+   * de monitoramento e chegou ao grupo
+   * que realmente contém os aparelhos.
+   *
+   * Mantemos:
+   *
+   * - o filtro de status;
+   * - a seleção hierárquica.
+   *
+   * Apenas encerramos o navegador de
+   * grupos para mostrar os equipamentos.
+   */
+  function handleStatusNavigationComplete(
+    selection:
+      DeviceGroupSelection,
+  ) {
+    setGroupSelection(
+      selection,
+    );
+
+    setStatusNavigationActive(
+      false,
+    );
+
+    /*
+     * Mantemos o usuário na própria
+     * área de dispositivos.
+     */
+    window.requestAnimationFrame(
+      () => {
+        document
+          .getElementById(
+            "dispositivos",
+          )
+          ?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+      },
+    );
+  }
+
+  /*
+   * Permite ao DashboardDevices
+   * cancelar a navegação especial
+   * quando necessário sem alterar
+   * o status selecionado.
+   */
+  function handleStatusNavigationCancel() {
+    setStatusNavigationActive(
+      false,
     );
   }
 
@@ -145,7 +272,21 @@ export function DashboardContent({
           setSearch
         }
         onFilterChange={
-          setFilter
+          handleDeviceFilterChange
+        }
+
+        /*
+         * NOVA NAVEGAÇÃO
+         * POR STATUS / HIERARQUIA
+         */
+        statusNavigationActive={
+          statusNavigationActive
+        }
+        onStatusNavigationComplete={
+          handleStatusNavigationComplete
+        }
+        onStatusNavigationCancel={
+          handleStatusNavigationCancel
         }
       />
     </>

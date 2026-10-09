@@ -23,6 +23,10 @@ import {
 } from "./DashboardGroupFilter";
 
 import {
+  StatusGroupNavigator,
+} from "./StatusGroupNavigator";
+
+import {
   ALL_GROUPS_KEY,
   UNGROUPED_KEY,
   filterDevicesByHierarchy,
@@ -63,6 +67,36 @@ interface DashboardDevicesProps {
   onFilterChange?: (
     filter: DeviceFilter,
   ) => void;
+
+  /*
+   * NOVA NAVEGAÇÃO POR STATUS
+   *
+   * Quando ativa, em vez de
+   * exibir imediatamente todos
+   * os equipamentos, mostramos
+   * primeiro os grupos da
+   * hierarquia.
+   */
+  statusNavigationActive?: boolean;
+
+  /*
+   * Chamado quando chegamos
+   * ao último grupo disponível
+   * e podemos finalmente mostrar
+   * os equipamentos.
+   */
+  onStatusNavigationComplete?: (
+    selection:
+      DeviceGroupSelection,
+  ) => void;
+
+  /*
+   * Permite cancelar a navegação
+   * especial caso o usuário use
+   * novamente a navegação normal
+   * por locais.
+   */
+  onStatusNavigationCancel?: () => void;
 }
 
 export function DashboardDevices({
@@ -75,6 +109,9 @@ export function DashboardDevices({
     controlledFilter,
   onSearchChange,
   onFilterChange,
+  statusNavigationActive = false,
+  onStatusNavigationComplete,
+  onStatusNavigationCancel,
 }: DashboardDevicesProps) {
   /*
    * Mantemos os estados internos
@@ -430,6 +467,15 @@ export function DashboardDevices({
     );
 
     /*
+     * Caso o usuário utilize
+     * manualmente a navegação
+     * normal por locais, encerramos
+     * a navegação especial iniciada
+     * pelos cards de monitoramento.
+     */
+    onStatusNavigationCancel?.();
+
+    /*
      * Mantemos o comportamento
      * atual:
      *
@@ -508,108 +554,133 @@ export function DashboardDevices({
           </div>
 
           <p className="mt-2 text-sm text-slate-500">
-            Consulte o estado,
-            temperatura e operação
-            dos equipamentos
-            encontrados.
+            {statusNavigationActive
+              ? "Selecione um grupo para localizar os equipamentos desejados."
+              : "Consulte o estado, temperatura e operação dos equipamentos encontrados."}
           </p>
         </div>
 
         {/* ======================================
-            FILTROS
+            NAVEGAÇÃO POR STATUS
             ====================================== */}
 
-        <div className="relative mb-6 overflow-hidden rounded-[24px] border border-white/80 bg-white/70 shadow-[0_10px_35px_rgba(15,23,42,0.055)] backdrop-blur-xl">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white via-white/90 to-slate-50/70" />
+        {statusNavigationActive ? (
+          <StatusGroupNavigator
+            devices={devices}
+            filter={filter}
+            selection={
+              groupSelection
+            }
+            onSelectionChange={
+              onGroupSelectionChange
+            }
+            onLeafReached={(
+              selection,
+            ) => {
+              onStatusNavigationComplete?.(
+                selection,
+              );
+            }}
+          />
+        ) : (
+          <>
+            {/* ======================================
+                FILTROS
+                ====================================== */}
 
-          <div className="relative p-4 sm:p-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                  <FilterIcon />
+            <div className="relative mb-6 overflow-hidden rounded-[24px] border border-white/80 bg-white/70 shadow-[0_10px_35px_rgba(15,23,42,0.055)] backdrop-blur-xl">
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white via-white/90 to-slate-50/70" />
+
+              <div className="relative p-4 sm:p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                      <FilterIcon />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">
+                        Busca e filtros
+                      </p>
+
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Refine os
+                        equipamentos
+                        exibidos abaixo.
+                      </p>
+                    </div>
+                  </div>
+
+                  {(search !== "" ||
+                    filter !==
+                      "all") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearch(
+                          "",
+                        );
+
+                        setFilter(
+                          "all",
+                        );
+                      }}
+                      className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                    >
+                      Limpar filtros
+                    </button>
+                  )}
                 </div>
 
-                <div>
-                  <p className="text-sm font-bold text-slate-900">
-                    Busca e filtros
-                  </p>
-
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    Refine os
-                    equipamentos
-                    exibidos abaixo.
-                  </p>
-                </div>
-              </div>
-
-              {(search !== "" ||
-                filter !==
-                  "all") && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch(
-                      "",
-                    );
-
-                    setFilter(
-                      "all",
-                    );
-                  }}
-                  className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-                >
-                  Limpar filtros
-                </button>
-              )}
-            </div>
-
-            <DeviceFilters
-              search={search}
-              filter={filter}
-              total={
-                devicesByGroup.length
-              }
-              onCount={
-                onCount
-              }
-              offCount={
-                offCount
-              }
-              offlineCount={
-                offlineCount
-              }
-              onSearchChange={
-                setSearch
-              }
-              onFilterChange={
-                setFilter
-              }
-            />
-          </div>
-        </div>
-
-        {/* ======================================
-            GRADE DE DISPOSITIVOS
-            ====================================== */}
-
-        {filteredDevices.length >
-        0 ? (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filteredDevices.map(
-              (device) => (
-                <DeviceCard
-                  key={
-                    device.deviceId
+                <DeviceFilters
+                  search={search}
+                  filter={filter}
+                  total={
+                    devicesByGroup.length
                   }
-                  device={
-                    device
+                  onCount={
+                    onCount
+                  }
+                  offCount={
+                    offCount
+                  }
+                  offlineCount={
+                    offlineCount
+                  }
+                  onSearchChange={
+                    setSearch
+                  }
+                  onFilterChange={
+                    setFilter
                   }
                 />
-              ),
+              </div>
+            </div>
+
+            {/* ======================================
+                GRADE DE DISPOSITIVOS
+                ====================================== */}
+
+            {filteredDevices.length >
+            0 ? (
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {filteredDevices.map(
+                  (device) => (
+                    <DeviceCard
+                      key={
+                        device.deviceId
+                      }
+                      device={
+                        device
+                      }
+                    />
+                  ),
+                )}
+              </div>
+            ) : (
+              <EmptyDevicesState />
             )}
-          </div>
-        ) : (
-          <EmptyDevicesState />
+          </>
         )}
       </div>
     </section>
