@@ -14,6 +14,10 @@ import {
   getDashboard,
 } from "@/services/brise.service";
 
+import {
+  ScrollToTopButton,
+} from "@/components/dashboard/ScrollToTopButton";
+
 export default async function Home() {
   try {
     const dashboard =
@@ -22,6 +26,8 @@ export default async function Home() {
     return (
       <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50">
         <AutoRefresh />
+
+        <ScrollToTopButton />
 
         {/* ==========================================
             ELEMENTOS DECORATIVOS DO FUNDO
