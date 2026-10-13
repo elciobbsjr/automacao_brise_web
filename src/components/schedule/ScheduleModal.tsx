@@ -21,22 +21,51 @@ import {
   ScheduleList,
 } from "./ScheduleList";
 
+/* ==========================================
+   TIPOS
+   ========================================== */
+
+type ScheduleTab =
+  | "list"
+  | "create";
+
 interface ScheduleModalProps {
   devices: DashboardDevice[];
 
   open: boolean;
 
   onClose: () => void;
+
+  /*
+   * Aba que deve aparecer
+   * quando o modal for aberto.
+   *
+   * list:
+   * lista de agendamentos.
+   *
+   * create:
+   * novo agendamento.
+   */
+  initialTab?: ScheduleTab;
+
+  /*
+   * Equipamentos que já devem
+   * aparecer selecionados ao
+   * criar um agendamento.
+   */
+  initialSelectedDeviceIds?: number[];
 }
 
-type ScheduleTab =
-  | "list"
-  | "create";
+/* ==========================================
+   COMPONENTE
+   ========================================== */
 
 export function ScheduleModal({
   devices,
   open,
   onClose,
+  initialTab = "list",
+  initialSelectedDeviceIds = [],
 }: ScheduleModalProps) {
   const [
     mounted,
@@ -48,8 +77,12 @@ export function ScheduleModal({
     setTab,
   ] =
     useState<ScheduleTab>(
-      "list",
+      initialTab,
     );
+
+  /* ==========================================
+     MONTAGEM
+     ========================================== */
 
   useEffect(() => {
     setMounted(true);
@@ -58,6 +91,40 @@ export function ScheduleModal({
       setMounted(false);
     };
   }, []);
+
+  /* ==========================================
+     ABA INICIAL
+     ========================================== */
+
+  /*
+   * Sempre que o modal for aberto,
+   * utiliza a aba solicitada por
+   * quem chamou o componente.
+   *
+   * Exemplos:
+   *
+   * botão geral:
+   * → list
+   *
+   * dispositivo > novo agendamento:
+   * → create
+   */
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setTab(
+      initialTab,
+    );
+  }, [
+    open,
+    initialTab,
+  ]);
+
+  /* ==========================================
+     BLOQUEIO DE SCROLL DA PÁGINA
+     ========================================== */
 
   useEffect(() => {
     if (!open) {
@@ -77,15 +144,10 @@ export function ScheduleModal({
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open) {
-      setTab("list");
-    }
-  }, [open]);
+  /* ==========================================
+     ESC FECHA O MODAL
+     ========================================== */
 
-  /*
-   * ESC fecha o modal.
-   */
   useEffect(() => {
     if (!open) {
       return;
@@ -118,6 +180,10 @@ export function ScheduleModal({
     onClose,
   ]);
 
+  /* ==========================================
+     MODAL FECHADO
+     ========================================== */
+
   if (
     !open ||
     !mounted
@@ -125,11 +191,19 @@ export function ScheduleModal({
     return null;
   }
 
+  /* ==========================================
+     INFORMAÇÕES
+     ========================================== */
+
   const onlineDevices =
     devices.filter(
       (device) =>
         device.online,
     ).length;
+
+  /* ==========================================
+     MODAL
+     ========================================== */
 
   return createPortal(
     <div
@@ -258,7 +332,8 @@ export function ScheduleModal({
           <div className="inline-flex rounded-2xl border border-slate-200/80 bg-slate-100/80 p-1.5">
             <TabButton
               active={
-                tab === "list"
+                tab ===
+                "list"
               }
               icon={
                 <ListIcon />
@@ -297,7 +372,8 @@ export function ScheduleModal({
 
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto">
           <div className="p-5 sm:p-7">
-            {tab === "list" ? (
+            {tab ===
+            "list" ? (
               <ScheduleList
                 devices={
                   devices
@@ -307,6 +383,9 @@ export function ScheduleModal({
               <ScheduleForm
                 devices={
                   devices
+                }
+                initialSelectedDeviceIds={
+                  initialSelectedDeviceIds
                 }
                 onCreated={() =>
                   setTab(

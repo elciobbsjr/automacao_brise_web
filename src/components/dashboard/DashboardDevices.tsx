@@ -673,6 +673,9 @@ export function DashboardDevices({
                       device={
                         device
                       }
+                      allDevices={
+                        devices
+                      }
                     />
                   ),
                 )}

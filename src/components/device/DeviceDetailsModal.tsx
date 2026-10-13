@@ -45,16 +45,38 @@ import {
   getSensorCalibrationDiagnostic,
 } from "@/utils/sensor-calibration";
 
+import {
+  DeviceSchedules,
+} from "./DeviceSchedules";
+
 interface DeviceDetailsModalProps {
   device: DashboardDevice;
+
   open: boolean;
+
   onClose: () => void;
+
+  /*
+   * Abre o módulo de agendamentos
+   * diretamente na criação de uma
+   * nova programação para este
+   * equipamento.
+   */
+  onCreateSchedule?: () => void;
+
+  /*
+   * Abre o módulo geral de
+   * gerenciamento de agendamentos.
+   */
+  onManageSchedules?: () => void;
 }
 
 export function DeviceDetailsModal({
   device,
   open,
   onClose,
+  onCreateSchedule,
+  onManageSchedules,
 }: DeviceDetailsModalProps) {
   if (!open) {
     return null;
@@ -375,6 +397,20 @@ export function DeviceDetailsModal({
                       )}
                     />
                   </ModalSection>
+
+                  {/* AGENDAMENTOS */}
+
+                  <DeviceSchedules
+                    deviceId={
+                      device.deviceId
+                    }
+                    onCreate={
+                      onCreateSchedule
+                    }
+                    onManage={
+                      onManageSchedules
+                    }
+                  />
 
                   {/* CONFIGURAÇÃO */}
 

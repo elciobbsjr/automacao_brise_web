@@ -15,6 +15,10 @@ import {
 } from "./DeviceDetailsModal";
 
 import {
+  ScheduleModal,
+} from "@/components/schedule/ScheduleModal";
+
+import {
   DeviceQuickControl,
 } from "./DeviceQuickControl";
 
@@ -39,15 +43,56 @@ import {
 
 interface DeviceCardProps {
   device: DashboardDevice;
+
+  /*
+   * Lista completa utilizada pelo
+   * módulo geral de agendamentos.
+   */
+  allDevices?: DashboardDevice[];
 }
 
 export function DeviceCard({
   device,
+  allDevices,
 }: DeviceCardProps) {
   const [
     detailsOpen,
     setDetailsOpen,
   ] = useState(false);
+
+  const [
+    scheduleOpen,
+    setScheduleOpen,
+  ] = useState(false);
+
+  const [
+    scheduleInitialTab,
+    setScheduleInitialTab,
+  ] =
+    useState<
+      "list" | "create"
+    >("list");
+
+    const [
+  scheduleTransitionVisible,
+      setScheduleTransitionVisible,
+    ] = useState(false);
+
+    const [
+      scheduleTransitionTab,
+      setScheduleTransitionTab,
+    ] =
+      useState<
+        "list" | "create"
+      >("list");
+
+  /*
+   * Caso allDevices ainda não seja
+   * fornecido, usamos somente o
+   * dispositivo atual como fallback.
+   */
+  const scheduleDevices =
+    allDevices ?? [device];
 
   const name =
     device.config?.name ||
@@ -245,6 +290,77 @@ export function DeviceCard({
       window.history.state,
       "",
       `${url.pathname}${url.search}${url.hash}`,
+    );
+  }
+
+  function openScheduleWithTransition(
+  tab:
+    | "list"
+    | "create",
+) {
+  setScheduleInitialTab(
+    tab,
+  );
+
+  setScheduleTransitionTab(
+    tab,
+  );
+
+  /*
+   * Mostra a transição.
+   */
+  setScheduleTransitionVisible(
+    true,
+  );
+
+  /*
+   * Fecha o modal atual.
+   */
+  closeDetails();
+
+  /*
+   * Abre o novo modal
+   * após o início do fade.
+   */
+  window.setTimeout(
+    () => {
+      setScheduleOpen(
+        true,
+      );
+    },
+    220,
+  );
+
+  /*
+   * Remove a camada de
+   * transição depois.
+   */
+  window.setTimeout(
+    () => {
+      setScheduleTransitionVisible(
+        false,
+      );
+    },
+    520,
+  );
+}
+
+function openCreateSchedule() {
+  openScheduleWithTransition(
+    "create",
+  );
+}
+
+function openManageSchedules() {
+  openScheduleWithTransition(
+    "list",
+  );
+}
+  
+
+  function closeSchedules() {
+    setScheduleOpen(
+      false,
     );
   }
 
@@ -471,11 +587,101 @@ export function DeviceCard({
         </div>
       </article>
 
+      {/* ==========================================
+          TRANSIÇÃO ENTRE MODAIS
+          ========================================== */}
+
+      <div
+        aria-hidden={
+          !scheduleTransitionVisible
+        }
+        className={`fixed inset-0 z-[9998] flex items-center justify-center bg-slate-950/15 backdrop-blur-[3px] transition-all duration-300 ${
+          scheduleTransitionVisible
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+      >
+        <div
+          className={`relative overflow-hidden rounded-[22px] border border-white/80 bg-white/90 px-6 py-5 shadow-[0_20px_60px_rgba(15,23,42,0.18)] backdrop-blur-xl transition-all duration-300 ${
+            scheduleTransitionVisible
+              ? "translate-y-0 scale-100 opacity-100"
+              : "translate-y-2 scale-[0.97] opacity-0"
+          }`}
+        >
+          <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-blue-200/35 blur-2xl" />
+
+          <div className="relative flex items-center gap-4">
+            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+              <div className="absolute inset-0 animate-ping rounded-2xl bg-blue-100/50" />
+
+              <div className="relative">
+                <ScheduleTransitionIcon />
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm font-bold text-slate-950">
+                {scheduleTransitionTab ===
+                "create"
+                  ? "Novo agendamento"
+                  : "Gerenciar agendamentos"}
+              </p>
+
+              <p className="mt-1 text-xs text-slate-500">
+                {scheduleTransitionTab ===
+                "create"
+                  ? "Preparando a programação deste equipamento..."
+                  : "Carregando as programações cadastradas..."}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 h-1 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 transition-all duration-500 ${
+                scheduleTransitionVisible
+                  ? "w-full"
+                  : "w-0"
+              }`}
+            />
+          </div>
+        </div>
+      </div>
+
       <DeviceDetailsModal
         device={device}
         open={detailsOpen}
         onClose={
           closeDetails
+        }
+        onCreateSchedule={
+          openCreateSchedule
+        }
+        onManageSchedules={
+          openManageSchedules
+        }
+      />
+
+      <ScheduleModal
+        devices={
+          scheduleDevices
+        }
+        open={
+          scheduleOpen
+        }
+        onClose={
+          closeSchedules
+        }
+        initialTab={
+          scheduleInitialTab
+        }
+        initialSelectedDeviceIds={
+          scheduleInitialTab ===
+          "create"
+            ? [
+                device.deviceId,
+              ]
+            : []
         }
       />
     </>
@@ -792,6 +998,39 @@ function WarningIcon() {
       <path d="M12 17h.01" />
 
       <path d="M10.3 3.6 2.4 17.3A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.7L13.7 3.6a2 2 0 0 0-3.4 0Z" />
+    </svg>
+  );
+}
+
+function ScheduleTransitionIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="16"
+        rx="2"
+      />
+
+      <path d="M16 3v4" />
+
+      <path d="M8 3v4" />
+
+      <path d="M3 10h18" />
+
+      <path d="M12 14v4" />
+
+      <path d="M10 16h4" />
     </svg>
   );
 }

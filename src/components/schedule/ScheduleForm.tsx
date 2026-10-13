@@ -37,11 +37,19 @@ interface ScheduleFormProps {
   devices: DashboardDevice[];
 
   onCreated?: () => void;
+
+  /*
+   * Permite abrir o formulário
+   * com determinados equipamentos
+   * já selecionados.
+   */
+  initialSelectedDeviceIds?: number[];
 }
 
 export function ScheduleForm({
   devices,
   onCreated,
+  initialSelectedDeviceIds = [],
 }: ScheduleFormProps) {
   const availableDevices =
     devices.filter(
@@ -57,8 +65,29 @@ export function ScheduleForm({
   const [
     selectedDevices,
     setSelectedDevices,
-  ] = useState<number[]>([]);
+  ] = useState<number[]>(
+    () => {
+      /*
+      * Só aceita como seleção inicial
+      * equipamentos que realmente estão
+      * disponíveis no formulário.
+      */
+      const availableIds =
+        new Set(
+          availableDevices.map(
+            (device) =>
+              device.deviceId,
+          ),
+        );
 
+      return initialSelectedDeviceIds.filter(
+        (deviceId) =>
+          availableIds.has(
+            deviceId,
+          ),
+      );
+    },
+  );
   const [
     selectedDays,
     setSelectedDays,
