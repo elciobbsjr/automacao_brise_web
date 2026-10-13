@@ -73,18 +73,18 @@ export function DeviceCard({
       "list" | "create"
     >("list");
 
-    const [
-  scheduleTransitionVisible,
-      setScheduleTransitionVisible,
-    ] = useState(false);
+  const [
+    scheduleTransitionVisible,
+    setScheduleTransitionVisible,
+  ] = useState(false);
 
-    const [
-      scheduleTransitionTab,
-      setScheduleTransitionTab,
-    ] =
-      useState<
-        "list" | "create"
-      >("list");
+  const [
+    scheduleTransitionTab,
+    setScheduleTransitionTab,
+  ] =
+    useState<
+      "list" | "create"
+    >("list");
 
   /*
    * Caso allDevices ainda não seja
@@ -133,6 +133,20 @@ export function DeviceCard({
     getSensorCalibrationDiagnostic(
       device,
     );
+
+  /*
+   * O aviso aparece apenas quando:
+   *
+   * 1. o equipamento está informado
+   *    como desligado;
+   *
+   * 2. o motivo identificado pelo
+   *    diagnóstico é ausência.
+   */
+  const wasShutdownByAbsence =
+    !isRunning &&
+    diagnostic.shutdownReason ===
+      "absence";
 
   const visualState =
     !device.online
@@ -293,70 +307,73 @@ export function DeviceCard({
     );
   }
 
+  /* ==========================================
+     TRANSIÇÃO PARA AGENDAMENTOS
+     ========================================== */
+
   function openScheduleWithTransition(
-  tab:
-    | "list"
-    | "create",
-) {
-  setScheduleInitialTab(
-    tab,
-  );
+    tab:
+      | "list"
+      | "create",
+  ) {
+    setScheduleInitialTab(
+      tab,
+    );
 
-  setScheduleTransitionTab(
-    tab,
-  );
+    setScheduleTransitionTab(
+      tab,
+    );
 
-  /*
-   * Mostra a transição.
-   */
-  setScheduleTransitionVisible(
-    true,
-  );
+    /*
+     * Mostra a camada intermediária.
+     */
+    setScheduleTransitionVisible(
+      true,
+    );
 
-  /*
-   * Fecha o modal atual.
-   */
-  closeDetails();
+    /*
+     * Fecha os detalhes primeiro.
+     */
+    closeDetails();
 
-  /*
-   * Abre o novo modal
-   * após o início do fade.
-   */
-  window.setTimeout(
-    () => {
-      setScheduleOpen(
-        true,
-      );
-    },
-    220,
-  );
+    /*
+     * Abre o módulo de agendamentos
+     * após o início da animação.
+     */
+    window.setTimeout(
+      () => {
+        setScheduleOpen(
+          true,
+        );
+      },
+      220,
+    );
 
-  /*
-   * Remove a camada de
-   * transição depois.
-   */
-  window.setTimeout(
-    () => {
-      setScheduleTransitionVisible(
-        false,
-      );
-    },
-    520,
-  );
-}
+    /*
+     * Remove a camada intermediária
+     * depois que o modal novo abriu.
+     */
+    window.setTimeout(
+      () => {
+        setScheduleTransitionVisible(
+          false,
+        );
+      },
+      520,
+    );
+  }
 
-function openCreateSchedule() {
-  openScheduleWithTransition(
-    "create",
-  );
-}
+  function openCreateSchedule() {
+    openScheduleWithTransition(
+      "create",
+    );
+  }
 
-function openManageSchedules() {
-  openScheduleWithTransition(
-    "list",
-  );
-}
-  
+  function openManageSchedules() {
+    openScheduleWithTransition(
+      "list",
+    );
+  }
 
   function closeSchedules() {
     setScheduleOpen(
@@ -401,10 +418,13 @@ function openManageSchedules() {
 
                 <p className="mt-0.5 truncate text-xs text-slate-500">
                   {model}
+
                   <span className="mx-1.5 text-slate-300">
                     ·
                   </span>
+
                   Nº{" "}
+
                   <span className="font-mono font-semibold text-slate-500">
                     {device.deviceId}
                   </span>
@@ -504,6 +524,14 @@ function openManageSchedules() {
                   }
                 />
               ) : null}
+
+              {/* ==================================
+                  DESLIGAMENTO POR AUSÊNCIA
+                  ================================== */}
+
+              {wasShutdownByAbsence && (
+                <DeviceAbsenceShutdownAlert />
+              )}
 
               {/* ==================================
                   CONTROLE RÁPIDO
@@ -648,6 +676,10 @@ function openManageSchedules() {
         </div>
       </div>
 
+      {/* ==========================================
+          MODAL DE DETALHES
+          ========================================== */}
+
       <DeviceDetailsModal
         device={device}
         open={detailsOpen}
@@ -661,6 +693,10 @@ function openManageSchedules() {
           openManageSchedules
         }
       />
+
+      {/* ==========================================
+          MODAL DE AGENDAMENTOS
+          ========================================== */}
 
       <ScheduleModal
         devices={
@@ -771,6 +807,44 @@ function DeviceCalibrationAlert() {
               estão inconsistentes. Recalibre o
               equipamento para evitar uma indicação
               incorreta do estado físico.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ==========================================
+   DESLIGAMENTO POR AUSÊNCIA
+   ========================================== */
+
+function DeviceAbsenceShutdownAlert() {
+  return (
+    <div className="mt-3 overflow-hidden rounded-xl border border-violet-200/80 bg-gradient-to-r from-violet-50 via-indigo-50/60 to-blue-50/50">
+      <div className="flex">
+        <div className="w-1 shrink-0 bg-violet-500" />
+
+        <div className="flex flex-1 items-start gap-3 p-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-700">
+            <AbsenceIcon />
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-bold text-slate-950">
+                Desligado por ausência
+              </p>
+
+              <span className="rounded-full border border-violet-100 bg-violet-100/80 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-violet-700">
+                Automático
+              </span>
+            </div>
+
+            <p className="mt-1 text-[11px] leading-4 text-slate-600">
+              O equipamento foi desligado
+              automaticamente após ausência
+              de movimento detectada.
             </p>
           </div>
         </div>
@@ -998,6 +1072,29 @@ function WarningIcon() {
       <path d="M12 17h.01" />
 
       <path d="M10.3 3.6 2.4 17.3A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.7L13.7 3.6a2 2 0 0 0-3.4 0Z" />
+    </svg>
+  );
+}
+
+function AbsenceIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" />
+
+      <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+
+      <path d="M18 8l4 4" />
+
+      <path d="M22 8l-4 4" />
     </svg>
   );
 }
