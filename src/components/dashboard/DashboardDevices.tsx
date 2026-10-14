@@ -14,6 +14,10 @@ import {
 } from "@/components/device/DeviceCard";
 
 import {
+  GroupDeviceControlModal,
+} from "@/components/device/GroupDeviceControlModal";
+
+import {
   DeviceFilters,
   type DeviceFilter,
 } from "./DeviceFilters";
@@ -30,6 +34,7 @@ import {
   ALL_GROUPS_KEY,
   UNGROUPED_KEY,
   filterDevicesByHierarchy,
+  formatDeviceGroupName,
   getAvailableGroups,
   getAvailableGroupsAtLevel,
   type DeviceGroupSelection,
@@ -133,6 +138,11 @@ export function DashboardDevices({
     useState<DeviceFilter>(
       "all",
     );
+
+  const [
+    groupControlOpen,
+    setGroupControlOpen,
+  ] = useState(false);
 
   /*
    * Quando DashboardContent fornecer
@@ -325,6 +335,32 @@ export function DashboardDevices({
       (device) =>
         !device.online,
     ).length;
+
+  const groupPath = [
+    groupSelection.level1,
+    groupSelection.level2,
+    groupSelection.level3,
+    groupSelection.level4,
+  ]
+    .filter(
+      (value) =>
+        value !== ALL_GROUPS_KEY,
+    )
+    .map((value) =>
+      formatDeviceGroupName(value),
+    );
+
+  const hasSpecificGroup =
+    groupPath.length > 0;
+
+  const groupName =
+    groupPath.at(-1) ??
+    "Grupo selecionado";
+
+  const onlineGroupDevices =
+    devicesByGroup.filter(
+      (device) => device.online,
+    );
 
   const filteredDevices =
     useMemo(() => {
@@ -584,6 +620,69 @@ export function DashboardDevices({
           />
         ) : (
           <>
+            {hasSpecificGroup &&
+              devicesByGroup.length > 0 && (
+                <section className="relative mb-6 overflow-hidden rounded-[24px] border border-blue-100/80 bg-white/80 shadow-[0_12px_40px_rgba(15,23,42,0.07)] backdrop-blur-xl">
+                  <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400" />
+                  <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-blue-100/45 blur-3xl" />
+
+                  <div className="relative flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex min-w-0 items-start gap-4">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                        <GroupControlIcon />
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-600">
+                          Controle coletivo
+                        </p>
+
+                        <h3 className="mt-1 truncate text-lg font-bold tracking-tight text-slate-950">
+                          {groupName}
+                        </h3>
+
+                        <p className="mt-1 text-xs leading-5 text-slate-500">
+                          {groupPath.join(" › ")}
+                        </p>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <GroupMetric
+                            label={`${onCount} ligados`}
+                            tone="green"
+                          />
+                          <GroupMetric
+                            label={`${offCount} desligados`}
+                            tone="slate"
+                          />
+                          <GroupMetric
+                            label={`${offlineCount} offline`}
+                            tone="amber"
+                          />
+                          <GroupMetric
+                            label={`${onlineGroupDevices.length} disponíveis para controle`}
+                            tone="blue"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setGroupControlOpen(true)
+                      }
+                      disabled={
+                        onlineGroupDevices.length === 0
+                      }
+                      className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-bold text-white shadow-md shadow-slate-900/10 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <GroupControlIcon />
+                      Controle do grupo
+                    </button>
+                  </div>
+                </section>
+              )}
+
             {/* ======================================
                 FILTROS
                 ====================================== */}
@@ -686,7 +785,70 @@ export function DashboardDevices({
           </>
         )}
       </div>
+
+      <GroupDeviceControlModal
+        devices={devicesByGroup}
+        groupName={groupName}
+        groupPath={groupPath}
+        open={groupControlOpen}
+        onClose={() =>
+          setGroupControlOpen(false)
+        }
+      />
     </section>
+  );
+}
+
+function GroupMetric({
+  label,
+  tone,
+}: {
+  label: string;
+  tone:
+    | "green"
+    | "slate"
+    | "amber"
+    | "blue";
+}) {
+  const styles = {
+    green:
+      "border-emerald-100 bg-emerald-50 text-emerald-700",
+    slate:
+      "border-slate-200 bg-slate-100 text-slate-600",
+    amber:
+      "border-amber-100 bg-amber-50 text-amber-700",
+    blue:
+      "border-blue-100 bg-blue-50 text-blue-700",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold ${styles[tone]}`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function GroupControlIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M4 7h10" />
+      <path d="M18 7h2" />
+      <path d="M4 17h2" />
+      <path d="M10 17h10" />
+      <circle cx="16" cy="7" r="2" />
+      <circle cx="8" cy="17" r="2" />
+    </svg>
   );
 }
 
