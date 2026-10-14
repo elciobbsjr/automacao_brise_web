@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -44,10 +45,6 @@ import {
 interface DeviceCardProps {
   device: DashboardDevice;
 
-  /*
-   * Lista completa utilizada pelo
-   * módulo geral de agendamentos.
-   */
   allDevices?: DashboardDevice[];
 }
 
@@ -68,10 +65,9 @@ export function DeviceCard({
   const [
     scheduleInitialTab,
     setScheduleInitialTab,
-  ] =
-    useState<
-      "list" | "create"
-    >("list");
+  ] = useState<
+    "list" | "create"
+  >("list");
 
   const [
     scheduleTransitionVisible,
@@ -79,18 +75,29 @@ export function DeviceCard({
   ] = useState(false);
 
   const [
+    scheduleTransitionMounted,
+    setScheduleTransitionMounted,
+  ] = useState(false);
+
+  const transitionFrameRef =
+    useRef<number | null>(null);
+
+  const transitionOpenFrameRef =
+    useRef<number | null>(null);
+
+  const transitionHideTimerRef =
+    useRef<number | null>(null);
+
+  const transitionUnmountTimerRef =
+    useRef<number | null>(null);
+
+  const [
     scheduleTransitionTab,
     setScheduleTransitionTab,
-  ] =
-    useState<
-      "list" | "create"
-    >("list");
+  ] = useState<
+    "list" | "create"
+  >("list");
 
-  /*
-   * Caso allDevices ainda não seja
-   * fornecido, usamos somente o
-   * dispositivo atual como fallback.
-   */
   const scheduleDevices =
     allDevices ?? [device];
 
@@ -103,8 +110,7 @@ export function DeviceCard({
     "Modelo indisponível";
 
   const isRunning =
-    device.variables?.state ===
-    true;
+    device.variables?.state === true;
 
   const temperature =
     formatTemperature(
@@ -134,15 +140,6 @@ export function DeviceCard({
       device,
     );
 
-  /*
-   * O aviso aparece apenas quando:
-   *
-   * 1. o equipamento está informado
-   *    como desligado;
-   *
-   * 2. o motivo identificado pelo
-   *    diagnóstico é ausência.
-   */
   const wasShutdownByAbsence =
     !isRunning &&
     diagnostic.shutdownReason ===
@@ -220,10 +217,6 @@ export function DeviceCard({
   const styles =
     cardStyles[visualState];
 
-  /*
-   * Mantém o modal aberto
-   * após atualizar a página.
-   */
   useEffect(() => {
     function syncModalWithUrl() {
       const params =
@@ -256,6 +249,46 @@ export function DeviceCard({
       );
     };
   }, [device.deviceId]);
+
+  useEffect(() => {
+    return () => {
+      if (
+        transitionFrameRef.current !==
+        null
+      ) {
+        window.cancelAnimationFrame(
+          transitionFrameRef.current,
+        );
+      }
+
+      if (
+        transitionOpenFrameRef.current !==
+        null
+      ) {
+        window.cancelAnimationFrame(
+          transitionOpenFrameRef.current,
+        );
+      }
+
+      if (
+        transitionHideTimerRef.current !==
+        null
+      ) {
+        window.clearTimeout(
+          transitionHideTimerRef.current,
+        );
+      }
+
+      if (
+        transitionUnmountTimerRef.current !==
+        null
+      ) {
+        window.clearTimeout(
+          transitionUnmountTimerRef.current,
+        );
+      }
+    };
+  }, []);
 
   function openDetails() {
     setDetailsOpen(true);
@@ -307,60 +340,93 @@ export function DeviceCard({
     );
   }
 
-  /* ==========================================
-     TRANSIÇÃO PARA AGENDAMENTOS
-     ========================================== */
-
   function openScheduleWithTransition(
-    tab:
-      | "list"
-      | "create",
+    tab: "list" | "create",
   ) {
-    setScheduleInitialTab(
-      tab,
-    );
+    if (
+      transitionFrameRef.current !==
+      null
+    ) {
+      window.cancelAnimationFrame(
+        transitionFrameRef.current,
+      );
+    }
 
-    setScheduleTransitionTab(
-      tab,
-    );
+    if (
+      transitionOpenFrameRef.current !==
+      null
+    ) {
+      window.cancelAnimationFrame(
+        transitionOpenFrameRef.current,
+      );
+    }
 
-    /*
-     * Mostra a camada intermediária.
-     */
-    setScheduleTransitionVisible(
+    if (
+      transitionHideTimerRef.current !==
+      null
+    ) {
+      window.clearTimeout(
+        transitionHideTimerRef.current,
+      );
+    }
+
+    if (
+      transitionUnmountTimerRef.current !==
+      null
+    ) {
+      window.clearTimeout(
+        transitionUnmountTimerRef.current,
+      );
+    }
+
+    setScheduleInitialTab(tab);
+    setScheduleTransitionTab(tab);
+
+    setScheduleTransitionMounted(
       true,
     );
 
-    /*
-     * Fecha os detalhes primeiro.
-     */
+    setScheduleTransitionVisible(
+      false,
+    );
+
     closeDetails();
 
-    /*
-     * Abre o módulo de agendamentos
-     * após o início da animação.
-     */
-    window.setTimeout(
-      () => {
-        setScheduleOpen(
-          true,
-        );
-      },
-      220,
-    );
+    transitionFrameRef.current =
+      window.requestAnimationFrame(
+        () => {
+          transitionOpenFrameRef.current =
+            window.requestAnimationFrame(
+              () => {
+                setScheduleTransitionVisible(
+                  true,
+                );
 
-    /*
-     * Remove a camada intermediária
-     * depois que o modal novo abriu.
-     */
-    window.setTimeout(
-      () => {
-        setScheduleTransitionVisible(
-          false,
-        );
-      },
-      520,
-    );
+                setScheduleOpen(true);
+
+                transitionHideTimerRef.current =
+                  window.setTimeout(
+                    () => {
+                      setScheduleTransitionVisible(
+                        false,
+                      );
+
+                      transitionUnmountTimerRef.current =
+                        window.setTimeout(
+                          () => {
+                            setScheduleTransitionMounted(
+                              false,
+                            );
+                          },
+                          180,
+                        );
+                    },
+                    160,
+                  );
+              },
+            );
+        },
+      );
   }
 
   function openCreateSchedule() {
@@ -376,9 +442,7 @@ export function DeviceCard({
   }
 
   function closeSchedules() {
-    setScheduleOpen(
-      false,
-    );
+    setScheduleOpen(false);
   }
 
   return (
@@ -386,23 +450,15 @@ export function DeviceCard({
       <article
         className={`group relative flex h-full flex-col overflow-hidden rounded-[24px] border shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(15,23,42,0.10)] ${styles.card}`}
       >
-        {/* LINHA DE ESTADO */}
-
         <div
           className={`absolute inset-x-0 top-0 h-[3px] ${styles.accent}`}
         />
-
-        {/* BRILHO */}
 
         <div
           className={`pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full opacity-50 blur-3xl ${styles.glow}`}
         />
 
         <div className="relative flex h-full flex-col p-5">
-          {/* ======================================
-              CABEÇALHO
-              ====================================== */}
-
           <header className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <div
@@ -446,16 +502,10 @@ export function DeviceCard({
 
           {device.online ? (
             <>
-              {/* ==================================
-                  LEITURAS PRINCIPAIS
-                  ================================== */}
-
               <div
                 className={`mt-4 rounded-2xl border p-4 ${styles.temperature}`}
               >
                 <div className="flex items-center justify-between gap-4">
-                  {/* TEMPERATURA */}
-
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <div
@@ -474,14 +524,10 @@ export function DeviceCard({
                     </p>
                   </div>
 
-                  {/* ÍCONE CLIMATIZAÇÃO */}
-
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/65 text-slate-300 shadow-sm">
                     <ClimateIcon />
                   </div>
                 </div>
-
-                {/* MÉTRICAS SECUNDÁRIAS */}
 
                 <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-200/60 pt-3">
                   <CompactMetric
@@ -504,10 +550,6 @@ export function DeviceCard({
                 </div>
               </div>
 
-              {/* ==================================
-                  DIVERGÊNCIA
-                  ================================== */}
-
               {calibration.needsRecalibration ? (
                 <DeviceCalibrationAlert />
               ) : diagnostic.divergent ? (
@@ -525,27 +567,15 @@ export function DeviceCard({
                 />
               ) : null}
 
-              {/* ==================================
-                  DESLIGAMENTO POR AUSÊNCIA
-                  ================================== */}
-
               {wasShutdownByAbsence && (
                 <DeviceAbsenceShutdownAlert />
               )}
-
-              {/* ==================================
-                  CONTROLE RÁPIDO
-                  ================================== */}
 
               <div className="mt-3 border-t border-slate-200/70 pt-3">
                 <DeviceQuickControl
                   device={device}
                 />
               </div>
-
-              {/* ==================================
-                  DETALHES
-                  ================================== */}
 
               <div className="mt-auto pt-3">
                 <button
@@ -565,10 +595,6 @@ export function DeviceCard({
             </>
           ) : (
             <>
-              {/* ==================================
-                  OFFLINE
-                  ================================== */}
-
               <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full bg-amber-200/40 blur-xl" />
@@ -615,70 +641,62 @@ export function DeviceCard({
         </div>
       </article>
 
-      {/* ==========================================
-          TRANSIÇÃO ENTRE MODAIS
-          ========================================== */}
-
-      <div
-        aria-hidden={
-          !scheduleTransitionVisible
-        }
-        className={`fixed inset-0 z-[9998] flex items-center justify-center bg-slate-950/15 backdrop-blur-[3px] transition-all duration-300 ${
-          scheduleTransitionVisible
-            ? "pointer-events-auto opacity-100"
-            : "pointer-events-none opacity-0"
-        }`}
-      >
+      {scheduleTransitionMounted && (
         <div
-          className={`relative overflow-hidden rounded-[22px] border border-white/80 bg-white/90 px-6 py-5 shadow-[0_20px_60px_rgba(15,23,42,0.18)] backdrop-blur-xl transition-all duration-300 ${
+          aria-hidden="true"
+          className={`fixed inset-0 z-[9998] flex items-center justify-center bg-slate-950/15 backdrop-blur-[3px] transition-opacity duration-200 ${
             scheduleTransitionVisible
-              ? "translate-y-0 scale-100 opacity-100"
-              : "translate-y-2 scale-[0.97] opacity-0"
+              ? "pointer-events-auto opacity-100"
+              : "pointer-events-none opacity-0"
           }`}
         >
-          <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-blue-200/35 blur-2xl" />
+          <div
+            className={`relative overflow-hidden rounded-[22px] border border-white/80 bg-white/90 px-6 py-5 shadow-[0_20px_60px_rgba(15,23,42,0.18)] backdrop-blur-xl transition-all duration-200 ${
+              scheduleTransitionVisible
+                ? "translate-y-0 scale-100 opacity-100"
+                : "translate-y-1.5 scale-[0.985] opacity-0"
+            }`}
+          >
+            <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-blue-200/35 blur-2xl" />
 
-          <div className="relative flex items-center gap-4">
-            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
-              <div className="absolute inset-0 animate-ping rounded-2xl bg-blue-100/50" />
+            <div className="relative flex items-center gap-4">
+              <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <div className="absolute inset-0 animate-ping rounded-2xl bg-blue-100/50" />
 
-              <div className="relative">
-                <ScheduleTransitionIcon />
+                <div className="relative">
+                  <ScheduleTransitionIcon />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-slate-950">
+                  {scheduleTransitionTab ===
+                  "create"
+                    ? "Novo agendamento"
+                    : "Gerenciar agendamentos"}
+                </p>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  {scheduleTransitionTab ===
+                  "create"
+                    ? "Preparando a programação deste equipamento..."
+                    : "Carregando as programações cadastradas..."}
+                </p>
               </div>
             </div>
 
-            <div>
-              <p className="text-sm font-bold text-slate-950">
-                {scheduleTransitionTab ===
-                "create"
-                  ? "Novo agendamento"
-                  : "Gerenciar agendamentos"}
-              </p>
-
-              <p className="mt-1 text-xs text-slate-500">
-                {scheduleTransitionTab ===
-                "create"
-                  ? "Preparando a programação deste equipamento..."
-                  : "Carregando as programações cadastradas..."}
-              </p>
+            <div className="mt-4 h-1 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className={`h-full origin-left rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 transition-transform duration-200 ${
+                  scheduleTransitionVisible
+                    ? "scale-x-100"
+                    : "scale-x-0"
+                }`}
+              />
             </div>
           </div>
-
-          <div className="mt-4 h-1 overflow-hidden rounded-full bg-slate-100">
-            <div
-              className={`h-full rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400 transition-all duration-500 ${
-                scheduleTransitionVisible
-                  ? "w-full"
-                  : "w-0"
-              }`}
-            />
-          </div>
         </div>
-      </div>
-
-      {/* ==========================================
-          MODAL DE DETALHES
-          ========================================== */}
+      )}
 
       <DeviceDetailsModal
         device={device}
@@ -693,10 +711,6 @@ export function DeviceCard({
           openManageSchedules
         }
       />
-
-      {/* ==========================================
-          MODAL DE AGENDAMENTOS
-          ========================================== */}
 
       <ScheduleModal
         devices={
@@ -724,16 +738,11 @@ export function DeviceCard({
   );
 }
 
-/* ==========================================
-   ALERTA DE DIVERGÊNCIA
-   ========================================== */
-
 function DeviceDivergenceAlert({
   logicalState,
   physicalState,
 }: {
   logicalState: string;
-
   physicalState: string;
 }) {
   return (
@@ -759,14 +768,18 @@ function DeviceDivergenceAlert({
 
             <p className="mt-1 text-[11px] leading-4 text-amber-800">
               Brise informa{" "}
+
               <strong>
                 {logicalState}
               </strong>
+
               , mas o acelerômetro
               detecta{" "}
+
               <strong>
                 {physicalState}
               </strong>
+
               .
             </p>
           </div>
@@ -775,10 +788,6 @@ function DeviceDivergenceAlert({
     </div>
   );
 }
-
-/* ==========================================
-   ALERTA DE RECALIBRAÇÃO
-   ========================================== */
 
 function DeviceCalibrationAlert() {
   return (
@@ -815,10 +824,6 @@ function DeviceCalibrationAlert() {
   );
 }
 
-/* ==========================================
-   DESLIGAMENTO POR AUSÊNCIA
-   ========================================== */
-
 function DeviceAbsenceShutdownAlert() {
   return (
     <div className="mt-3 overflow-hidden rounded-xl border border-violet-200/80 bg-gradient-to-r from-violet-50 via-indigo-50/60 to-blue-50/50">
@@ -853,10 +858,6 @@ function DeviceAbsenceShutdownAlert() {
   );
 }
 
-/* ==========================================
-   MÉTRICA COMPACTA
-   ========================================== */
-
 type MetricTone =
   | "cyan"
   | "indigo";
@@ -868,11 +869,8 @@ function CompactMetric({
   icon,
 }: {
   label: string;
-
   value: string;
-
   tone: MetricTone;
-
   icon: ReactNode;
 }) {
   const styles = {
@@ -911,10 +909,6 @@ function CompactMetric({
   );
 }
 
-/* ==========================================
-   ÍCONES
-   ========================================== */
-
 function AirConditionerIcon() {
   return (
     <svg
@@ -936,11 +930,8 @@ function AirConditionerIcon() {
       />
 
       <path d="M7 11h10" />
-
       <path d="M8 16v2" />
-
       <path d="M12 16v3" />
-
       <path d="M16 16v2" />
     </svg>
   );
@@ -959,7 +950,6 @@ function TemperatureIcon() {
       aria-hidden="true"
     >
       <path d="M14 14.76V5a4 4 0 0 0-8 0v9.76a6 6 0 1 0 8 0Z" />
-
       <path d="M10 5v10" />
     </svg>
   );
@@ -978,17 +968,11 @@ function ClimateIcon() {
       aria-hidden="true"
     >
       <path d="M12 2v20" />
-
       <path d="m4.93 6.93 14.14 10.14" />
-
       <path d="m19.07 6.93-14.14 10.14" />
-
       <path d="m9 4 3 3 3-3" />
-
       <path d="m9 20 3-3 3 3" />
-
       <path d="m4.5 10.5 4.1.6-.6-4.1" />
-
       <path d="m19.5 13.5-4.1-.6.6 4.1" />
     </svg>
   );
@@ -1043,13 +1027,9 @@ function OfflineIcon() {
       aria-hidden="true"
     >
       <path d="M5 12.55a11 11 0 0 1 14.08-.67" />
-
       <path d="M1.42 9a16 16 0 0 1 21.16-.72" />
-
       <path d="M8.53 16.11a6 6 0 0 1 6.95-.11" />
-
       <path d="M12 20h.01" />
-
       <path d="M3 3 21 21" />
     </svg>
   );
@@ -1068,9 +1048,7 @@ function WarningIcon() {
       aria-hidden="true"
     >
       <path d="M12 9v4" />
-
       <path d="M12 17h.01" />
-
       <path d="M10.3 3.6 2.4 17.3A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.7L13.7 3.6a2 2 0 0 0-3.4 0Z" />
     </svg>
   );
@@ -1089,11 +1067,8 @@ function AbsenceIcon() {
       aria-hidden="true"
     >
       <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" />
-
       <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
-
       <path d="M18 8l4 4" />
-
       <path d="M22 8l-4 4" />
     </svg>
   );
@@ -1120,13 +1095,9 @@ function ScheduleTransitionIcon() {
       />
 
       <path d="M16 3v4" />
-
       <path d="M8 3v4" />
-
       <path d="M3 10h18" />
-
       <path d="M12 14v4" />
-
       <path d="M10 16h4" />
     </svg>
   );
