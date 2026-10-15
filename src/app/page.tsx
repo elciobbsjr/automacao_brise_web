@@ -18,6 +18,9 @@ import {
   ScrollToTopButton,
 } from "@/components/dashboard/ScrollToTopButton";
 
+export const dynamic =
+  "force-dynamic";
+
 export default async function Home() {
   try {
     const dashboard =

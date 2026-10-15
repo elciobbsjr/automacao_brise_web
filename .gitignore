@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
+.env*
+.neon
+
+
+# Prisma Client gerado
+/src/generated/prisma
