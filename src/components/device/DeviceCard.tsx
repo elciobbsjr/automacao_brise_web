@@ -7,17 +7,39 @@ import {
   type ReactNode,
 } from "react";
 
+import dynamic from "next/dynamic";
+
 import type {
   DashboardDevice,
 } from "@/types/dashboard";
 
-import {
-  DeviceDetailsModal,
-} from "./DeviceDetailsModal";
+const DeviceDetailsModal =
+  dynamic(
+    () =>
+      import(
+        "./DeviceDetailsModal"
+      ).then(
+        (module) =>
+          module.DeviceDetailsModal,
+      ),
+    {
+      ssr: false,
+    },
+  );
 
-import {
-  ScheduleModal,
-} from "@/components/schedule/ScheduleModal";
+const ScheduleModal =
+  dynamic(
+    () =>
+      import(
+        "@/components/schedule/ScheduleModal"
+      ).then(
+        (module) =>
+          module.ScheduleModal,
+      ),
+    {
+      ssr: false,
+    },
+  );
 
 import {
   DeviceQuickControl,
@@ -698,42 +720,46 @@ export function DeviceCard({
         </div>
       )}
 
-      <DeviceDetailsModal
-        device={device}
-        open={detailsOpen}
-        onClose={
-          closeDetails
-        }
-        onCreateSchedule={
-          openCreateSchedule
-        }
-        onManageSchedules={
-          openManageSchedules
-        }
-      />
+      {detailsOpen && (
+  <DeviceDetailsModal
+    device={device}
+    open={detailsOpen}
+    onClose={
+      closeDetails
+    }
+    onCreateSchedule={
+      openCreateSchedule
+    }
+    onManageSchedules={
+      openManageSchedules
+    }
+  />
+)}
 
-      <ScheduleModal
-        devices={
-          scheduleDevices
-        }
-        open={
-          scheduleOpen
-        }
-        onClose={
-          closeSchedules
-        }
-        initialTab={
-          scheduleInitialTab
-        }
-        initialSelectedDeviceIds={
-          scheduleInitialTab ===
-          "create"
-            ? [
-                device.deviceId,
-              ]
-            : []
-        }
-      />
+      {scheduleOpen && (
+        <ScheduleModal
+          devices={
+            scheduleDevices
+          }
+          open={
+            scheduleOpen
+          }
+          onClose={
+            closeSchedules
+          }
+          initialTab={
+            scheduleInitialTab
+          }
+          initialSelectedDeviceIds={
+            scheduleInitialTab ===
+            "create"
+              ? [
+                  device.deviceId,
+                ]
+              : []
+          }
+        />
+      )}
     </>
   );
 }
