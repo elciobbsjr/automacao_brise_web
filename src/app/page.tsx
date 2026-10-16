@@ -11,17 +11,31 @@ import {
 } from "@/components/dashboard/DashboardContent";
 
 import {
-  getDashboard,
-} from "@/services/brise.service";
-
-import {
   ScrollToTopButton,
 } from "@/components/dashboard/ScrollToTopButton";
+
+import {
+  requireAuth,
+} from "@/features/auth/guards/require-auth";
+
+import {
+  getDashboard,
+} from "@/services/brise.service";
 
 export const dynamic =
   "force-dynamic";
 
 export default async function Home() {
+  /*
+   * A autenticação acontece antes
+   * de qualquer chamada à API Brise.
+   *
+   * Portanto, usuários não autenticados
+   * não chegam a carregar os dados
+   * dos dispositivos.
+   */
+  await requireAuth();
+
   try {
     const dashboard =
       await getDashboard();
