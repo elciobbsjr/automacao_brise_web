@@ -1,9 +1,19 @@
-import { NextResponse } from "next/server";
+import {
+  NextResponse,
+} from "next/server";
 
 import {
   briseRequest,
   BriseApiError,
 } from "@/lib/brise-api";
+
+import {
+  requireApiRole,
+} from "@/features/auth/guards/require-api-role";
+
+import {
+  BRISE_CONTROL_ROLES,
+} from "@/features/auth/permissions/roles";
 
 import type {
   BriseSchedule,
@@ -11,18 +21,42 @@ import type {
   ScheduleBatchResult,
 } from "@/types/schedule";
 
-export async function POST(request: Request) {
+/*
+ * =====================================================
+ * CRIAR AGENDAMENTO PARA DISPOSITIVOS
+ * =====================================================
+ *
+ * Permitido somente para:
+ *
+ * OPERATOR
+ * ADMIN
+ */
+export async function POST(
+  request: Request,
+) {
+  const permission =
+    await requireApiRole(
+      BRISE_CONTROL_ROLES,
+    );
+
+  if (!permission.ok) {
+    return permission.response;
+  }
+
   try {
     const body =
       (await request.json()) as CreateScheduleRequest;
 
     const validationError =
-      validateScheduleRequest(body);
+      validateScheduleRequest(
+        body,
+      );
 
     if (validationError) {
       return NextResponse.json(
         {
-          error: validationError,
+          error:
+            validationError,
         },
         {
           status: 400,
@@ -30,40 +64,55 @@ export async function POST(request: Request) {
       );
     }
 
-    const scheduleId = Date.now();
+    const scheduleId =
+      Date.now();
 
-    const schedule: BriseSchedule = {
-      scheduleId,
+    const schedule:
+      BriseSchedule = {
+        scheduleId,
 
-      name: body.name,
-      enable: body.enable,
+        name:
+          body.name,
 
-      dateStart: body.dateStart,
-      dateEnd: body.dateEnd,
+        enable:
+          body.enable,
 
-      repetitionMode: body.repetitionMode,
-      repetitionValue: body.repetitionValue,
+        dateStart:
+          body.dateStart,
 
-      parameter: body.parameter,
-    };
+        dateEnd:
+          body.dateEnd,
+
+        repetitionMode:
+          body.repetitionMode,
+
+        repetitionValue:
+          body.repetitionValue,
+
+        parameter:
+          body.parameter,
+      };
 
     const results =
       await Promise.all(
-        body.deviceIds.map((deviceId) =>
-          createScheduleForDevice(
-            deviceId,
-            schedule,
-          ),
+        body.deviceIds.map(
+          (deviceId) =>
+            createScheduleForDevice(
+              deviceId,
+              schedule,
+            ),
         ),
       );
 
     const successCount =
       results.filter(
-        (result) => result.success,
+        (result) =>
+          result.success,
       ).length;
 
     const failureCount =
-      results.length - successCount;
+      results.length -
+      successCount;
 
     return NextResponse.json({
       success:
@@ -71,8 +120,11 @@ export async function POST(request: Request) {
 
       scheduleId,
 
-      total: results.length,
+      total:
+        results.length,
+
       successCount,
+
       failureCount,
 
       results,
@@ -92,6 +144,11 @@ export async function POST(request: Request) {
   }
 }
 
+/*
+ * =====================================================
+ * CRIA AGENDAMENTO EM UM DISPOSITIVO
+ * =====================================================
+ */
 async function createScheduleForDevice(
   deviceId: number,
   schedule: BriseSchedule,
@@ -100,33 +157,49 @@ async function createScheduleForDevice(
     await briseRequest(
       `/device/${deviceId}/schedules`,
       {
-        method: "POST",
+        method:
+          "POST",
 
         headers: {
           "Content-Type":
             "application/json",
         },
 
-        body: JSON.stringify(schedule),
+        body:
+          JSON.stringify(
+            schedule,
+          ),
       },
     );
 
     return {
       deviceId,
-      success: true,
+
+      success:
+        true,
     };
   } catch (error) {
-    if (error instanceof BriseApiError) {
+    if (
+      error instanceof
+      BriseApiError
+    ) {
       return {
         deviceId,
-        success: false,
-        error: error.message,
+
+        success:
+          false,
+
+        error:
+          error.message,
       };
     }
 
     return {
       deviceId,
-      success: false,
+
+      success:
+        false,
+
       error:
         error instanceof Error
           ? error.message
@@ -135,11 +208,18 @@ async function createScheduleForDevice(
   }
 }
 
+/*
+ * =====================================================
+ * VALIDAÇÃO
+ * =====================================================
+ */
 function validateScheduleRequest(
   body: CreateScheduleRequest,
 ): string | null {
   if (
-    !Array.isArray(body.deviceIds) ||
+    !Array.isArray(
+      body.deviceIds,
+    ) ||
     body.deviceIds.length === 0
   ) {
     return "Selecione pelo menos um dispositivo.";
@@ -148,7 +228,9 @@ function validateScheduleRequest(
   if (
     body.deviceIds.some(
       (deviceId) =>
-        !Number.isInteger(deviceId) ||
+        !Number.isInteger(
+          deviceId,
+        ) ||
         deviceId <= 0,
     )
   ) {
@@ -157,12 +239,15 @@ function validateScheduleRequest(
 
   if (
     !body.name ||
-    body.name.trim().length === 0
+    body.name.trim().length ===
+      0
   ) {
     return "Informe um nome para o agendamento.";
   }
 
-  if (body.name.length > 20) {
+  if (
+    body.name.length > 20
+  ) {
     return "O nome do agendamento pode ter no máximo 20 caracteres.";
   }
 

@@ -1,5 +1,19 @@
-import { NextResponse } from "next/server";
-import { briseRequest, BriseApiError } from "@/lib/brise-api";
+import {
+  NextResponse,
+} from "next/server";
+
+import {
+  briseRequest,
+  BriseApiError,
+} from "@/lib/brise-api";
+
+import {
+  requireApiRole,
+} from "@/features/auth/guards/require-api-role";
+
+import {
+  BRISE_READ_ROLES,
+} from "@/features/auth/permissions/roles";
 
 interface BriseApiDevice {
   deviceId: number;
@@ -12,24 +26,50 @@ interface BriseDevicesResponse {
 }
 
 export async function GET() {
+  const permission =
+    await requireApiRole(
+      BRISE_READ_ROLES,
+    );
+
+  if (!permission.ok) {
+    return permission.response;
+  }
+
   try {
-    const data = await briseRequest<BriseDevicesResponse>("/user/devices");
+    const data =
+      await briseRequest<BriseDevicesResponse>(
+        "/user/devices",
+      );
 
-    const devices = data.devices.map((device) => ({
-      deviceId: device.deviceId,
-    }));
+    const devices =
+      data.devices.map(
+        (device) => ({
+          deviceId:
+            device.deviceId,
+        }),
+      );
 
-    return NextResponse.json({ devices });
+    return NextResponse.json({
+      devices,
+    });
   } catch (error) {
-    console.error("Erro ao consultar dispositivos Brise:", error);
+    console.error(
+      "Erro ao consultar dispositivos Brise:",
+      error,
+    );
 
-    if (error instanceof BriseApiError) {
+    if (
+      error instanceof
+      BriseApiError
+    ) {
       return NextResponse.json(
         {
-          error: error.message,
+          error:
+            error.message,
         },
         {
-          status: error.status,
+          status:
+            error.status,
         },
       );
     }

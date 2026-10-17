@@ -1,5 +1,19 @@
-import { NextResponse } from "next/server";
-import { briseRequest, BriseApiError } from "@/lib/brise-api";
+import {
+  NextResponse,
+} from "next/server";
+
+import {
+  briseRequest,
+  BriseApiError,
+} from "@/lib/brise-api";
+
+import {
+  requireApiRole,
+} from "@/features/auth/guards/require-api-role";
+
+import {
+  BRISE_CONTROL_ROLES,
+} from "@/features/auth/permissions/roles";
 
 interface RouteContext {
   params: Promise<{
@@ -21,13 +35,33 @@ export async function PUT(
   request: Request,
   context: RouteContext,
 ) {
-  try {
-    const { deviceId } = await context.params;
+  /*
+   * Somente OPERATOR e ADMIN
+   * podem alterar equipamentos.
+   */
+  const permission =
+    await requireApiRole(
+      BRISE_CONTROL_ROLES,
+    );
 
-    if (!/^\d+$/.test(deviceId)) {
+  if (!permission.ok) {
+    return permission.response;
+  }
+
+  try {
+    const {
+      deviceId,
+    } = await context.params;
+
+    if (
+      !/^\d+$/.test(
+        deviceId,
+      )
+    ) {
       return NextResponse.json(
         {
-          error: "Número de série inválido.",
+          error:
+            "Número de série inválido.",
         },
         {
           status: 400,
@@ -37,34 +71,47 @@ export async function PUT(
 
     const body =
       (await request.json()) as DeviceParameters;
-      const validationError =
-        validateParameters(body);
 
-        if (validationError) {
-        return NextResponse.json(
-            {
-            error: validationError,
-            },
-            {
-            status: 400,
-            },
-        );
-        }
+    const validationError =
+      validateParameters(
+        body,
+      );
+
+    if (validationError) {
+      return NextResponse.json(
+        {
+          error:
+            validationError,
+        },
+        {
+          status: 400,
+        },
+      );
+    }
 
     await briseRequest(
       `/device/${deviceId}/parameters`,
       {
-        method: "PUT",
+        method:
+          "PUT",
+
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":
+            "application/json",
         },
-        body: JSON.stringify(body),
+
+        body:
+          JSON.stringify(
+            body,
+          ),
       },
     );
 
     return NextResponse.json({
       success: true,
-      message: "Comando enviado com sucesso.",
+
+      message:
+        "Comando enviado com sucesso.",
     });
   } catch (error) {
     console.error(
@@ -72,15 +119,22 @@ export async function PUT(
       error,
     );
 
-    if (error instanceof BriseApiError) {
+    if (
+      error instanceof
+      BriseApiError
+    ) {
       return NextResponse.json(
         {
-          error: error.message,
-          briseStatus: error.status,
+          error:
+            error.message,
+
+          briseStatus:
+            error.status,
         },
         {
           status:
-            error.status === 204
+            error.status ===
+            204
               ? 503
               : error.status,
         },
@@ -115,7 +169,9 @@ function validateParameters(
   } = parameters;
 
   if (
-    !Number.isInteger(modeDevice) ||
+    !Number.isInteger(
+      modeDevice,
+    ) ||
     modeDevice < 0 ||
     modeDevice > 3
   ) {
@@ -123,7 +179,9 @@ function validateParameters(
   }
 
   if (
-    !Number.isInteger(modeAC) ||
+    !Number.isInteger(
+      modeAC,
+    ) ||
     modeAC < 0 ||
     modeAC > 3
   ) {
@@ -131,42 +189,62 @@ function validateParameters(
   }
 
   if (
-    !Number.isInteger(fanSpeed) ||
+    !Number.isInteger(
+      fanSpeed,
+    ) ||
     fanSpeed < 1 ||
     fanSpeed > 3
   ) {
     return "Velocidade do ventilador inválida.";
   }
 
-  if (modeDevice === 3 && modeAC === 3) {
+  if (
+    modeDevice === 3 &&
+    modeAC === 3
+  ) {
     return "Ventilação não é permitida no modo Eco.";
   }
 
-  if (modeAC === 2 && modeDevice !== 3) {
+  if (
+    modeAC === 2 &&
+    modeDevice !== 3
+  ) {
     return "O modo Automático requer modo Eco.";
   }
 
   if (
     setpointCool !== 0 &&
-    (setpointCool < 18 || setpointCool > 28)
+    (
+      setpointCool < 18 ||
+      setpointCool > 28
+    )
   ) {
     return "Setpoint de refrigeração inválido.";
   }
 
   if (
     setpointHeat !== 0 &&
-    (setpointHeat < 18 || setpointHeat > 28)
+    (
+      setpointHeat < 18 ||
+      setpointHeat > 28
+    )
   ) {
     return "Setpoint de aquecimento inválido.";
   }
 
-  if (ecoCool < 18 || ecoCool > 28) {
+  if (
+    ecoCool < 18 ||
+    ecoCool > 28
+  ) {
     return "Setpoint Eco de refrigeração inválido.";
   }
 
   if (
     ecoHeat !== 0 &&
-    (ecoHeat < 18 || ecoHeat > 28)
+    (
+      ecoHeat < 18 ||
+      ecoHeat > 28
+    )
   ) {
     return "Setpoint Eco de aquecimento inválido.";
   }

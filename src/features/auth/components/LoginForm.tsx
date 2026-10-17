@@ -38,16 +38,18 @@ export function LoginForm() {
       action={formAction}
       className="space-y-5"
     >
+      {/* E-MAIL */}
+
       <div>
         <label
           htmlFor="email"
-          className="mb-2 block text-sm font-semibold text-slate-700"
+          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500"
         >
           E-mail
         </label>
 
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-11 items-center justify-center text-slate-400">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center text-slate-400">
             <EmailIcon />
           </div>
 
@@ -58,12 +60,11 @@ export function LoginForm() {
             autoComplete="email"
             autoFocus
             placeholder="seu.email@exemplo.com"
-            className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+            className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-12 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition duration-200 placeholder:font-normal placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100/70"
           />
         </div>
 
-        {state.fieldErrors
-          ?.email && (
+        {state.fieldErrors?.email && (
           <p className="mt-2 text-xs font-medium text-red-600">
             {
               state
@@ -74,16 +75,18 @@ export function LoginForm() {
         )}
       </div>
 
+      {/* SENHA */}
+
       <div>
         <label
           htmlFor="password"
-          className="mb-2 block text-sm font-semibold text-slate-700"
+          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500"
         >
           Senha
         </label>
 
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-11 items-center justify-center text-slate-400">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center text-slate-400">
             <LockIcon />
           </div>
 
@@ -97,7 +100,7 @@ export function LoginForm() {
             }
             autoComplete="current-password"
             placeholder="Digite sua senha"
-            className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-12 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+            className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-12 pr-12 text-sm font-medium text-slate-900 shadow-sm outline-none transition duration-200 placeholder:font-normal placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100/70"
           />
 
           <button
@@ -113,7 +116,7 @@ export function LoginForm() {
                 ? "Ocultar senha"
                 : "Mostrar senha"
             }
-            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-400 transition hover:text-slate-700"
+            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-400 transition hover:text-blue-700"
           >
             {showPassword ? (
               <EyeOffIcon />
@@ -123,8 +126,7 @@ export function LoginForm() {
           </button>
         </div>
 
-        {state.fieldErrors
-          ?.password && (
+        {state.fieldErrors?.password && (
           <p className="mt-2 text-xs font-medium text-red-600">
             {
               state
@@ -134,6 +136,8 @@ export function LoginForm() {
           </p>
         )}
       </div>
+
+      {/* ERRO */}
 
       {state.error && (
         <div
@@ -164,17 +168,17 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="relative flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(15,23,42,0.16)] transition duration-200 hover:bg-blue-700 hover:shadow-[0_12px_30px_rgba(37,99,235,0.18)] disabled:cursor-wait disabled:opacity-70"
+      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(15,23,42,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_12px_28px_rgba(37,99,235,0.20)] disabled:translate-y-0 disabled:cursor-wait disabled:opacity-70"
     >
       {pending ? (
         <>
           <SpinnerIcon />
 
-          Entrando...
+          Acessando...
         </>
       ) : (
         <>
-          Entrar no sistema
+          Acessar central
 
           <ArrowIcon />
         </>
@@ -192,7 +196,7 @@ function EmailIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4.5 w-4.5"
+      className="h-4 w-4"
       aria-hidden="true"
     >
       <rect
@@ -217,7 +221,7 @@ function LockIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4.5 w-4.5"
+      className="h-4 w-4"
       aria-hidden="true"
     >
       <rect
@@ -242,7 +246,7 @@ function EyeIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4.5 w-4.5"
+      className="h-4 w-4"
       aria-hidden="true"
     >
       <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
@@ -265,7 +269,7 @@ function EyeOffIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4.5 w-4.5"
+      className="h-4 w-4"
       aria-hidden="true"
     >
       <path d="M3 3l18 18" />

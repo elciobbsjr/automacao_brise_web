@@ -1,27 +1,61 @@
-import { NextResponse } from "next/server";
+import {
+  NextResponse,
+} from "next/server";
 
 import {
   BriseApiError,
   briseRequest,
 } from "@/lib/brise-api";
 
+import {
+  requireApiRole,
+} from "@/features/auth/guards/require-api-role";
+
+import {
+  BRISE_CONTROL_ROLES,
+} from "@/features/auth/permissions/roles";
+
 import type {
   ScheduleBatchResult,
   UpdateScheduleRequest,
 } from "@/types/schedule";
 
-export async function PUT(request: Request) {
+/*
+ * =====================================================
+ * EDITAR AGENDAMENTO
+ * =====================================================
+ *
+ * Permitido somente para:
+ *
+ * OPERATOR
+ * ADMIN
+ */
+export async function PUT(
+  request: Request,
+) {
+  const permission =
+    await requireApiRole(
+      BRISE_CONTROL_ROLES,
+    );
+
+  if (!permission.ok) {
+    return permission.response;
+  }
+
   try {
     const body =
       (await request.json()) as UpdateScheduleRequest;
 
     const validationError =
-      validateUpdateSchedule(body);
+      validateUpdateSchedule(
+        body,
+      );
 
     if (validationError) {
       return NextResponse.json(
         {
-          error: validationError,
+          error:
+            validationError,
         },
         {
           status: 400,
@@ -42,7 +76,8 @@ export async function PUT(request: Request) {
 
     const successCount =
       results.filter(
-        (result) => result.success,
+        (result) =>
+          result.success,
       ).length;
 
     const failureCount =
@@ -80,6 +115,11 @@ export async function PUT(request: Request) {
   }
 }
 
+/*
+ * =====================================================
+ * EDITA AGENDAMENTO EM UM DISPOSITIVO
+ * =====================================================
+ */
 async function updateScheduleForDevice(
   deviceId: number,
   schedule: UpdateScheduleRequest,
@@ -88,41 +128,45 @@ async function updateScheduleForDevice(
     await briseRequest(
       `/device/${deviceId}/schedules/${schedule.scheduleId}`,
       {
-        method: "PUT",
+        method:
+          "PUT",
 
         headers: {
           "Content-Type":
             "application/json",
         },
 
-        body: JSON.stringify({
-          name:
-            schedule.name,
+        body:
+          JSON.stringify({
+            name:
+              schedule.name,
 
-          enable:
-            schedule.enable,
+            enable:
+              schedule.enable,
 
-          dateStart:
-            schedule.dateStart,
+            dateStart:
+              schedule.dateStart,
 
-          dateEnd:
-            schedule.dateEnd,
+            dateEnd:
+              schedule.dateEnd,
 
-          repetitionMode:
-            schedule.repetitionMode,
+            repetitionMode:
+              schedule.repetitionMode,
 
-          repetitionValue:
-            schedule.repetitionValue,
+            repetitionValue:
+              schedule.repetitionValue,
 
-          parameter:
-            schedule.parameter,
-        }),
+            parameter:
+              schedule.parameter,
+          }),
       },
     );
 
     return {
       deviceId,
-      success: true,
+
+      success:
+        true,
     };
   } catch (error) {
     if (
@@ -131,7 +175,10 @@ async function updateScheduleForDevice(
     ) {
       return {
         deviceId,
-        success: false,
+
+        success:
+          false,
+
         error:
           error.message,
       };
@@ -139,7 +186,10 @@ async function updateScheduleForDevice(
 
     return {
       deviceId,
-      success: false,
+
+      success:
+        false,
+
       error:
         error instanceof Error
           ? error.message
@@ -148,6 +198,11 @@ async function updateScheduleForDevice(
   }
 }
 
+/*
+ * =====================================================
+ * VALIDAÇÃO DA EDIÇÃO
+ * =====================================================
+ */
 function validateUpdateSchedule(
   body: UpdateScheduleRequest,
 ): string | null {
@@ -170,8 +225,21 @@ function validateUpdateSchedule(
   }
 
   if (
+    body.deviceIds.some(
+      (deviceId) =>
+        !Number.isInteger(
+          deviceId,
+        ) ||
+        deviceId <= 0,
+    )
+  ) {
+    return "Existe um dispositivo inválido na seleção.";
+  }
+
+  if (
     !body.name ||
-    body.name.trim().length === 0
+    body.name.trim().length ===
+      0
   ) {
     return "Informe um nome para o agendamento.";
   }

@@ -1,9 +1,19 @@
-import { NextResponse } from "next/server";
+import {
+  NextResponse,
+} from "next/server";
 
 import {
   briseRequest,
   BriseApiError,
 } from "@/lib/brise-api";
+
+import {
+  requireApiRole,
+} from "@/features/auth/guards/require-api-role";
+
+import {
+  BRISE_READ_ROLES,
+} from "@/features/auth/permissions/roles";
 
 import type {
   BriseSchedule,
@@ -24,13 +34,29 @@ export async function GET(
   request: Request,
   context: RouteContext,
 ) {
-  try {
-    const { deviceId } = await context.params;
+  const permission =
+    await requireApiRole(
+      BRISE_READ_ROLES,
+    );
 
-    if (!/^\d+$/.test(deviceId)) {
+  if (!permission.ok) {
+    return permission.response;
+  }
+
+  try {
+    const {
+      deviceId,
+    } = await context.params;
+
+    if (
+      !/^\d+$/.test(
+        deviceId,
+      )
+    ) {
       return NextResponse.json(
         {
-          error: "Número de série inválido.",
+          error:
+            "Número de série inválido.",
         },
         {
           status: 400,
@@ -43,29 +69,51 @@ export async function GET(
         `/device/${deviceId}/schedules`,
       );
 
-    const response: DeviceScheduleResponse = {
-      deviceId: Number(deviceId),
-      success: true,
-      schedules: data.schedules ?? [],
-    };
+    const response:
+      DeviceScheduleResponse = {
+        deviceId:
+          Number(deviceId),
 
-    return NextResponse.json(response);
+        success:
+          true,
+
+        schedules:
+          data.schedules ??
+          [],
+      };
+
+    return NextResponse.json(
+      response,
+    );
   } catch (error) {
-    if (error instanceof BriseApiError) {
+    if (
+      error instanceof
+      BriseApiError
+    ) {
       return NextResponse.json(
         {
-          deviceId: Number(
-            new URL(request.url).pathname
-              .split("/")
-              .at(-2),
-          ),
-          success: false,
-          error: error.message,
-          schedules: [],
+          deviceId:
+            Number(
+              new URL(
+                request.url,
+              ).pathname
+                .split("/")
+                .at(-2),
+            ),
+
+          success:
+            false,
+
+          error:
+            error.message,
+
+          schedules:
+            [],
         },
         {
           status:
-            error.status === 204
+            error.status ===
+            204
               ? 503
               : error.status,
         },
@@ -74,8 +122,12 @@ export async function GET(
 
     return NextResponse.json(
       {
-        success: false,
-        schedules: [],
+        success:
+          false,
+
+        schedules:
+          [],
+
         error:
           error instanceof Error
             ? error.message

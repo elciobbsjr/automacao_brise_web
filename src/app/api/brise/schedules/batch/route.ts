@@ -1,9 +1,19 @@
-import { NextResponse } from "next/server";
+import {
+  NextResponse,
+} from "next/server";
 
 import {
   briseRequest,
   BriseApiError,
 } from "@/lib/brise-api";
+
+import {
+  requireApiRole,
+} from "@/features/auth/guards/require-api-role";
+
+import {
+  BRISE_CONTROL_ROLES,
+} from "@/features/auth/permissions/roles";
 
 import type {
   BriseSchedule,
@@ -13,18 +23,42 @@ import type {
   ToggleScheduleRequest,
 } from "@/types/schedule";
 
-export async function POST(request: Request) {
+/*
+ * =====================================================
+ * CRIAR AGENDAMENTO
+ * =====================================================
+ *
+ * Permitido somente para:
+ *
+ * OPERATOR
+ * ADMIN
+ */
+export async function POST(
+  request: Request,
+) {
+  const permission =
+    await requireApiRole(
+      BRISE_CONTROL_ROLES,
+    );
+
+  if (!permission.ok) {
+    return permission.response;
+  }
+
   try {
     const body =
       (await request.json()) as CreateScheduleRequest;
 
     const validationError =
-      validateScheduleRequest(body);
+      validateScheduleRequest(
+        body,
+      );
 
     if (validationError) {
       return NextResponse.json(
         {
-          error: validationError,
+          error:
+            validationError,
         },
         {
           status: 400,
@@ -32,28 +66,36 @@ export async function POST(request: Request) {
       );
     }
 
-    const scheduleId = Math.floor(
-      Date.now() / 1000,
-    );
+    const scheduleId =
+      Math.floor(
+        Date.now() / 1000,
+      );
 
-    const schedule: BriseSchedule = {
-      scheduleId,
+    const schedule:
+      BriseSchedule = {
+        scheduleId,
 
-      name: body.name,
-      enable: body.enable,
+        name:
+          body.name,
 
-      dateStart: body.dateStart,
-      dateEnd: body.dateEnd,
+        enable:
+          body.enable,
 
-      repetitionMode:
-        body.repetitionMode,
+        dateStart:
+          body.dateStart,
 
-      repetitionValue:
-        body.repetitionValue,
+        dateEnd:
+          body.dateEnd,
 
-      parameter:
-        body.parameter,
-    };
+        repetitionMode:
+          body.repetitionMode,
+
+        repetitionValue:
+          body.repetitionValue,
+
+        parameter:
+          body.parameter,
+      };
 
     const results =
       await Promise.all(
@@ -106,18 +148,42 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+/*
+ * =====================================================
+ * EXCLUIR AGENDAMENTO
+ * =====================================================
+ *
+ * Permitido somente para:
+ *
+ * OPERATOR
+ * ADMIN
+ */
+export async function DELETE(
+  request: Request,
+) {
+  const permission =
+    await requireApiRole(
+      BRISE_CONTROL_ROLES,
+    );
+
+  if (!permission.ok) {
+    return permission.response;
+  }
+
   try {
     const body =
       (await request.json()) as DeleteScheduleRequest;
 
     if (
-      !Number.isInteger(body.scheduleId) ||
+      !Number.isInteger(
+        body.scheduleId,
+      ) ||
       body.scheduleId <= 0
     ) {
       return NextResponse.json(
         {
-          error: "ID do agendamento inválido.",
+          error:
+            "ID do agendamento inválido.",
         },
         {
           status: 400,
@@ -126,7 +192,9 @@ export async function DELETE(request: Request) {
     }
 
     if (
-      !Array.isArray(body.deviceIds) ||
+      !Array.isArray(
+        body.deviceIds,
+      ) ||
       body.deviceIds.length === 0
     ) {
       return NextResponse.json(
@@ -140,30 +208,39 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const results = await Promise.all(
-      body.deviceIds.map((deviceId) =>
-        deleteScheduleFromDevice(
-          deviceId,
-          body.scheduleId,
+    const results =
+      await Promise.all(
+        body.deviceIds.map(
+          (deviceId) =>
+            deleteScheduleFromDevice(
+              deviceId,
+              body.scheduleId,
+            ),
         ),
-      ),
-    );
+      );
 
     const successCount =
       results.filter(
-        (result) => result.success,
+        (result) =>
+          result.success,
       ).length;
 
     const failureCount =
-      results.length - successCount;
+      results.length -
+      successCount;
 
     return NextResponse.json({
-      success: failureCount === 0,
+      success:
+        failureCount === 0,
 
-      scheduleId: body.scheduleId,
+      scheduleId:
+        body.scheduleId,
 
-      total: results.length,
+      total:
+        results.length,
+
       successCount,
+
       failureCount,
 
       results,
@@ -183,6 +260,11 @@ export async function DELETE(request: Request) {
   }
 }
 
+/*
+ * =====================================================
+ * CRIA AGENDAMENTO EM UM DISPOSITIVO
+ * =====================================================
+ */
 async function createScheduleForDevice(
   deviceId: number,
   schedule: BriseSchedule,
@@ -191,7 +273,8 @@ async function createScheduleForDevice(
     await briseRequest(
       `/device/${deviceId}/schedules`,
       {
-        method: "POST",
+        method:
+          "POST",
 
         headers: {
           "Content-Type":
@@ -207,7 +290,8 @@ async function createScheduleForDevice(
 
     return {
       deviceId,
-      success: true,
+      success:
+        true,
     };
   } catch (error) {
     if (
@@ -216,7 +300,10 @@ async function createScheduleForDevice(
     ) {
       return {
         deviceId,
-        success: false,
+
+        success:
+          false,
+
         error:
           error.message,
       };
@@ -224,7 +311,10 @@ async function createScheduleForDevice(
 
     return {
       deviceId,
-      success: false,
+
+      success:
+        false,
+
       error:
         error instanceof Error
           ? error.message
@@ -233,6 +323,11 @@ async function createScheduleForDevice(
   }
 }
 
+/*
+ * =====================================================
+ * VALIDAÇÃO DE NOVO AGENDAMENTO
+ * =====================================================
+ */
 function validateScheduleRequest(
   body: CreateScheduleRequest,
 ): string | null {
@@ -259,7 +354,8 @@ function validateScheduleRequest(
 
   if (
     !body.name ||
-    body.name.trim().length === 0
+    body.name.trim().length ===
+      0
   ) {
     return "Informe um nome para o agendamento.";
   }
@@ -365,6 +461,11 @@ function validateScheduleRequest(
   return null;
 }
 
+/*
+ * =====================================================
+ * EXCLUI AGENDAMENTO DE UM DISPOSITIVO
+ * =====================================================
+ */
 async function deleteScheduleFromDevice(
   deviceId: number,
   scheduleId: number,
@@ -373,13 +474,16 @@ async function deleteScheduleFromDevice(
     await briseRequest(
       `/device/${deviceId}/schedules/${scheduleId}`,
       {
-        method: "DELETE",
+        method:
+          "DELETE",
       },
     );
 
     return {
       deviceId,
-      success: true,
+
+      success:
+        true,
     };
   } catch (error) {
     if (
@@ -388,14 +492,21 @@ async function deleteScheduleFromDevice(
     ) {
       return {
         deviceId,
-        success: false,
-        error: error.message,
+
+        success:
+          false,
+
+        error:
+          error.message,
       };
     }
 
     return {
       deviceId,
-      success: false,
+
+      success:
+        false,
+
       error:
         error instanceof Error
           ? error.message
@@ -404,7 +515,28 @@ async function deleteScheduleFromDevice(
   }
 }
 
-export async function PUT(request: Request) {
+/*
+ * =====================================================
+ * ATIVAR / DESATIVAR AGENDAMENTO
+ * =====================================================
+ *
+ * Permitido somente para:
+ *
+ * OPERATOR
+ * ADMIN
+ */
+export async function PUT(
+  request: Request,
+) {
+  const permission =
+    await requireApiRole(
+      BRISE_CONTROL_ROLES,
+    );
+
+  if (!permission.ok) {
+    return permission.response;
+  }
+
   try {
     const body =
       (await request.json()) as ToggleScheduleRequest;
@@ -427,7 +559,9 @@ export async function PUT(request: Request) {
     }
 
     if (
-      !Array.isArray(body.deviceIds) ||
+      !Array.isArray(
+        body.deviceIds,
+      ) ||
       body.deviceIds.length === 0
     ) {
       return NextResponse.json(
@@ -442,7 +576,8 @@ export async function PUT(request: Request) {
     }
 
     if (
-      typeof body.enable !== "boolean"
+      typeof body.enable !==
+      "boolean"
     ) {
       return NextResponse.json(
         {
@@ -508,49 +643,60 @@ export async function PUT(request: Request) {
   }
 }
 
+/*
+ * =====================================================
+ * ALTERA ESTADO DO AGENDAMENTO
+ * EM UM DISPOSITIVO
+ * =====================================================
+ */
 async function updateScheduleState(
   deviceId: number,
-  schedule: ToggleScheduleRequest["schedule"],
+  schedule:
+    ToggleScheduleRequest["schedule"],
   enable: boolean,
 ): Promise<ScheduleBatchResult> {
   try {
     await briseRequest(
       `/device/${deviceId}/schedules/${schedule.scheduleId}`,
       {
-        method: "PUT",
+        method:
+          "PUT",
 
         headers: {
           "Content-Type":
             "application/json",
         },
 
-        body: JSON.stringify({
-          name:
-            schedule.name,
+        body:
+          JSON.stringify({
+            name:
+              schedule.name,
 
-          enable,
+            enable,
 
-          dateStart:
-            schedule.dateStart,
+            dateStart:
+              schedule.dateStart,
 
-          dateEnd:
-            schedule.dateEnd,
+            dateEnd:
+              schedule.dateEnd,
 
-          repetitionMode:
-            schedule.repetitionMode,
+            repetitionMode:
+              schedule.repetitionMode,
 
-          repetitionValue:
-            schedule.repetitionValue,
+            repetitionValue:
+              schedule.repetitionValue,
 
-          parameter:
-            schedule.parameter,
-        }),
+            parameter:
+              schedule.parameter,
+          }),
       },
     );
 
     return {
       deviceId,
-      success: true,
+
+      success:
+        true,
     };
   } catch (error) {
     if (
@@ -559,7 +705,10 @@ async function updateScheduleState(
     ) {
       return {
         deviceId,
-        success: false,
+
+        success:
+          false,
+
         error:
           error.message,
       };
@@ -567,7 +716,10 @@ async function updateScheduleState(
 
     return {
       deviceId,
-      success: false,
+
+      success:
+        false,
+
       error:
         error instanceof Error
           ? error.message

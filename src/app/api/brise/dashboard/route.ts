@@ -1,12 +1,36 @@
-import { NextResponse } from "next/server";
+import {
+  NextResponse,
+} from "next/server";
 
-import { getDashboard } from "@/services/brise.service";
+import {
+  requireApiRole,
+} from "@/features/auth/guards/require-api-role";
+
+import {
+  BRISE_READ_ROLES,
+} from "@/features/auth/permissions/roles";
+
+import {
+  getDashboard,
+} from "@/services/brise.service";
 
 export async function GET() {
-  try {
-    const dashboard = await getDashboard();
+  const permission =
+    await requireApiRole(
+      BRISE_READ_ROLES,
+    );
 
-    return NextResponse.json(dashboard);
+  if (!permission.ok) {
+    return permission.response;
+  }
+
+  try {
+    const dashboard =
+      await getDashboard();
+
+    return NextResponse.json(
+      dashboard,
+    );
   } catch (error) {
     const message =
       error instanceof Error

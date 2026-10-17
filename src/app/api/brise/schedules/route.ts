@@ -9,6 +9,14 @@ import type {
   BriseSchedule,
 } from "@/types/schedule";
 
+import {
+  requireApiRole,
+} from "@/features/auth/guards/require-api-role";
+
+import {
+  BRISE_READ_ROLES,
+} from "@/features/auth/permissions/roles";
+
 interface ApiDevice {
   deviceId: number;
 }
@@ -48,6 +56,16 @@ interface GroupedSchedule {
 }
 
 export async function GET() {
+
+  const permission =
+    await requireApiRole(
+      BRISE_READ_ROLES,
+    );
+
+  if (!permission.ok) {
+    return permission.response;
+  }
+
   try {
     const data =
       await briseRequest<DevicesResponse>(
