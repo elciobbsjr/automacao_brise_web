@@ -14,10 +14,13 @@ import {
 
 interface DashboardHeaderProps {
   devices: DashboardDevice[];
+
+  canManageSchedules: boolean;
 }
 
 export function DashboardHeader({
   devices,
+  canManageSchedules,
 }: DashboardHeaderProps) {
   const total =
     devices.length;
@@ -171,7 +174,12 @@ export function DashboardHeader({
               </div>
 
               <ScheduleManager
-                devices={devices}
+                devices={
+                  devices
+                }
+                canManageSchedules={
+                  canManageSchedules
+                }
               />
             </div>
 

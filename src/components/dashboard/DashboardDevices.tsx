@@ -30,6 +30,7 @@ import {
 
 interface DashboardDevicesProps {
   devices: DashboardDevice[];
+  canControlDevices: boolean;
   groupSelection: DeviceGroupSelection;
 
   onGroupSelectionChange: (
@@ -58,6 +59,7 @@ interface DashboardDevicesProps {
 
 export function DashboardDevices({
   devices,
+  canControlDevices,
   groupSelection,
   onGroupSelectionChange,
   search: controlledSearch,
@@ -468,7 +470,8 @@ export function DashboardDevices({
           />
         ) : (
           <>
-            {hasSpecificGroup &&
+            {canControlDevices &&
+              hasSpecificGroup &&
               devicesByGroup.length >
                 0 && (
                 <section className="relative mb-6 overflow-hidden rounded-[24px] border border-white/70 bg-white/80 shadow-[0_12px_36px_rgba(15,23,42,0.065)] backdrop-blur-xl">
@@ -708,7 +711,10 @@ export function DashboardDevices({
                       allDevices={
                         devices
                       }
-                    />
+                      canControl={
+                        canControlDevices
+                      }
+/>
                   ),
                 )}
               </div>
@@ -719,17 +725,27 @@ export function DashboardDevices({
         )}
       </div>
 
+      {canControlDevices && (
       <GroupDeviceControlModal
-        devices={devicesByGroup}
-        groupName={groupName}
-        groupPath={groupPath}
-        open={groupControlOpen}
+        devices={
+          devicesByGroup
+        }
+        groupName={
+          groupName
+        }
+        groupPath={
+          groupPath
+        }
+        open={
+          groupControlOpen
+        }
         onClose={() =>
           setGroupControlOpen(
             false,
           )
         }
       />
+    )}
     </section>
   );
 }

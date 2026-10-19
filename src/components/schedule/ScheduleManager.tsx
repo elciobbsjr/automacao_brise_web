@@ -14,10 +14,13 @@ import {
 
 interface ScheduleManagerProps {
   devices: DashboardDevice[];
+
+  canManageSchedules: boolean;
 }
 
 export function ScheduleManager({
   devices,
+  canManageSchedules,
 }: ScheduleManagerProps) {
   const [
     open,
@@ -49,8 +52,15 @@ export function ScheduleManager({
       </button>
 
       <ScheduleModal
-        devices={devices}
-        open={open}
+        devices={
+          devices
+        }
+        open={
+          open
+        }
+        canManageSchedules={
+          canManageSchedules
+        }
         onClose={() =>
           setOpen(false)
         }

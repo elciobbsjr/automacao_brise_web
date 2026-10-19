@@ -41,10 +41,13 @@ import {
 
 interface ScheduleListProps {
   devices: DashboardDevice[];
+
+  canManageSchedules: boolean;
 }
 
 export function ScheduleList({
   devices,
+  canManageSchedules,
 }: ScheduleListProps) {
   const [
     scheduleToToggle,
@@ -291,6 +294,9 @@ export function ScheduleList({
               devices={
                 devices
               }
+              canManageSchedules={
+                canManageSchedules
+              }
               onEdit={() =>
                 setScheduleToEdit(
                   schedule,
@@ -314,75 +320,79 @@ export function ScheduleList({
       {/* ==========================================
           MODAIS
           ========================================== */}
+    
+      {canManageSchedules && (
+  <>
+    <ScheduleDeleteModal
+      schedule={
+        scheduleToDelete
+      }
+      open={
+        scheduleToDelete !==
+        null
+      }
+      onClose={() =>
+        setScheduleToDelete(
+          null,
+        )
+      }
+      onDeleted={() => {
+        setScheduleToDelete(
+          null,
+        );
 
-      <ScheduleDeleteModal
-        schedule={
-          scheduleToDelete
-        }
-        open={
-          scheduleToDelete !==
-          null
-        }
-        onClose={() =>
-          setScheduleToDelete(
-            null,
-          )
-        }
-        onDeleted={() => {
-          setScheduleToDelete(
-            null,
-          );
+        loadSchedules();
+      }}
+    />
 
-          loadSchedules();
-        }}
-      />
+    <ScheduleToggleModal
+      schedule={
+        scheduleToToggle
+      }
+      open={
+        scheduleToToggle !==
+        null
+      }
+      onClose={() =>
+        setScheduleToToggle(
+          null,
+        )
+      }
+      onUpdated={() => {
+        setScheduleToToggle(
+          null,
+        );
 
-      <ScheduleToggleModal
-        schedule={
-          scheduleToToggle
-        }
-        open={
-          scheduleToToggle !==
-          null
-        }
-        onClose={() =>
-          setScheduleToToggle(
-            null,
-          )
-        }
-        onUpdated={() => {
-          setScheduleToToggle(
-            null,
-          );
+        loadSchedules();
+      }}
+    />
 
-          loadSchedules();
-        }}
-      />
+    <ScheduleEditModal
+      schedule={
+        scheduleToEdit
+      }
+      devices={
+        devices
+      }
+      open={
+        scheduleToEdit !==
+        null
+      }
+      onClose={() =>
+        setScheduleToEdit(
+          null,
+        )
+      }
+      onUpdated={() => {
+        setScheduleToEdit(
+          null,
+        );
 
-      <ScheduleEditModal
-        schedule={
-          scheduleToEdit
-        }
-        devices={
-          devices
-        }
-        open={
-          scheduleToEdit !==
-          null
-        }
-        onClose={() =>
-          setScheduleToEdit(
-            null,
-          )
-        }
-        onUpdated={() => {
-          setScheduleToEdit(
-            null,
-          );
-
-          loadSchedules();
-        }}
-      />
+        loadSchedules();
+      }}
+    />
+  </>
+)}
     </section>
   );
 }
@@ -394,6 +404,7 @@ export function ScheduleList({
 function ScheduleCard({
   schedule,
   devices,
+  canManageSchedules,
   onEdit,
   onDelete,
   onToggle,
@@ -401,6 +412,8 @@ function ScheduleCard({
   schedule: GroupedSchedule;
 
   devices: DashboardDevice[];
+
+  canManageSchedules: boolean;
 
   onEdit: () => void;
 
@@ -602,79 +615,81 @@ function ScheduleCard({
 
           {/* AÇÕES DESKTOP */}
 
-          <div className="flex flex-wrap gap-2">
-            <ActionButton
-              label="Editar"
-              icon={
-                <EditIcon />
-              }
-              onClick={
-                onEdit
-              }
-              disabled={
-                !valid
-              }
-              title={
-                valid
-                  ? "Editar agendamento"
-                  : "Agendamentos incompletos não podem ser editados."
-              }
-            />
+          {canManageSchedules && (
+  <div className="flex flex-wrap gap-2">
+    <ActionButton
+      label="Editar"
+      icon={
+        <EditIcon />
+      }
+      onClick={
+        onEdit
+      }
+      disabled={
+        !valid
+      }
+      title={
+        valid
+          ? "Editar agendamento"
+          : "Agendamentos incompletos não podem ser editados."
+      }
+    />
 
-            <ActionButton
-              label={
-                schedule.enable
-                  ? "Desativar"
-                  : "Ativar"
-              }
-              icon={
-                schedule.enable
-                  ? <PauseIcon />
-                  : <PlayIcon />
-              }
-              tone={
-                schedule.enable
-                  ? "slate"
-                  : "green"
-              }
-              onClick={
-                onToggle
-              }
-              disabled={
-                !valid
-              }
-              title={
-                valid
-                  ? schedule.enable
-                    ? "Desativar agendamento"
-                    : "Ativar agendamento"
-                  : "Agendamentos incompletos não podem ser ativados ou desativados."
-              }
-            />
+    <ActionButton
+      label={
+        schedule.enable
+          ? "Desativar"
+          : "Ativar"
+      }
+      icon={
+        schedule.enable
+          ? <PauseIcon />
+          : <PlayIcon />
+      }
+      tone={
+        schedule.enable
+          ? "slate"
+          : "green"
+      }
+      onClick={
+        onToggle
+      }
+      disabled={
+        !valid
+      }
+      title={
+        valid
+          ? schedule.enable
+            ? "Desativar agendamento"
+            : "Ativar agendamento"
+          : "Agendamentos incompletos não podem ser ativados ou desativados."
+      }
+    />
 
-            <ActionButton
-              label="Excluir"
-              icon={
-                <TrashIcon />
-              }
-              tone="red"
-              onClick={
-                onDelete
-              }
-              disabled={
-                !hasValidDeleteData(
-                  schedule,
-                )
-              }
-              title={
-                hasValidDeleteData(
-                  schedule,
-                )
-                  ? "Excluir agendamento"
-                  : "Não há informações suficientes para excluir este agendamento."
-              }
-            />
-          </div>
+    <ActionButton
+      label="Excluir"
+      icon={
+        <TrashIcon />
+      }
+      tone="red"
+      onClick={
+        onDelete
+      }
+      disabled={
+        !hasValidDeleteData(
+          schedule,
+        )
+      }
+      title={
+        hasValidDeleteData(
+          schedule,
+        )
+          ? "Excluir agendamento"
+          : "Não há informações suficientes para excluir este agendamento."
+      }
+    />
+  </div>
+)}
         </div>
 
         {/* ======================================

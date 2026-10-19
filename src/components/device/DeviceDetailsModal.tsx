@@ -40,14 +40,21 @@ import {
 } from "./DeviceSchedules";
 interface DeviceDetailsModalProps {
   device: DashboardDevice;
+
   open: boolean;
+
+  canControl: boolean;
+
   onClose: () => void;
+
   onCreateSchedule?: () => void;
+
   onManageSchedules?: () => void;
 }
 export function DeviceDetailsModal({
   device,
   open,
+  canControl,
   onClose,
   onCreateSchedule,
   onManageSchedules,
@@ -180,7 +187,13 @@ export function DeviceDetailsModal({
                 <OfflineState />
               </div>
             ) : (
-              <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_460px] xl:grid-cols-[minmax(0,1.15fr)_520px] 2xl:grid-cols-[minmax(0,1.2fr)_560px]">
+              <div
+                className={`grid gap-6 p-5 sm:p-7 ${
+                  canControl
+                    ? "lg:grid-cols-[minmax(0,1fr)_460px] xl:grid-cols-[minmax(0,1.15fr)_520px] 2xl:grid-cols-[minmax(0,1.2fr)_560px]"
+                    : "grid-cols-1"
+                }`}
+              >
                 <div className="min-w-0 space-y-5">
                   <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <PrimaryMetric
@@ -337,10 +350,14 @@ export function DeviceDetailsModal({
                       device.deviceId
                     }
                     onCreate={
-                      onCreateSchedule
+                      canControl
+                        ? onCreateSchedule
+                        : undefined
                     }
                     onManage={
-                      onManageSchedules
+                      canControl
+                        ? onManageSchedules
+                        : undefined
                     }
                   />
                   <CollapsibleSection
@@ -526,6 +543,7 @@ export function DeviceDetailsModal({
                     </div>
                   </CollapsibleSection>
                   </div>
+                {canControl && (
                 <aside className="lg:sticky lg:top-5 lg:self-start">
                   <div className="relative overflow-hidden rounded-[26px] border border-blue-100/80 bg-white/85 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-2xl">
                     <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-blue-700 via-blue-500 to-cyan-400" />
@@ -551,6 +569,7 @@ export function DeviceDetailsModal({
                     </div>
                   </div>
                 </aside>
+                )}
               </div>
             )}
           </div>

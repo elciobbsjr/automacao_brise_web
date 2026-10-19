@@ -25,6 +25,10 @@ import {
 export const dynamic =
   "force-dynamic";
 
+import {
+  getUserCapabilities,
+} from "@/features/auth/permissions/capabilities";  
+
 export default async function Home() {
   /*
    * A autenticação acontece antes
@@ -34,7 +38,13 @@ export default async function Home() {
    * não chegam a carregar os dados
    * dos dispositivos.
    */
+  const session =
   await requireAuth();
+
+  const capabilities =
+  getUserCapabilities(
+    session.user.role,
+  );
 
   try {
     const dashboard =
@@ -73,14 +83,20 @@ export default async function Home() {
             devices={
               dashboard.devices
             }
+            canManageSchedules={
+              capabilities.canManageSchedules
+            }
           />
 
           <div className="mt-8">
             <DashboardContent
-              dashboard={
-                dashboard
-              }
-            />
+            dashboard={
+              dashboard
+            }
+            canControlDevices={
+              capabilities.canControlDevices
+            }
+          />
           </div>
         </div>
       </main>

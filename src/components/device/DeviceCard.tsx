@@ -68,11 +68,14 @@ interface DeviceCardProps {
   device: DashboardDevice;
 
   allDevices?: DashboardDevice[];
+
+  canControl: boolean;
 }
 
 export function DeviceCard({
   device,
   allDevices,
+  canControl,
 }: DeviceCardProps) {
   const [
     detailsOpen,
@@ -593,11 +596,15 @@ export function DeviceCard({
                 <DeviceAbsenceShutdownAlert />
               )}
 
+              {canControl && (
               <div className="mt-3 border-t border-slate-200/70 pt-3">
                 <DeviceQuickControl
-                  device={device}
+                  device={
+                    device
+                  }
                 />
               </div>
+            )}
 
               <div className="mt-auto pt-3">
                 <button
@@ -721,19 +728,26 @@ export function DeviceCard({
       )}
 
       {detailsOpen && (
-  <DeviceDetailsModal
-    device={device}
-    open={detailsOpen}
-    onClose={
-      closeDetails
-    }
-    onCreateSchedule={
-      openCreateSchedule
-    }
-    onManageSchedules={
-      openManageSchedules
-    }
-  />
+      <DeviceDetailsModal
+      device={
+        device
+      }
+      open={
+        detailsOpen
+      }
+      canControl={
+        canControl
+      }
+      onClose={
+        closeDetails
+      }
+      onCreateSchedule={
+        openCreateSchedule
+      }
+      onManageSchedules={
+        openManageSchedules
+      }
+    />
 )}
 
       {scheduleOpen && (
@@ -744,6 +758,11 @@ export function DeviceCard({
           open={
             scheduleOpen
           }
+
+          canManageSchedules={
+            canControl
+          }
+
           onClose={
             closeSchedules
           }

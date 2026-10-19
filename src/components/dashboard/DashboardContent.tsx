@@ -29,10 +29,12 @@ import type {
 
 interface DashboardContentProps {
   dashboard: DashboardResponse;
+  canControlDevices: boolean;
 }
 
 export function DashboardContent({
   dashboard,
+  canControlDevices,
 }: DashboardContentProps) {
   const [
     groupSelection,
@@ -255,6 +257,10 @@ export function DashboardContent({
       <DashboardDevices
         devices={
           dashboard.devices
+        }
+
+        canControlDevices={
+          canControlDevices
         }
         groupSelection={
           groupSelection

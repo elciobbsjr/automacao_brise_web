@@ -34,25 +34,12 @@ interface ScheduleModalProps {
 
   open: boolean;
 
+  canManageSchedules: boolean;
+
   onClose: () => void;
 
-  /*
-   * Aba que deve aparecer
-   * quando o modal for aberto.
-   *
-   * list:
-   * lista de agendamentos.
-   *
-   * create:
-   * novo agendamento.
-   */
   initialTab?: ScheduleTab;
 
-  /*
-   * Equipamentos que já devem
-   * aparecer selecionados ao
-   * criar um agendamento.
-   */
   initialSelectedDeviceIds?: number[];
 }
 
@@ -63,6 +50,7 @@ interface ScheduleModalProps {
 export function ScheduleModal({
   devices,
   open,
+  canManageSchedules,
   onClose,
   initialTab = "list",
   initialSelectedDeviceIds = [],
@@ -115,7 +103,9 @@ export function ScheduleModal({
     }
 
     setTab(
-      initialTab,
+      canManageSchedules
+        ? initialTab
+        : "list",
     );
   }, [
     open,
@@ -347,10 +337,11 @@ export function ScheduleModal({
               Agendamentos
             </TabButton>
 
+            {canManageSchedules && (
             <TabButton
               active={
                 tab ===
-                "create"
+                  "create"
               }
               icon={
                 <PlusIcon />
@@ -363,6 +354,7 @@ export function ScheduleModal({
             >
               Novo agendamento
             </TabButton>
+          )}
           </div>
         </div>
 
@@ -373,27 +365,31 @@ export function ScheduleModal({
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto">
           <div className="p-5 sm:p-7">
             {tab ===
-            "list" ? (
-              <ScheduleList
-                devices={
-                  devices
-                }
-              />
-            ) : (
-              <ScheduleForm
-                devices={
-                  devices
-                }
-                initialSelectedDeviceIds={
-                  initialSelectedDeviceIds
-                }
-                onCreated={() =>
-                  setTab(
-                    "list",
-                  )
-                }
-              />
-            )}
+              "list" ||
+              !canManageSchedules ? (
+                <ScheduleList
+                  devices={
+                    devices
+                  }
+                  canManageSchedules={
+                    canManageSchedules
+                  }
+                />
+              ) : (
+                <ScheduleForm
+                  devices={
+                    devices
+                  }
+                  initialSelectedDeviceIds={
+                    initialSelectedDeviceIds
+                  }
+                  onCreated={() =>
+                    setTab(
+                      "list",
+                    )
+                  }
+                />
+              )}
           </div>
         </div>
       </div>
