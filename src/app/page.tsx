@@ -19,15 +19,15 @@ import {
 } from "@/features/auth/guards/require-auth";
 
 import {
+  getUserCapabilities,
+} from "@/features/auth/permissions/capabilities";
+
+import {
   getDashboard,
 } from "@/services/brise.service";
 
 export const dynamic =
   "force-dynamic";
-
-import {
-  getUserCapabilities,
-} from "@/features/auth/permissions/capabilities";  
 
 export default async function Home() {
   /*
@@ -39,12 +39,12 @@ export default async function Home() {
    * dos dispositivos.
    */
   const session =
-  await requireAuth();
+    await requireAuth();
 
   const capabilities =
-  getUserCapabilities(
-    session.user.role,
-  );
+    getUserCapabilities(
+      session.user.role,
+    );
 
   try {
     const dashboard =
@@ -62,15 +62,19 @@ export default async function Home() {
 
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {/* Luz azul superior */}
+
           <div className="absolute -left-32 -top-40 h-[520px] w-[520px] rounded-full bg-blue-200/30 blur-3xl" />
 
           {/* Luz azul lateral */}
+
           <div className="absolute -right-40 top-[320px] h-[520px] w-[520px] rounded-full bg-sky-200/25 blur-3xl" />
 
           {/* Luz inferior */}
+
           <div className="absolute bottom-[-220px] left-1/3 h-[520px] w-[520px] rounded-full bg-indigo-100/35 blur-3xl" />
 
           {/* Gradiente suave superior */}
+
           <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-white/65 to-transparent" />
         </div>
 
@@ -86,17 +90,24 @@ export default async function Home() {
             canManageSchedules={
               capabilities.canManageSchedules
             }
+            userName={
+              session.user.name ??
+              "Usuário"
+            }
+            userRole={
+              session.user.role
+            }
           />
 
           <div className="mt-8">
             <DashboardContent
-            dashboard={
-              dashboard
-            }
-            canControlDevices={
-              capabilities.canControlDevices
-            }
-          />
+              dashboard={
+                dashboard
+              }
+              canControlDevices={
+                capabilities.canControlDevices
+              }
+            />
           </div>
         </div>
       </main>
@@ -109,14 +120,20 @@ export default async function Home() {
 
     return (
       <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 p-6">
-        {/* Fundo decorativo */}
+        {/* ==========================================
+            FUNDO
+            ========================================== */}
+
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -left-32 -top-40 h-[520px] w-[520px] rounded-full bg-blue-200/30 blur-3xl" />
 
           <div className="absolute -right-40 bottom-0 h-[480px] w-[480px] rounded-full bg-sky-200/25 blur-3xl" />
         </div>
 
-        {/* Card de erro */}
+        {/* ==========================================
+            CARD DE ERRO
+            ========================================== */}
+
         <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-[28px] border border-white/70 bg-white/80 p-8 text-center shadow-[0_24px_70px_rgba(15,23,42,0.12)] backdrop-blur-xl">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
 

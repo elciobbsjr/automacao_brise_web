@@ -12,15 +12,29 @@ import {
   NotificationCenter,
 } from "@/components/dashboard/NotificationCenter";
 
+import {
+  UserMenu,
+} from "@/components/user/UserMenu";
+
+import type {
+  UserRole,
+} from "@/generated/prisma/client";
+
 interface DashboardHeaderProps {
   devices: DashboardDevice[];
 
   canManageSchedules: boolean;
+
+  userName: string;
+
+  userRole: UserRole;
 }
 
 export function DashboardHeader({
   devices,
   canManageSchedules,
+  userName,
+  userRole,
 }: DashboardHeaderProps) {
   const total =
     devices.length;
@@ -63,7 +77,9 @@ export function DashboardHeader({
               ===================================== */}
 
           <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-center">
-            {/* LOGOS */}
+            {/* =====================================
+                LOGOS
+                ===================================== */}
 
             <div className="flex shrink-0 items-center">
               <div className="flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
@@ -95,7 +111,9 @@ export function DashboardHeader({
 
             <div className="hidden h-20 w-px bg-gradient-to-b from-transparent via-slate-200 to-transparent lg:block" />
 
-            {/* TÍTULO */}
+            {/* =====================================
+                TÍTULO
+                ===================================== */}
 
             <div className="min-w-0">
               <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -112,9 +130,11 @@ export function DashboardHeader({
 
               <h1 className="text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[34px]">
                 Brise{" "}
+
                 <span className="font-medium text-slate-400">
                   /
                 </span>{" "}
+
                 <span className="text-blue-700">
                   SEMEQ
                 </span>
@@ -135,6 +155,7 @@ export function DashboardHeader({
                   }
                 >
                   {devices.length}{" "}
+
                   {devices.length ===
                   1
                     ? "equipamento"
@@ -156,7 +177,7 @@ export function DashboardHeader({
               COLUNA DIREITA
               ===================================== */}
 
-          <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto xl:w-[260px]">
+          <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto xl:w-[290px]">
             {/* =====================================
                 GERENCIAMENTO
                 ===================================== */}
@@ -184,41 +205,49 @@ export function DashboardHeader({
             </div>
 
             {/* =====================================
-                STATUS + NOTIFICAÇÕES
-
-                O px-4 deixa esta linha exatamente
-                alinhada ao botão de Agendamentos.
+                STATUS + NOTIFICAÇÕES + USUÁRIO
                 ===================================== */}
 
-            <div className="grid grid-cols-[minmax(0,1fr)_64px] items-stretch gap-3">
-  {/* DISPONIBILIDADE */}
+            <div className="grid grid-cols-[minmax(132px,1fr)_56px_72px] items-stretch gap-2">
+              {/* DISPONIBILIDADE */}
 
-  <div className="flex h-16 min-w-0 items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/80 px-4 shadow-sm backdrop-blur">
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-      <AvailabilityIcon />
-    </div>
+              <div className="flex h-16 min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white/80 px-3 shadow-sm backdrop-blur">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <AvailabilityIcon />
+                </div>
 
-    <div className="min-w-0">
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-2xl font-bold tracking-tight text-slate-900">
-          {availability}%
-        </span>
+                <div className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
+                  <span className="text-xl font-bold tracking-tight text-slate-900">
+                    {availability}%
+                  </span>
 
-        <span className="text-xs font-medium text-slate-400">
-          online
-        </span>
-      </div>
-    </div>
-  </div>
+                  <span className="text-[10px] font-medium text-slate-400">
+                    online
+                  </span>
+                </div>
+              </div>
 
-  {/* NOTIFICAÇÕES */}
+              {/* NOTIFICAÇÕES */}
 
-  <div className="flex h-16 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur">
-    <NotificationCenter
-      devices={devices}
-    />
-  </div>
-</div>
+              <div className="flex h-16 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur">
+                <NotificationCenter
+                  devices={
+                    devices
+                  }
+                />
+              </div>
+
+              {/* USUÁRIO */}
+
+              <UserMenu
+                name={
+                  userName
+                }
+                role={
+                  userRole
+                }
+              />
+            </div>
           </div>
         </div>
       </div>
