@@ -288,6 +288,12 @@ export default async function UsersPage() {
                               userName={
                                 user.name
                               }
+                              userEmail={
+                                user.email
+                              }
+                              userRole={
+                                user.role
+                              }
                               active={
                                 user.active
                               }

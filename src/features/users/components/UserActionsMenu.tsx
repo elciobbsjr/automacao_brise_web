@@ -9,9 +9,6 @@ import {
 
 import {
   createPortal,
-} from "react-dom";
-
-import {
   useFormStatus,
 } from "react-dom";
 
@@ -19,15 +16,27 @@ import {
   useRouter,
 } from "next/navigation";
 
+import type {
+  UserRole,
+} from "@/generated/prisma/client";
+
 import {
   toggleUserStatusAction,
   type ToggleUserStatusActionState,
 } from "@/features/users/actions/toggle-user-status.action";
 
+import {
+  EditUserModal,
+} from "@/features/users/components/EditUserModal";
+
 interface UserActionsMenuProps {
   userId: string;
 
   userName: string;
+
+  userEmail: string;
+
+  userRole: UserRole;
 
   active: boolean;
 
@@ -43,6 +52,8 @@ const initialState:
 export function UserActionsMenu({
   userId,
   userName,
+  userEmail,
+  userRole,
   active,
   isCurrentUser,
 }: UserActionsMenuProps) {
@@ -54,6 +65,11 @@ export function UserActionsMenu({
   const [
     confirmationOpen,
     setConfirmationOpen,
+  ] = useState(false);
+
+  const [
+    editOpen,
+    setEditOpen,
   ] = useState(false);
 
   const [
@@ -85,10 +101,10 @@ export function UserActionsMenu({
 
   /*
    * Posiciona o menu fora da tabela
-   * usando um portal.
+   * através de portal.
    *
-   * Isso evita que overflow da tabela
-   * corte o menu.
+   * Isso evita cortes causados
+   * pelo overflow da tabela.
    */
   function openMenu() {
     if (
@@ -102,7 +118,7 @@ export function UserActionsMenu({
         .getBoundingClientRect();
 
     const menuWidth =
-      210;
+      220;
 
     const left =
       Math.max(
@@ -159,6 +175,17 @@ export function UserActionsMenu({
       setOpen(false);
     }
 
+    function handleKeyDown(
+      event: KeyboardEvent,
+    ) {
+      if (
+        event.key ===
+        "Escape"
+      ) {
+        setOpen(false);
+      }
+    }
+
     document.addEventListener(
       "pointerdown",
       handlePointerDown,
@@ -173,6 +200,11 @@ export function UserActionsMenu({
       "scroll",
       closeMenu,
       true,
+    );
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown,
     );
 
     return () => {
@@ -191,12 +223,29 @@ export function UserActionsMenu({
         closeMenu,
         true,
       );
+
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown,
+      );
     };
   }, [
     open,
   ]);
 
+  function handleEditAction() {
+    setOpen(false);
+
+    setEditOpen(
+      true,
+    );
+  }
+
   function handleStatusAction() {
+    /*
+     * O próprio administrador
+     * não pode desativar sua conta.
+     */
     if (
       active &&
       isCurrentUser
@@ -213,6 +262,10 @@ export function UserActionsMenu({
 
   return (
     <>
+      {/* ==========================================
+          BOTÃO DE AÇÕES
+          ========================================== */}
+
       <button
         ref={
           buttonRef
@@ -235,6 +288,10 @@ export function UserActionsMenu({
         <MoreIcon />
       </button>
 
+      {/* ==========================================
+          MENU
+          ========================================== */}
+
       {mounted &&
         open &&
         createPortal(
@@ -250,8 +307,35 @@ export function UserActionsMenu({
               left:
                 menuPosition.left,
             }}
-            className="fixed z-[9998] w-[210px] overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.15)] backdrop-blur-xl"
+            className="fixed z-[9998] w-[220px] overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.15)] backdrop-blur-xl"
           >
+            {/* EDITAR */}
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={
+                handleEditAction
+              }
+              className="group flex h-10 w-full items-center justify-between rounded-xl px-3 text-left text-xs font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="text-slate-400 transition group-hover:text-blue-600">
+                  <EditIcon />
+                </span>
+
+                Editar usuário
+              </span>
+
+              <span className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-500">
+                <ArrowIcon />
+              </span>
+            </button>
+
+            <div className="mx-2 my-1 h-px bg-slate-100" />
+
+            {/* STATUS */}
+
             <button
               type="button"
               role="menuitem"
@@ -262,35 +346,90 @@ export function UserActionsMenu({
               onClick={
                 handleStatusAction
               }
-              className={`flex h-10 w-full items-center gap-2.5 rounded-xl px-3 text-left text-xs font-semibold transition ${
+              className={`group flex h-10 w-full items-center justify-between rounded-xl px-3 text-left text-xs font-semibold transition ${
                 active
                   ? "text-red-600 hover:bg-red-50"
                   : "text-emerald-700 hover:bg-emerald-50"
               } disabled:cursor-not-allowed disabled:bg-transparent disabled:text-slate-300`}
             >
-              {active ? (
-                <DisableIcon />
-              ) : (
-                <EnableIcon />
-              )}
+              <span className="flex items-center gap-2.5">
+                <span
+                  className={`transition ${
+                    active
+                      ? "text-red-400 group-hover:text-red-600"
+                      : "text-emerald-500 group-hover:text-emerald-700"
+                  }`}
+                >
+                  {active ? (
+                    <DisableIcon />
+                  ) : (
+                    <EnableIcon />
+                  )}
+                </span>
 
-              {active
-                ? isCurrentUser
-                  ? "Sua conta"
-                  : "Desativar conta"
-                : "Reativar conta"}
+                {active
+                  ? isCurrentUser
+                    ? "Sua conta"
+                    : "Desativar conta"
+                  : "Reativar conta"}
+              </span>
+
+              {!(
+                active &&
+                isCurrentUser
+              ) && (
+                <span
+                  className={`transition group-hover:translate-x-0.5 ${
+                    active
+                      ? "text-red-300"
+                      : "text-emerald-300"
+                  }`}
+                >
+                  <ArrowIcon />
+                </span>
+              )}
             </button>
 
             {active &&
               isCurrentUser && (
-              <p className="px-3 pb-2 pt-1 text-[9px] leading-4 text-slate-400">
-                Sua própria conta não
-                pode ser desativada.
-              </p>
-            )}
+                <p className="px-3 pb-2 pt-1 text-[9px] leading-4 text-slate-400">
+                  Sua própria conta não
+                  pode ser desativada.
+                </p>
+              )}
           </div>,
           document.body,
         )}
+
+      {/* ==========================================
+          MODAL DE EDIÇÃO
+          ========================================== */}
+
+      {editOpen && (
+        <EditUserModal
+          userId={
+            userId
+          }
+          userName={
+            userName
+          }
+          userEmail={
+            userEmail
+          }
+          userRole={
+            userRole
+          }
+          onClose={() =>
+            setEditOpen(
+              false,
+            )
+          }
+        />
+      )}
+
+      {/* ==========================================
+          MODAL DE STATUS
+          ========================================== */}
 
       {confirmationOpen && (
         <ToggleUserStatusModal
@@ -315,7 +454,7 @@ export function UserActionsMenu({
 }
 
 /* ==========================================
-   CONFIRMAÇÃO
+   CONFIRMAÇÃO DE STATUS
    ========================================== */
 
 function ToggleUserStatusModal({
@@ -428,6 +567,8 @@ function ToggleUserStatusModal({
       }}
     >
       <div className="relative w-full max-w-[440px] overflow-hidden rounded-[24px] border border-white/80 bg-white/95 shadow-[0_30px_90px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+        {/* FUNDO */}
+
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-slate-50" />
 
@@ -441,6 +582,8 @@ function ToggleUserStatusModal({
         </div>
 
         <div className="relative p-6">
+          {/* ÍCONE */}
+
           <div
             className={`flex h-11 w-11 items-center justify-center rounded-xl ${
               active
@@ -454,6 +597,8 @@ function ToggleUserStatusModal({
               <EnableIcon />
             )}
           </div>
+
+          {/* TEXTO */}
 
           <h2 className="mt-4 text-xl font-bold tracking-[-0.03em] text-slate-950">
             {active
@@ -485,11 +630,15 @@ function ToggleUserStatusModal({
             )}
           </p>
 
+          {/* ERRO */}
+
           {state.error && (
             <div className="mt-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-medium leading-5 text-red-700">
               {state.error}
             </div>
           )}
+
+          {/* FORMULÁRIO */}
 
           <form
             action={
@@ -531,7 +680,7 @@ function ToggleUserStatusModal({
 }
 
 /* ==========================================
-   CONFIRMAR
+   BOTÃO DE CONFIRMAÇÃO
    ========================================== */
 
 function ConfirmButton({
@@ -603,6 +752,25 @@ function MoreIcon() {
   );
 }
 
+function EditIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M12 20h9" />
+
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
 function DisableIcon() {
   return (
     <svg
@@ -645,6 +813,25 @@ function EnableIcon() {
       />
 
       <path d="m8 12 2.5 2.5L16 9" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3.5 w-3.5"
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+
+      <path d="m15 8 4 4-4 4" />
     </svg>
   );
 }

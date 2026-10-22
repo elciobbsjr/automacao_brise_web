@@ -15,6 +15,12 @@ interface CreateUserData {
   role: UserRole;
 }
 
+interface UpdateUserData {
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
 export async function getUsers() {
   return prisma.user.findMany({
     select: {
@@ -86,10 +92,10 @@ export async function createUser(
 }
 
 /* ==========================================
-   ALTERAÇÃO DE STATUS
+   USUÁRIO PARA ADMINISTRAÇÃO
    ========================================== */
 
-export async function getUserForStatusChange(
+export async function getUserForAdministration(
   userId: string,
 ) {
   return prisma.user.findUnique({
@@ -106,6 +112,54 @@ export async function getUserForStatusChange(
       active: true,
     },
   });
+}
+
+/* ==========================================
+   EDIÇÃO
+   ========================================== */
+
+export async function updateUser(
+  userId: string,
+  data: UpdateUserData,
+) {
+  return prisma.user.update({
+    where: {
+      id:
+        userId,
+    },
+
+    data: {
+      name:
+        data.name,
+
+      email:
+        data.email,
+
+      role:
+        data.role,
+    },
+
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      active: true,
+      createdAt: true,
+    },
+  });
+}
+
+/* ==========================================
+   ALTERAÇÃO DE STATUS
+   ========================================== */
+
+export async function getUserForStatusChange(
+  userId: string,
+) {
+  return getUserForAdministration(
+    userId,
+  );
 }
 
 export async function countActiveAdmins() {
