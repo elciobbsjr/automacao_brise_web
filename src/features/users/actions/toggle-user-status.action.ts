@@ -13,6 +13,10 @@ import {
 } from "@/features/auth/guards/require-role";
 
 import {
+  createAuditLog,
+} from "@/features/audit/services/audit.service";
+
+import {
   countActiveAdmins,
   getUserForStatusChange,
   setUserActive,
@@ -99,9 +103,7 @@ export async function toggleUserStatusAction(
     !targetUser.active;
 
   /*
-   * Proteção adicional:
-   *
-   * nunca permitimos desativar
+   * Nunca permitimos desativar
    * o último administrador ativo.
    */
   if (
@@ -129,6 +131,62 @@ export async function toggleUserStatusAction(
       targetUser.id,
       nextActive,
     );
+
+    /*
+     * AUDITORIA
+     */
+    try {
+      await createAuditLog({
+        actor: {
+          id:
+            currentAdmin.id,
+
+          name:
+            currentAdmin.name,
+
+          email:
+            currentAdmin.email,
+        },
+
+        action:
+          nextActive
+            ? "ACTIVATE_USER"
+            : "DEACTIVATE_USER",
+
+        resource:
+          "USER",
+
+        resourceId:
+          targetUser.id,
+
+        description:
+          nextActive
+            ? `Usuário "${targetUser.name}" reativado.`
+            : `Usuário "${targetUser.name}" desativado.`,
+
+        metadata: {
+          targetName:
+            targetUser.name,
+
+          targetEmail:
+            targetUser.email,
+
+          role:
+            targetUser.role,
+
+          previousActive:
+            targetUser.active,
+
+          newActive:
+            nextActive,
+        },
+      });
+    } catch (auditError) {
+      console.error(
+        "Erro ao registrar auditoria de alteração de status:",
+        auditError,
+      );
+    }
 
     revalidatePath(
       "/admin/users",

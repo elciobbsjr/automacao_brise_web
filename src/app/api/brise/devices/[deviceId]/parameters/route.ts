@@ -15,6 +15,10 @@ import {
   BRISE_CONTROL_ROLES,
 } from "@/features/auth/permissions/roles";
 
+import {
+  createAuditLog,
+} from "@/features/audit/services/audit.service";
+
 interface RouteContext {
   params: Promise<{
     deviceId: string;
@@ -89,6 +93,14 @@ export async function PUT(
       );
     }
 
+    /*
+     * Primeiro enviamos o comando
+     * normalmente para a API Brise.
+     *
+     * A auditoria só será criada
+     * se a operação principal
+     * tiver sido concluída.
+     */
     await briseRequest(
       `/device/${deviceId}/parameters`,
       {
@@ -106,6 +118,74 @@ export async function PUT(
           ),
       },
     );
+
+    /*
+     * AUDITORIA
+     *
+     * Registramos quem realizou
+     * a alteração, qual equipamento
+     * foi afetado e os parâmetros
+     * enviados.
+     */
+    try {
+      await createAuditLog({
+        actor: {
+          id:
+            permission.user.id,
+
+          name:
+            permission.user.name,
+
+          email:
+            permission.user.email,
+        },
+
+        action:
+          "UPDATE_DEVICE_PARAMETERS",
+
+        resource:
+          "DEVICE",
+
+        resourceId:
+          deviceId,
+
+        description:
+          `Parâmetros do equipamento ${deviceId} atualizados.`,
+
+        metadata: {
+          modeDevice:
+            body.modeDevice,
+
+          modeAC:
+            body.modeAC,
+
+          fanSpeed:
+            body.fanSpeed,
+
+          setpointCool:
+            body.setpointCool,
+
+          setpointHeat:
+            body.setpointHeat,
+
+          ecoCool:
+            body.ecoCool,
+
+          ecoHeat:
+            body.ecoHeat,
+        },
+      });
+    } catch (auditError) {
+      /*
+       * Uma eventual falha da auditoria
+       * não transforma um comando Brise
+       * já executado em erro para o usuário.
+       */
+      console.error(
+        "Erro ao registrar auditoria de alteração de parâmetros:",
+        auditError,
+      );
+    }
 
     return NextResponse.json({
       success: true,

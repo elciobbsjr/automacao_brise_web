@@ -25,6 +25,10 @@ import {
   findUserByEmail,
 } from "@/features/users/services/user.service";
 
+import {
+  createAuditLog,
+} from "@/features/audit/services/audit.service";
+
 export interface CreateUserActionState {
   success: boolean;
 
@@ -48,15 +52,16 @@ export async function createUserAction(
   void previousState;
 
   /*
-   * Segurança real no servidor.
+   * Apenas ADMIN pode criar usuários.
    *
-   * Mesmo que alguém tente chamar
-   * esta action manualmente,
-   * somente ADMIN poderá continuar.
+   * Também guardamos os dados do
+   * administrador responsável para
+   * registrar a auditoria.
    */
-  await requireRole([
-    UserRole.ADMIN,
-  ]);
+  const currentAdmin =
+    await requireRole([
+      UserRole.ADMIN,
+    ]);
 
   const rawData = {
     name:
@@ -127,9 +132,12 @@ export async function createUserAction(
       .trim()
       .toLowerCase();
 
+  const role =
+    parsed.data
+      .role as UserRole;
+
   /*
-   * Não permitimos dois usuários
-   * com o mesmo e-mail.
+   * E-mail único.
    */
   const existingUser =
     await findUserByEmail(
@@ -151,25 +159,79 @@ export async function createUserAction(
   }
 
   try {
+    /*
+     * A senha nunca é armazenada
+     * em texto puro.
+     */
     const passwordHash =
       await hashPassword(
         parsed.data.password,
       );
 
-    await createUser({
-      name,
-      email,
-      passwordHash,
-
-      role:
-        parsed.data
-          .role as UserRole,
-    });
+    const createdUser =
+      await createUser({
+        name,
+        email,
+        passwordHash,
+        role,
+      });
 
     /*
-     * Atualiza os dados exibidos
-     * na área administrativa.
+     * AUDITORIA
+     *
+     * Não registramos senha nem hash.
      */
+    try {
+      await createAuditLog({
+        actor: {
+          id:
+            currentAdmin.id,
+
+          name:
+            currentAdmin.name,
+
+          email:
+            currentAdmin.email,
+        },
+
+        action:
+          "CREATE_USER",
+
+        resource:
+          "USER",
+
+        resourceId:
+          createdUser.id,
+
+        description:
+          `Usuário "${createdUser.name}" criado com perfil ${createdUser.role}.`,
+
+        metadata: {
+          targetName:
+            createdUser.name,
+
+          targetEmail:
+            createdUser.email,
+
+          role:
+            createdUser.role,
+        },
+      });
+    } catch (auditError) {
+      /*
+       * Uma falha específica na auditoria
+       * não desfaz um usuário que já foi
+       * criado com sucesso.
+       *
+       * Posteriormente podemos tornar
+       * operações críticas transacionais.
+       */
+      console.error(
+        "Erro ao registrar auditoria de criação de usuário:",
+        auditError,
+      );
+    }
+
     revalidatePath(
       "/admin/users",
     );

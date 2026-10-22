@@ -15,6 +15,10 @@ import {
   BRISE_CONTROL_ROLES,
 } from "@/features/auth/permissions/roles";
 
+import {
+  createAuditLog,
+} from "@/features/audit/services/audit.service";
+
 import type {
   ScheduleBatchResult,
   UpdateScheduleRequest,
@@ -83,6 +87,125 @@ export async function PUT(
     const failureCount =
       results.length -
       successCount;
+
+    /*
+     * =================================================
+     * AUDITORIA
+     * =================================================
+     *
+     * Só registramos se pelo menos
+     * um equipamento tiver sido
+     * atualizado com sucesso.
+     */
+    if (
+      successCount > 0
+    ) {
+      try {
+        await createAuditLog({
+          actor: {
+            id:
+              permission.user.id,
+
+            name:
+              permission.user.name,
+
+            email:
+              permission.user.email,
+          },
+
+          action:
+            "UPDATE_SCHEDULE",
+
+          resource:
+            "SCHEDULE",
+
+          resourceId:
+            String(
+              body.scheduleId,
+            ),
+
+          description:
+            `Agendamento "${body.name}" atualizado em ${successCount} equipamento(s).`,
+
+          metadata: {
+            scheduleName:
+              body.name,
+
+            enabled:
+              body.enable,
+
+            deviceIds:
+              body.deviceIds,
+
+            successfulDeviceIds:
+              results
+                .filter(
+                  (result) =>
+                    result.success,
+                )
+                .map(
+                  (result) =>
+                    result.deviceId,
+                ),
+
+            failedDeviceIds:
+              results
+                .filter(
+                  (result) =>
+                    !result.success,
+                )
+                .map(
+                  (result) =>
+                    result.deviceId,
+                ),
+
+            successCount,
+
+            failureCount,
+
+            dateStart:
+              body.dateStart,
+
+            dateEnd:
+              body.dateEnd,
+
+            repetitionMode:
+              body.repetitionMode,
+
+            repetitionValue:
+              body.repetitionValue,
+
+            parameter: {
+              modeDevice:
+                body.parameter.modeDevice,
+
+              modeAC:
+                body.parameter.modeAC,
+
+              fanSpeed:
+                body.parameter.fanSpeed,
+
+              setpointCool:
+                body.parameter.setpointCool,
+
+              setpointHeat:
+                body.parameter.setpointHeat,
+
+              ecoCool:
+                body.parameter.ecoCool,
+
+              ecoHeat:
+                body.parameter.ecoHeat,
+            },
+          },
+        });
+      } catch (auditError) {
+        console.error(
+          "Erro ao registrar auditoria de edição de agendamento:",
+          auditError,
+        );
+      }
+    }
 
     return NextResponse.json({
       success:

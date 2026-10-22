@@ -15,6 +15,10 @@ import {
   BRISE_CONTROL_ROLES,
 } from "@/features/auth/permissions/roles";
 
+import {
+  createAuditLog,
+} from "@/features/audit/services/audit.service";
+
 import type {
   BriseSchedule,
   CreateScheduleRequest,
@@ -118,6 +122,121 @@ export async function POST(
       results.length -
       successCount;
 
+    /*
+     * =================================================
+     * AUDITORIA
+     * =================================================
+     */
+    if (
+      successCount > 0
+    ) {
+      try {
+        await createAuditLog({
+          actor: {
+            id:
+              permission.user.id,
+
+            name:
+              permission.user.name,
+
+            email:
+              permission.user.email,
+          },
+
+          action:
+            "CREATE_SCHEDULE",
+
+          resource:
+            "SCHEDULE",
+
+          resourceId:
+            String(
+              scheduleId,
+            ),
+
+          description:
+            `Agendamento "${schedule.name}" criado em ${successCount} equipamento(s).`,
+
+          metadata: {
+            scheduleName:
+              schedule.name,
+
+            enabled:
+              schedule.enable,
+
+            deviceIds:
+              body.deviceIds,
+
+            successfulDeviceIds:
+              results
+                .filter(
+                  (result) =>
+                    result.success,
+                )
+                .map(
+                  (result) =>
+                    result.deviceId,
+                ),
+
+            failedDeviceIds:
+              results
+                .filter(
+                  (result) =>
+                    !result.success,
+                )
+                .map(
+                  (result) =>
+                    result.deviceId,
+                ),
+
+            successCount,
+
+            failureCount,
+
+            dateStart:
+              schedule.dateStart,
+
+            dateEnd:
+              schedule.dateEnd,
+
+            repetitionMode:
+              schedule.repetitionMode,
+
+            repetitionValue:
+              schedule.repetitionValue,
+
+            parameter: {
+              modeDevice:
+                schedule.parameter.modeDevice,
+
+              modeAC:
+                schedule.parameter.modeAC,
+
+              fanSpeed:
+                schedule.parameter.fanSpeed,
+
+              setpointCool:
+                schedule.parameter.setpointCool,
+
+              setpointHeat:
+                schedule.parameter.setpointHeat,
+
+              ecoCool:
+                schedule.parameter.ecoCool,
+
+              ecoHeat:
+                schedule.parameter.ecoHeat,
+            },
+          },
+        });
+      } catch (auditError) {
+        console.error(
+          "Erro ao registrar auditoria de criação de agendamento:",
+          auditError,
+        );
+      }
+    }
+
     return NextResponse.json({
       success:
         failureCount === 0,
@@ -152,11 +271,6 @@ export async function POST(
  * =====================================================
  * EXCLUIR AGENDAMENTO
  * =====================================================
- *
- * Permitido somente para:
- *
- * OPERATOR
- * ADMIN
  */
 export async function DELETE(
   request: Request,
@@ -229,6 +343,78 @@ export async function DELETE(
       results.length -
       successCount;
 
+    /*
+     * AUDITORIA
+     */
+    if (
+      successCount > 0
+    ) {
+      try {
+        await createAuditLog({
+          actor: {
+            id:
+              permission.user.id,
+
+            name:
+              permission.user.name,
+
+            email:
+              permission.user.email,
+          },
+
+          action:
+            "DELETE_SCHEDULE",
+
+          resource:
+            "SCHEDULE",
+
+          resourceId:
+            String(
+              body.scheduleId,
+            ),
+
+          description:
+            `Agendamento ${body.scheduleId} excluído de ${successCount} equipamento(s).`,
+
+          metadata: {
+            deviceIds:
+              body.deviceIds,
+
+            successfulDeviceIds:
+              results
+                .filter(
+                  (result) =>
+                    result.success,
+                )
+                .map(
+                  (result) =>
+                    result.deviceId,
+                ),
+
+            failedDeviceIds:
+              results
+                .filter(
+                  (result) =>
+                    !result.success,
+                )
+                .map(
+                  (result) =>
+                    result.deviceId,
+                ),
+
+            successCount,
+
+            failureCount,
+          },
+        });
+      } catch (auditError) {
+        console.error(
+          "Erro ao registrar auditoria de exclusão de agendamento:",
+          auditError,
+        );
+      }
+    }
+
     return NextResponse.json({
       success:
         failureCount === 0,
@@ -290,6 +476,7 @@ async function createScheduleForDevice(
 
     return {
       deviceId,
+
       success:
         true,
     };
@@ -519,11 +706,6 @@ async function deleteScheduleFromDevice(
  * =====================================================
  * ATIVAR / DESATIVAR AGENDAMENTO
  * =====================================================
- *
- * Permitido somente para:
- *
- * OPERATOR
- * ADMIN
  */
 export async function PUT(
   request: Request,
@@ -611,6 +793,88 @@ export async function PUT(
     const failureCount =
       results.length -
       successCount;
+
+    /*
+     * AUDITORIA
+     */
+    if (
+      successCount > 0
+    ) {
+      try {
+        await createAuditLog({
+          actor: {
+            id:
+              permission.user.id,
+
+            name:
+              permission.user.name,
+
+            email:
+              permission.user.email,
+          },
+
+          action:
+            body.enable
+              ? "ACTIVATE_SCHEDULE"
+              : "DEACTIVATE_SCHEDULE",
+
+          resource:
+            "SCHEDULE",
+
+          resourceId:
+            String(
+              body.schedule.scheduleId,
+            ),
+
+          description:
+            body.enable
+              ? `Agendamento "${body.schedule.name}" ativado em ${successCount} equipamento(s).`
+              : `Agendamento "${body.schedule.name}" desativado em ${successCount} equipamento(s).`,
+
+          metadata: {
+            scheduleName:
+              body.schedule.name,
+
+            enabled:
+              body.enable,
+
+            deviceIds:
+              body.deviceIds,
+
+            successfulDeviceIds:
+              results
+                .filter(
+                  (result) =>
+                    result.success,
+                )
+                .map(
+                  (result) =>
+                    result.deviceId,
+                ),
+
+            failedDeviceIds:
+              results
+                .filter(
+                  (result) =>
+                    !result.success,
+                )
+                .map(
+                  (result) =>
+                    result.deviceId,
+                ),
+
+            successCount,
+
+            failureCount,
+          },
+        });
+      } catch (auditError) {
+        console.error(
+          "Erro ao registrar auditoria de status de agendamento:",
+          auditError,
+        );
+      }
+    }
 
     return NextResponse.json({
       success:

@@ -13,6 +13,10 @@ import {
 } from "@/features/auth/guards/require-role";
 
 import {
+  createAuditLog,
+} from "@/features/audit/services/audit.service";
+
+import {
   editUserSchema,
 } from "@/features/users/schemas/edit-user.schema";
 
@@ -46,10 +50,15 @@ export async function editUserAction(
 
   /*
    * Apenas administradores.
+   *
+   * Guardamos também os dados
+   * do responsável pela alteração
+   * para registrar na auditoria.
    */
-  await requireRole([
-    UserRole.ADMIN,
-  ]);
+  const currentAdmin =
+    await requireRole([
+      UserRole.ADMIN,
+    ]);
 
   const rawData = {
     userId:
@@ -122,6 +131,13 @@ export async function editUserAction(
     parsed.data
       .role as UserRole;
 
+  /*
+   * Buscamos o estado atual do
+   * usuário antes da alteração.
+   *
+   * Esses valores também serão
+   * utilizados na auditoria.
+   */
   const targetUser =
     await getUserForAdministration(
       userId,
@@ -137,7 +153,7 @@ export async function editUserAction(
   }
 
   /*
-   * E-mail deve continuar único.
+   * O e-mail precisa continuar único.
    */
   const existingUser =
     await findUserByEmail(
@@ -190,14 +206,141 @@ export async function editUserAction(
   }
 
   try {
-    await updateUser(
-      targetUser.id,
-      {
-        name,
-        email,
-        role,
-      },
-    );
+    /*
+     * Guarda os valores anteriores
+     * para comparação na auditoria.
+     */
+    const previousData = {
+      name:
+        targetUser.name,
+
+      email:
+        targetUser.email,
+
+      role:
+        targetUser.role,
+    };
+
+    const updatedUser =
+      await updateUser(
+        targetUser.id,
+        {
+          name,
+          email,
+          role,
+        },
+      );
+
+    /*
+     * Identifica quais campos
+     * realmente foram alterados.
+     */
+    const changes:
+      Record<
+        string,
+        {
+          from: string;
+          to: string;
+        }
+      > = {};
+
+    if (
+      previousData.name !==
+      updatedUser.name
+    ) {
+      changes.name = {
+        from:
+          previousData.name,
+
+        to:
+          updatedUser.name,
+      };
+    }
+
+    if (
+      previousData.email !==
+      updatedUser.email
+    ) {
+      changes.email = {
+        from:
+          previousData.email,
+
+        to:
+          updatedUser.email,
+      };
+    }
+
+    if (
+      previousData.role !==
+      updatedUser.role
+    ) {
+      changes.role = {
+        from:
+          previousData.role,
+
+        to:
+          updatedUser.role,
+      };
+    }
+
+    /*
+     * AUDITORIA
+     *
+     * Registramos apenas se houve
+     * alguma alteração efetiva.
+     */
+    if (
+      Object.keys(
+        changes,
+      ).length > 0
+    ) {
+      try {
+        await createAuditLog({
+          actor: {
+            id:
+              currentAdmin.id,
+
+            name:
+              currentAdmin.name,
+
+            email:
+              currentAdmin.email,
+          },
+
+          action:
+            "UPDATE_USER",
+
+          resource:
+            "USER",
+
+          resourceId:
+            updatedUser.id,
+
+          description:
+            `Usuário "${updatedUser.name}" atualizado.`,
+
+          metadata: {
+            targetName:
+              updatedUser.name,
+
+            targetEmail:
+              updatedUser.email,
+
+            changes,
+          },
+        });
+      } catch (auditError) {
+        /*
+         * A edição do usuário não deve
+         * falhar apenas porque houve
+         * problema ao gravar auditoria.
+         */
+        console.error(
+          "Erro ao registrar auditoria de edição de usuário:",
+          auditError,
+        );
+      }
+    }
 
     revalidatePath(
       "/admin/users",

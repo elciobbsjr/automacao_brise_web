@@ -24,6 +24,72 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  auditLogs AuditLog[]
+
   @@index([role])
   @@index([active])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  /*
+   * Usuário responsável pela ação.
+   */
+  actorId String?
+
+  /*
+   * Snapshot dos dados do responsável.
+   */
+  actorName  String
+  actorEmail String
+
+  /*
+   * Tipo da ação.
+   *
+   * Exemplos:
+   * CREATE_USER
+   * UPDATE_USER
+   * RESET_USER_PASSWORD
+   * UPDATE_DEVICE_PARAMETERS
+   */
+  action String
+
+  /*
+   * Recurso afetado.
+   *
+   * Exemplos:
+   * USER
+   * DEVICE
+   * SCHEDULE
+   */
+  resource String
+
+  /*
+   * ID do recurso afetado.
+   */
+  resourceId String?
+
+  /*
+   * Descrição legível.
+   */
+  description String
+
+  /*
+   * Dados adicionais estruturados.
+   *
+   * Nunca armazenar senhas,
+   * hashes, tokens ou segredos.
+   */
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([action])
+  @@index([resource])
+  @@index([resourceId])
+  @@index([createdAt])
 }

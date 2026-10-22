@@ -9,6 +9,10 @@ import {
 } from "@/features/auth/guards/require-role";
 
 import {
+  createAuditLog,
+} from "@/features/audit/services/audit.service";
+
+import {
   hashPassword,
 } from "@/lib/password";
 
@@ -43,11 +47,16 @@ export async function resetUserPasswordAction(
 
   /*
    * Apenas administradores podem
-   * redefinir senhas de usuários.
+   * redefinir senhas.
+   *
+   * Também guardamos os dados de
+   * quem realizou a ação para
+   * registrar na auditoria.
    */
-  await requireRole([
-    UserRole.ADMIN,
-  ]);
+  const currentAdmin =
+    await requireRole([
+      UserRole.ADMIN,
+    ]);
 
   const rawData = {
     userId:
@@ -67,8 +76,7 @@ export async function resetUserPasswordAction(
   };
 
   /*
-   * Validação dos dados enviados
-   * pelo formulário.
+   * Validação.
    */
   const parsed =
     resetUserPasswordSchema.safeParse(
@@ -101,7 +109,7 @@ export async function resetUserPasswordAction(
 
   /*
    * Confirma que o usuário
-   * ainda existe no banco.
+   * ainda existe.
    */
   const targetUser =
     await getUserForAdministration(
@@ -119,12 +127,10 @@ export async function resetUserPasswordAction(
 
   try {
     /*
-     * Nunca armazenamos a senha
-     * em texto puro.
+     * Gera o hash da nova senha.
      *
-     * Utilizamos o mesmo mecanismo
-     * de hash já usado no login e
-     * na criação de usuários.
+     * A senha em texto puro nunca
+     * é persistida.
      */
     const passwordHash =
       await hashPassword(
@@ -135,6 +141,61 @@ export async function resetUserPasswordAction(
       targetUser.id,
       passwordHash,
     );
+
+    /*
+     * AUDITORIA
+     *
+     * Nunca registramos:
+     *
+     * - senha nova;
+     * - senha antiga;
+     * - hash;
+     * - confirmação da senha.
+     */
+    try {
+      await createAuditLog({
+        actor: {
+          id:
+            currentAdmin.id,
+
+          name:
+            currentAdmin.name,
+
+          email:
+            currentAdmin.email,
+        },
+
+        action:
+          "RESET_USER_PASSWORD",
+
+        resource:
+          "USER",
+
+        resourceId:
+          targetUser.id,
+
+        description:
+          `Senha do usuário "${targetUser.name}" redefinida.`,
+
+        metadata: {
+          targetName:
+            targetUser.name,
+
+          targetEmail:
+            targetUser.email,
+        },
+      });
+    } catch (auditError) {
+      /*
+       * Se houver falha na auditoria,
+       * não desfazemos a alteração
+       * da senha já realizada.
+       */
+      console.error(
+        "Erro ao registrar auditoria de redefinição de senha:",
+        auditError,
+      );
+    }
 
     return {
       success: true,
