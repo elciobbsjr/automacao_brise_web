@@ -24,14 +24,10 @@ export const dynamic =
   "force-dynamic";
 
 export default async function UsersPage() {
-  /*
-   * Apenas administradores podem
-   * acessar esta página.
-   */
   const currentUser =
-  await requireRole([
-    UserRole.ADMIN,
-  ]);
+    await requireRole([
+      UserRole.ADMIN,
+    ]);
 
   const users =
     await getUsers();
@@ -50,77 +46,75 @@ export default async function UsersPage() {
     ).length;
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50">
+    <main className="relative min-h-screen overflow-hidden bg-slate-50">
       {/* ==========================================
           FUNDO
           ========================================== */}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-32 -top-40 h-[520px] w-[520px] rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="absolute -left-40 -top-48 h-[520px] w-[520px] rounded-full bg-blue-100/50 blur-3xl" />
 
-        <div className="absolute -right-40 top-[320px] h-[520px] w-[520px] rounded-full bg-sky-200/25 blur-3xl" />
+        <div className="absolute -right-48 top-24 h-[520px] w-[520px] rounded-full bg-sky-100/40 blur-3xl" />
 
-        <div className="absolute bottom-[-220px] left-1/3 h-[520px] w-[520px] rounded-full bg-indigo-100/35 blur-3xl" />
-
-        <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-white/65 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white to-transparent" />
       </div>
 
       {/* ==========================================
           CONTEÚDO
           ========================================== */}
 
-      <div className="relative z-10 mx-auto w-full max-w-[1320px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
+      <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         {/* ==========================================
             CABEÇALHO
             ========================================== */}
 
-        <header className="relative overflow-hidden rounded-[28px] border border-white/80 bg-white/80 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        <header className="relative overflow-hidden rounded-[24px] border border-slate-200/70 bg-white/90 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-blue-50/80" />
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white to-blue-50/70" />
 
-            <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-blue-200/30 blur-3xl" />
+            <div className="absolute -right-20 -top-32 h-72 w-72 rounded-full bg-blue-200/20 blur-3xl" />
 
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-slate-900 via-blue-700 to-sky-400" />
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-slate-900 via-blue-700 to-sky-400" />
           </div>
 
-          <div className="relative p-5 sm:p-6 lg:p-7">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-blue-700">
-                    <span className="h-2 w-2 rounded-full bg-blue-600" />
+          <div className="relative flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-7">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-blue-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
 
-                    Administração
-                  </span>
+                  Administração
+                </span>
 
-                  <span className="text-xs font-medium text-slate-400">
-                    Brise · SEMEQ
-                  </span>
-                </div>
-
-                <h1 className="mt-4 text-3xl font-bold tracking-[-0.04em] text-slate-950 sm:text-[34px]">
-                  Gerenciamento de usuários
-                </h1>
-
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                  Consulte as contas cadastradas
-                  e os respectivos níveis de
-                  acesso à plataforma.
-                </p>
+                <span className="text-[11px] font-medium text-slate-400">
+                  Brise · SEMEQ
+                </span>
               </div>
 
-              <div className="flex shrink-0 flex-wrap items-center gap-2">
-                <CreateUserModal />
+              <h1 className="mt-3 text-[28px] font-bold tracking-[-0.04em] text-slate-950 sm:text-[30px]">
+                Gerenciamento de usuários
+              </h1>
 
-                <Link
-                  href="/"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/85 px-4 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                >
-                  <BackIcon />
+              <p className="mt-1.5 max-w-xl text-[13px] leading-5 text-slate-500">
+                Gerencie contas, perfis de
+                acesso e permissões da
+                plataforma.
+              </p>
+            </div>
 
-                  Voltar ao painel
-                </Link>
-              </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
+              <CreateUserModal
+                buttonClassName="inline-flex h-11 min-w-[164px] items-center justify-center gap-2 rounded-[16px] bg-slate-900 px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(15,23,42,0.14)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-[0_12px_26px_rgba(15,23,42,0.18)] active:translate-y-0"
+              />
+
+              <Link
+                href="/"
+                className="inline-flex h-11 min-w-[164px] items-center justify-center gap-2 rounded-[16px] border border-slate-200/90 bg-white/90 px-5 text-sm font-semibold text-slate-600 shadow-[0_6px_18px_rgba(15,23,42,0.07)] backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/70 hover:text-blue-700 hover:shadow-[0_10px_24px_rgba(59,130,246,0.10)] active:translate-y-0"
+              >
+                <BackIcon />
+
+                Voltar ao painel
+              </Link>
             </div>
           </div>
         </header>
@@ -129,12 +123,13 @@ export default async function UsersPage() {
             RESUMO
             ========================================== */}
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-3">
+        <section className="mt-4 grid gap-3 sm:grid-cols-3">
           <SummaryCard
             label="Usuários"
             value={
               users.length
             }
+            description="contas cadastradas"
             icon={
               <UsersIcon />
             }
@@ -146,6 +141,7 @@ export default async function UsersPage() {
             value={
               activeUsers
             }
+            description="com acesso liberado"
             icon={
               <ActiveIcon />
             }
@@ -157,6 +153,7 @@ export default async function UsersPage() {
             value={
               adminUsers
             }
+            description="com acesso total"
             icon={
               <ShieldIcon />
             }
@@ -168,14 +165,16 @@ export default async function UsersPage() {
             LISTAGEM
             ========================================== */}
 
-        <section className="mt-6 overflow-hidden rounded-[26px] border border-white/80 bg-white/80 shadow-[0_14px_45px_rgba(15,23,42,0.07)] backdrop-blur-xl">
-          <div className="border-b border-slate-200/70 px-5 py-5 sm:px-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+        <section className="mt-4 overflow-hidden rounded-[24px] border border-slate-200/70 bg-white/90 shadow-[0_12px_40px_rgba(15,23,42,0.055)] backdrop-blur-xl">
+          {/* CABEÇALHO DA LISTA */}
+
+          <div className="flex items-center justify-between gap-4 border-b border-slate-200/70 px-5 py-4 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
                 <UsersIcon />
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-base font-bold text-slate-950">
                   Usuários cadastrados
                 </h2>
@@ -184,25 +183,43 @@ export default async function UsersPage() {
                   {users.length}{" "}
                   {users.length ===
                   1
-                    ? "conta encontrada"
-                    : "contas encontradas"}
+                    ? "conta cadastrada"
+                    : "contas cadastradas"}
                 </p>
               </div>
+            </div>
+
+            <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 sm:flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+              <span className="text-xs font-semibold text-slate-500">
+                {activeUsers} de{" "}
+                {users.length} ativos
+              </span>
             </div>
           </div>
 
           {users.length ===
           0 ? (
-            <div className="p-10 text-center">
-              <p className="text-sm font-semibold text-slate-700">
-                Nenhum usuário cadastrado.
+            <div className="px-6 py-14 text-center">
+              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                <UsersIcon />
+              </div>
+
+              <p className="mt-3 text-base font-bold text-slate-700">
+                Nenhum usuário cadastrado
+              </p>
+
+              <p className="mt-1 text-sm text-slate-400">
+                Crie uma nova conta para
+                começar.
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[860px] border-collapse">
+              <table className="w-full min-w-[820px] border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200/70 bg-slate-50/65">
+                  <tr className="border-b border-slate-200/70 bg-slate-50/70">
                     <TableHeader>
                       Usuário
                     </TableHeader>
@@ -218,7 +235,8 @@ export default async function UsersPage() {
                     <TableHeader>
                       Cadastrado em
                     </TableHeader>
-                    <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 sm:px-6">
+
+                    <th className="w-[90px] px-5 py-3 text-right text-[10px] font-bold uppercase tracking-[0.13em] text-slate-400 sm:px-6">
                       Ações
                     </th>
                   </tr>
@@ -226,93 +244,126 @@ export default async function UsersPage() {
 
                 <tbody>
                   {users.map(
-                    (user) => (
-                      <tr
-                        key={
-                          user.id
-                        }
-                        className="border-b border-slate-100 last:border-b-0 transition hover:bg-blue-50/25"
-                      >
-                        <td className="px-5 py-4 sm:px-6">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold tracking-[0.04em] text-white">
-                              {getInitials(
-                                user.name,
-                              )}
+                    (user) => {
+                      const isCurrentUser =
+                        user.id ===
+                        currentUser.id;
+
+                      return (
+                        <tr
+                          key={
+                            user.id
+                          }
+                          className="group border-b border-slate-100 last:border-b-0 transition-colors hover:bg-blue-50/30"
+                        >
+                          {/* USUÁRIO */}
+
+                          <td className="px-5 py-3.5 sm:px-6">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold tracking-[0.04em] text-white shadow-sm">
+                                {getInitials(
+                                  user.name,
+                                )}
+                              </div>
+
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="truncate text-sm font-bold text-slate-900">
+                                    {
+                                      user.name
+                                    }
+                                  </p>
+
+                                  {isCurrentUser && (
+                                    <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-blue-600">
+                                      Você
+                                    </span>
+                                  )}
+                                </div>
+
+                                <p className="mt-0.5 truncate text-xs text-slate-500">
+                                  {
+                                    user.email
+                                  }
+                                </p>
+                              </div>
                             </div>
+                          </td>
 
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-bold text-slate-900">
-                                {
-                                  user.name
-                                }
-                              </p>
+                          {/* PERFIL */}
 
-                              <p className="mt-0.5 truncate text-xs text-slate-400">
-                                {
-                                  user.email
-                                }
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4 sm:px-6">
-                          <RoleBadge
-                            role={
-                              user.role
-                            }
-                          />
-                        </td>
-
-                        <td className="px-5 py-4 sm:px-6">
-                          <StatusBadge
-                            active={
-                              user.active
-                            }
-                          />
-                        </td>
-
-                        <td className="px-5 py-4 text-sm font-medium text-slate-500 sm:px-6">
-                          {formatDate(
-                            user.createdAt,
-                          )}
-                        </td>
-
-                        <td className="px-5 py-4 sm:px-6">
-                          <div className="flex justify-end">
-                            <UserActionsMenu
-                              userId={
-                                user.id
-                              }
-                              userName={
-                                user.name
-                              }
-                              userEmail={
-                                user.email
-                              }
-                              userRole={
+                          <td className="px-5 py-3.5 sm:px-6">
+                            <RoleBadge
+                              role={
                                 user.role
                               }
+                            />
+                          </td>
+
+                          {/* STATUS */}
+
+                          <td className="px-5 py-3.5 sm:px-6">
+                            <StatusBadge
                               active={
                                 user.active
                               }
-                              isCurrentUser={
-                                user.id ===
-                                currentUser.id
-                              }
                             />
-                          </div>
-                        </td>
+                          </td>
 
-                      </tr>
-                    ),
+                          {/* DATA */}
+
+                          <td className="px-5 py-3.5 text-[13px] font-medium tabular-nums text-slate-500 sm:px-6">
+                            {formatDate(
+                              user.createdAt,
+                            )}
+                          </td>
+
+                          {/* AÇÕES */}
+
+                          <td className="px-5 py-3.5 sm:px-6">
+                            <div className="flex justify-end">
+                              <UserActionsMenu
+                                userId={
+                                  user.id
+                                }
+                                userName={
+                                  user.name
+                                }
+                                userEmail={
+                                  user.email
+                                }
+                                userRole={
+                                  user.role
+                                }
+                                active={
+                                  user.active
+                                }
+                                isCurrentUser={
+                                  isCurrentUser
+                                }
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    },
                   )}
                 </tbody>
               </table>
             </div>
           )}
         </section>
+
+        {/* ==========================================
+            RODAPÉ
+            ========================================== */}
+
+        <div className="mt-3 flex justify-end px-1">
+          <p className="text-[11px] font-medium text-slate-400">
+            Acesso administrativo ·
+            SEMEQ
+          </p>
+        </div>
       </div>
     </main>
   );
@@ -325,12 +376,15 @@ export default async function UsersPage() {
 function SummaryCard({
   label,
   value,
+  description,
   icon,
   tone,
 }: {
   label: string;
 
   value: number;
+
+  description: string;
 
   icon: React.ReactNode;
 
@@ -342,7 +396,7 @@ function SummaryCard({
   const styles = {
     blue: {
       border:
-        "border-blue-100",
+        "border-blue-100/80",
 
       icon:
         "bg-blue-50 text-blue-700",
@@ -353,7 +407,7 @@ function SummaryCard({
 
     green: {
       border:
-        "border-emerald-100",
+        "border-emerald-100/90",
 
       icon:
         "bg-emerald-50 text-emerald-700",
@@ -379,25 +433,31 @@ function SummaryCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[22px] border bg-white/80 p-5 shadow-sm backdrop-blur ${current.border}`}
+      className={`relative overflow-hidden rounded-[20px] border bg-white/90 px-4 py-4 shadow-[0_5px_18px_rgba(15,23,42,0.04)] backdrop-blur transition-shadow hover:shadow-[0_8px_24px_rgba(15,23,42,0.065)] ${current.border}`}
     >
       <div
-        className={`absolute inset-x-0 top-0 h-[3px] ${current.accent}`}
+        className={`absolute inset-x-0 top-0 h-[2px] ${current.accent}`}
       />
 
       <div className="flex items-center justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-slate-400">
             {label}
           </p>
 
-          <p className="mt-2 text-3xl font-bold tracking-[-0.04em] text-slate-950">
-            {value}
-          </p>
+          <div className="mt-1.5 flex items-end gap-2">
+            <p className="text-[30px] font-bold leading-none tracking-[-0.04em] text-slate-950">
+              {value}
+            </p>
+
+            <p className="mb-0.5 truncate text-xs font-medium text-slate-400">
+              {description}
+            </p>
+          </div>
         </div>
 
         <div
-          className={`flex h-11 w-11 items-center justify-center rounded-xl ${current.icon}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${current.icon}`}
         >
           {icon}
         </div>
@@ -417,7 +477,7 @@ function TableHeader({
     React.ReactNode;
 }) {
   return (
-    <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 sm:px-6">
+    <th className="px-5 py-3 text-left text-[10px] font-bold uppercase tracking-[0.13em] text-slate-400 sm:px-6">
       {children}
     </th>
   );
@@ -456,7 +516,7 @@ function RoleBadge({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold ${styles[role]}`}
+      className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold ${styles[role]}`}
     >
       {labels[role]}
     </span>
@@ -474,7 +534,7 @@ function StatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${
+      className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[10px] font-bold ${
         active
           ? "border-emerald-100 bg-emerald-50 text-emerald-700"
           : "border-red-100 bg-red-50 text-red-600"
@@ -585,7 +645,7 @@ function UsersIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-5 w-5"
+      className="h-4 w-4"
       aria-hidden="true"
     >
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -612,7 +672,7 @@ function ActiveIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-5 w-5"
+      className="h-4 w-4"
       aria-hidden="true"
     >
       <circle
@@ -635,7 +695,7 @@ function ShieldIcon() {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-5 w-5"
+      className="h-4 w-4"
       aria-hidden="true"
     >
       <path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6l-7-3Z" />
