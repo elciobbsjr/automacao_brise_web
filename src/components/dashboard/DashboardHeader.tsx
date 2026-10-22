@@ -55,7 +55,7 @@ export function DashboardHeader({
       : 0;
 
   return (
-    <header className="relative overflow-visible rounded-[28px] border border-white/80 bg-white/80 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+    <header className="relative z-[100] overflow-visible rounded-[28px] border border-white/80 bg-white/80 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur-xl">
       {/* ==========================================
           FUNDO
           ========================================== */}
