@@ -21,6 +21,10 @@ interface UpdateUserData {
   role: UserRole;
 }
 
+/* ==========================================
+   LISTAGEM
+   ========================================== */
+
 export async function getUsers() {
   return prisma.user.findMany({
     select: {
@@ -45,6 +49,10 @@ export async function getUsers() {
   });
 }
 
+/* ==========================================
+   BUSCA POR E-MAIL
+   ========================================== */
+
 export async function findUserByEmail(
   email: string,
 ) {
@@ -58,6 +66,10 @@ export async function findUserByEmail(
     },
   });
 }
+
+/* ==========================================
+   CRIAÇÃO
+   ========================================== */
 
 export async function createUser(
   data: CreateUserData,
@@ -146,6 +158,30 @@ export async function updateUser(
       role: true,
       active: true,
       createdAt: true,
+    },
+  });
+}
+
+/* ==========================================
+   REDEFINIÇÃO DE SENHA
+   ========================================== */
+
+export async function updateUserPassword(
+  userId: string,
+  passwordHash: string,
+) {
+  return prisma.user.update({
+    where: {
+      id:
+        userId,
+    },
+
+    data: {
+      passwordHash,
+    },
+
+    select: {
+      id: true,
     },
   });
 }

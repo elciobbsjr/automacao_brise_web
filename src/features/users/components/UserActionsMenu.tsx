@@ -29,6 +29,10 @@ import {
   EditUserModal,
 } from "@/features/users/components/EditUserModal";
 
+import {
+  ResetUserPasswordModal,
+} from "@/features/users/components/ResetUserPasswordModal";
+
 interface UserActionsMenuProps {
   userId: string;
 
@@ -70,6 +74,11 @@ export function UserActionsMenu({
   const [
     editOpen,
     setEditOpen,
+  ] = useState(false);
+
+  const [
+    resetPasswordOpen,
+    setResetPasswordOpen,
   ] = useState(false);
 
   const [
@@ -241,6 +250,14 @@ export function UserActionsMenu({
     );
   }
 
+  function handleResetPasswordAction() {
+    setOpen(false);
+
+    setResetPasswordOpen(
+      true,
+    );
+  }
+
   function handleStatusAction() {
     /*
      * O próprio administrador
@@ -325,6 +342,29 @@ export function UserActionsMenu({
                 </span>
 
                 Editar usuário
+              </span>
+
+              <span className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-500">
+                <ArrowIcon />
+              </span>
+            </button>
+
+            {/* REDEFINIR SENHA */}
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={
+                handleResetPasswordAction
+              }
+              className="group flex h-10 w-full items-center justify-between rounded-xl px-3 text-left text-xs font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="text-slate-400 transition group-hover:text-blue-600">
+                  <KeyIcon />
+                </span>
+
+                Redefinir senha
               </span>
 
               <span className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-500">
@@ -421,6 +461,26 @@ export function UserActionsMenu({
           }
           onClose={() =>
             setEditOpen(
+              false,
+            )
+          }
+        />
+      )}
+
+      {/* ==========================================
+          MODAL DE REDEFINIÇÃO DE SENHA
+          ========================================== */}
+
+      {resetPasswordOpen && (
+        <ResetUserPasswordModal
+          userId={
+            userId
+          }
+          userName={
+            userName
+          }
+          onClose={() =>
+            setResetPasswordOpen(
               false,
             )
           }
@@ -767,6 +827,31 @@ function EditIcon() {
       <path d="M12 20h9" />
 
       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function KeyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <circle
+        cx="8"
+        cy="15"
+        r="4"
+      />
+
+      <path d="m11 12 9-9" />
+
+      <path d="m15 8 3 3" />
     </svg>
   );
 }
