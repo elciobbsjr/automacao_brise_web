@@ -57,11 +57,18 @@ export async function requireRole(
       },
     });
 
+  /*
+   * Se a conta não existe mais
+   * ou foi desativada, encerramos
+   * a sessão através do Route Handler.
+   */
   if (
     !user ||
     !user.active
   ) {
-    redirect("/login");
+    redirect(
+      "/api/session/force-sign-out",
+    );
   }
 
   /*

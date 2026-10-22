@@ -84,3 +84,59 @@ export async function createUser(
     },
   });
 }
+
+/* ==========================================
+   ALTERAÇÃO DE STATUS
+   ========================================== */
+
+export async function getUserForStatusChange(
+  userId: string,
+) {
+  return prisma.user.findUnique({
+    where: {
+      id:
+        userId,
+    },
+
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      active: true,
+    },
+  });
+}
+
+export async function countActiveAdmins() {
+  return prisma.user.count({
+    where: {
+      role:
+        "ADMIN",
+
+      active:
+        true,
+    },
+  });
+}
+
+export async function setUserActive(
+  userId: string,
+  active: boolean,
+) {
+  return prisma.user.update({
+    where: {
+      id:
+        userId,
+    },
+
+    data: {
+      active,
+    },
+
+    select: {
+      id: true,
+      active: true,
+    },
+  });
+}

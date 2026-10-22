@@ -16,6 +16,10 @@ import {
   CreateUserModal,
 } from "@/features/users/components/CreateUserModal";
 
+import {
+  UserActionsMenu,
+} from "@/features/users/components/UserActionsMenu";
+
 export const dynamic =
   "force-dynamic";
 
@@ -24,6 +28,7 @@ export default async function UsersPage() {
    * Apenas administradores podem
    * acessar esta página.
    */
+  const currentUser =
   await requireRole([
     UserRole.ADMIN,
   ]);
@@ -195,7 +200,7 @@ export default async function UsersPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] border-collapse">
+              <table className="w-full min-w-[860px] border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200/70 bg-slate-50/65">
                     <TableHeader>
@@ -213,6 +218,9 @@ export default async function UsersPage() {
                     <TableHeader>
                       Cadastrado em
                     </TableHeader>
+                    <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 sm:px-6">
+                      Ações
+                    </th>
                   </tr>
                 </thead>
 
@@ -270,6 +278,27 @@ export default async function UsersPage() {
                             user.createdAt,
                           )}
                         </td>
+
+                        <td className="px-5 py-4 sm:px-6">
+                          <div className="flex justify-end">
+                            <UserActionsMenu
+                              userId={
+                                user.id
+                              }
+                              userName={
+                                user.name
+                              }
+                              active={
+                                user.active
+                              }
+                              isCurrentUser={
+                                user.id ===
+                                currentUser.id
+                              }
+                            />
+                          </div>
+                        </td>
+
                       </tr>
                     ),
                   )}
