@@ -223,7 +223,26 @@ export function UserMenu({
                   <ArrowIcon />
                 </span>
               </Link>
+              <Link
+                href="/admin/audit"
+                role="menuitem"
+                onClick={() =>
+                  setOpen(false)
+                }
+                className="group flex h-10 w-full items-center justify-between rounded-xl px-3 text-xs font-semibold text-slate-600 transition duration-200 hover:bg-blue-50 hover:text-blue-700"
+              >
+                <span className="flex items-center gap-2.5">
+                  <span className="text-slate-400 transition group-hover:text-blue-600">
+                    <AuditIcon />
+                  </span>
 
+                  Auditoria do sistema
+                </span>
+
+                <span className="text-slate-300 transition duration-200 group-hover:translate-x-0.5 group-hover:text-blue-500">
+                  <ArrowIcon />
+                </span>
+              </Link>
               <div className="mx-2 my-1 h-px bg-slate-100" />
             </>
           )}
@@ -428,6 +447,27 @@ function ArrowIcon() {
       <path d="M5 12h14" />
 
       <path d="m15 8 4 4-4 4" />
+    </svg>
+  );
+}
+
+function AuditIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M3 12a9 9 0 1 0 3-6.7" />
+
+      <path d="M3 4v6h6" />
+
+      <path d="M12 7v5l3 2" />
     </svg>
   );
 }

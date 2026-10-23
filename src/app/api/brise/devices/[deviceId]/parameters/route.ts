@@ -19,6 +19,10 @@ import {
   createAuditLog,
 } from "@/features/audit/services/audit.service";
 
+import type {
+  Prisma,
+} from "@/generated/prisma/client";
+
 interface RouteContext {
   params: Promise<{
     deviceId: string;
@@ -35,14 +39,14 @@ interface DeviceParameters {
   ecoHeat: number;
 }
 
+type DeviceParameterKey =
+  keyof DeviceParameters;
+
+
 export async function PUT(
   request: Request,
   context: RouteContext,
 ) {
-  /*
-   * Somente OPERATOR e ADMIN
-   * podem alterar equipamentos.
-   */
   const permission =
     await requireApiRole(
       BRISE_CONTROL_ROLES,
@@ -94,12 +98,51 @@ export async function PUT(
     }
 
     /*
-     * Primeiro enviamos o comando
-     * normalmente para a API Brise.
+     * ==========================================
+     * ESTADO ANTERIOR
+     * ==========================================
      *
-     * A auditoria só será criada
-     * se a operação principal
-     * tiver sido concluída.
+     * Antes de enviar o comando, buscamos
+     * os parâmetros atuais do equipamento.
+     */
+    let previousParameters:
+      DeviceParameters | null =
+      null;
+
+    try {
+      previousParameters =
+        await briseRequest<DeviceParameters>(
+          `/device/${deviceId}/parameters`,
+        );
+    } catch (error) {
+      /*
+       * A leitura anterior é importante
+       * para o histórico, mas não deve
+       * impedir o controle do equipamento.
+       */
+      console.error(
+        "Não foi possível obter os parâmetros anteriores para auditoria:",
+        error,
+      );
+    }
+
+    /*
+     * ==========================================
+     * IDENTIFICA ALTERAÇÕES
+     * ==========================================
+     */
+    const changes =
+      previousParameters
+        ? getParameterChanges(
+            previousParameters,
+            body,
+          )
+        : null;
+
+    /*
+     * ==========================================
+     * ENVIA O COMANDO
+     * ==========================================
      */
     await briseRequest(
       `/device/${deviceId}/parameters`,
@@ -120,67 +163,89 @@ export async function PUT(
     );
 
     /*
+     * ==========================================
      * AUDITORIA
+     * ==========================================
      *
-     * Registramos quem realizou
-     * a alteração, qual equipamento
-     * foi afetado e os parâmetros
-     * enviados.
+     * Armazenamos apenas os campos
+     * realmente alterados.
      */
     try {
-      await createAuditLog({
-        actor: {
-          id:
-            permission.user.id,
+      if (
+        changes &&
+        Object.keys(
+          changes,
+        ).length > 0
+      ) {
+        await createAuditLog({
+          actor: {
+            id:
+              permission.user.id,
 
-          name:
-            permission.user.name,
+            name:
+              permission.user.name,
 
-          email:
-            permission.user.email,
-        },
+            email:
+              permission.user.email,
+          },
 
-        action:
-          "UPDATE_DEVICE_PARAMETERS",
+          action:
+            "UPDATE_DEVICE_PARAMETERS",
 
-        resource:
-          "DEVICE",
+          resource:
+            "DEVICE",
 
-        resourceId:
-          deviceId,
+          resourceId:
+            deviceId,
 
-        description:
-          `Parâmetros do equipamento ${deviceId} atualizados.`,
+          description:
+            `Parâmetros do equipamento ${deviceId} atualizados.`,
 
-        metadata: {
-          modeDevice:
-            body.modeDevice,
+          metadata: {
+            changes,
+          },
+        });
+      } else if (
+        previousParameters ===
+        null
+      ) {
+        /*
+         * Se não foi possível obter
+         * o estado anterior, ainda
+         * registramos a ação, mas
+         * sem inventar diferenças.
+         */
+        await createAuditLog({
+          actor: {
+            id:
+              permission.user.id,
 
-          modeAC:
-            body.modeAC,
+            name:
+              permission.user.name,
 
-          fanSpeed:
-            body.fanSpeed,
+            email:
+              permission.user.email,
+          },
 
-          setpointCool:
-            body.setpointCool,
+          action:
+            "UPDATE_DEVICE_PARAMETERS",
 
-          setpointHeat:
-            body.setpointHeat,
+          resource:
+            "DEVICE",
 
-          ecoCool:
-            body.ecoCool,
+          resourceId:
+            deviceId,
 
-          ecoHeat:
-            body.ecoHeat,
-        },
-      });
+          description:
+            `Parâmetros do equipamento ${deviceId} atualizados.`,
+
+          metadata: {
+            comparisonUnavailable:
+              true,
+          },
+        });
+      }
     } catch (auditError) {
-      /*
-       * Uma eventual falha da auditoria
-       * não transforma um comando Brise
-       * já executado em erro para o usuário.
-       */
       console.error(
         "Erro ao registrar auditoria de alteração de parâmetros:",
         auditError,
@@ -235,6 +300,62 @@ export async function PUT(
   }
 }
 
+/*
+ * ==========================================
+ * COMPARAÇÃO DOS PARÂMETROS
+ * ==========================================
+ */
+function getParameterChanges(
+  previous:
+    DeviceParameters,
+  next:
+    DeviceParameters,
+): Prisma.InputJsonObject {
+  const keys:
+    DeviceParameterKey[] = [
+      "modeDevice",
+      "modeAC",
+      "fanSpeed",
+      "setpointCool",
+      "setpointHeat",
+      "ecoCool",
+      "ecoHeat",
+    ];
+
+  const changes:
+    Record<
+      string,
+      Prisma.InputJsonValue
+    > = {};
+
+  for (
+    const key
+    of keys
+  ) {
+    if (
+      previous[key] !==
+      next[key]
+    ) {
+      changes[key] = {
+        from:
+          previous[key],
+
+        to:
+          next[key],
+      };
+    }
+  }
+
+  return changes;
+}
+
+
+
+/*
+ * ==========================================
+ * VALIDAÇÃO
+ * ==========================================
+ */
 function validateParameters(
   parameters: DeviceParameters,
 ): string | null {
