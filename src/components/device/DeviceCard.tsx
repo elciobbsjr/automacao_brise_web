@@ -266,10 +266,18 @@ export function DeviceCard({
       "popstate",
       syncModalWithUrl,
     );
+    window.addEventListener(
+      "brise:open-device",
+      syncModalWithUrl,
+    );
 
     return () => {
       window.removeEventListener(
         "popstate",
+        syncModalWithUrl,
+      );
+      window.removeEventListener(
+        "brise:open-device",
         syncModalWithUrl,
       );
     };

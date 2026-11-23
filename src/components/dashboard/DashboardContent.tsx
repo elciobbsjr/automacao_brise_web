@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -81,6 +82,41 @@ export function DashboardContent({
     statusNavigationActive,
     setStatusNavigationActive,
   ] = useState(false);
+
+  /*
+   * Garante que um alerta abra o equipamento correto,
+   * mesmo quando o usuário estiver em outro local ou filtro.
+   */
+  useEffect(() => {
+    function revealNotifiedDevice() {
+      const deviceId = new URLSearchParams(
+        window.location.search,
+      ).get("device");
+
+      if (
+        !deviceId ||
+        !dashboard.devices.some(
+          (device) => String(device.deviceId) === deviceId,
+        )
+      ) {
+        return;
+      }
+
+      setGroupSelection(createDefaultGroupSelection());
+      setSearch("");
+      setFilter("all");
+      setStatusNavigationActive(false);
+    }
+
+    revealNotifiedDevice();
+    window.addEventListener("brise:open-device", revealNotifiedDevice);
+    window.addEventListener("popstate", revealNotifiedDevice);
+
+    return () => {
+      window.removeEventListener("brise:open-device", revealNotifiedDevice);
+      window.removeEventListener("popstate", revealNotifiedDevice);
+    };
+  }, [dashboard.devices]);
 
   /*
    * Dispositivos utilizados nos
