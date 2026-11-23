@@ -540,6 +540,9 @@ export default async function AuditPage({
                             resourceId={
                               log.resourceId
                             }
+                            metadata={
+                              log.metadata
+                            }
                           />
                         </td>
 
@@ -1445,13 +1448,34 @@ function LegacyDetail({
 function ResourceCell({
   resource,
   resourceId,
+  metadata,
 }: {
   resource: string;
 
   resourceId:
     | string
     | null;
+
+  metadata: unknown;
 }) {
+  const data =
+    toObject(
+      metadata,
+    );
+
+  const storedDeviceName =
+    resource === "DEVICE" &&
+    typeof data?.deviceName ===
+      "string"
+      ? data.deviceName.trim()
+      : "";
+
+  const resourceTitle =
+    storedDeviceName ||
+    getResourceLabel(
+      resource,
+    );
+
   const styles:
     Record<
       string,
@@ -1510,7 +1534,7 @@ function ResourceCell({
 
   return (
     <div
-      className={`inline-flex min-w-[178px] items-center gap-3 rounded-2xl border px-3.5 py-3 shadow-[0_5px_16px_rgba(15,23,42,0.04)] ${current.container}`}
+      className={`inline-flex min-w-[205px] items-center gap-3 rounded-2xl border px-3.5 py-3 shadow-[0_5px_16px_rgba(15,23,42,0.04)] ${current.container}`}
     >
       <div
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/90 shadow-[0_4px_10px_rgba(15,23,42,0.06)] ${current.icon}`}
@@ -1532,15 +1556,18 @@ function ResourceCell({
             className={`h-1.5 w-1.5 shrink-0 rounded-full ${current.dot}`}
           />
 
-          <p className="truncate text-[11px] font-bold text-slate-700">
-            {getResourceLabel(
-              resource,
-            )}
+          <p
+            title={
+              resourceTitle
+            }
+            className="max-w-[165px] truncate text-[11px] font-bold text-slate-700"
+          >
+            {resourceTitle}
           </p>
         </div>
 
         {resourceId && (
-          <p className="mt-0.5 max-w-[125px] truncate font-mono text-[10px] font-semibold text-slate-400">
+          <p className="mt-0.5 max-w-[155px] truncate font-mono text-[10px] font-semibold text-slate-400">
             {resource ===
             "DEVICE"
               ? `Nº ${resourceId}`

@@ -39,6 +39,10 @@ interface DeviceParameters {
   ecoHeat: number;
 }
 
+interface DeviceConfig {
+  name?: string;
+}
+
 type DeviceParameterKey =
   keyof DeviceParameters;
 
@@ -62,7 +66,7 @@ export async function PUT(
     } = await context.params;
 
     if (
-      !/^\d+$/.test(
+      !/^\\d+$/.test(
         deviceId,
       )
     ) {
@@ -128,6 +132,41 @@ export async function PUT(
 
     /*
      * ==========================================
+     * IDENTIFICAÇÃO DO EQUIPAMENTO
+     * ==========================================
+     *
+     * O nome vem da configuração da API Brise.
+     * Essa informação é complementar para a
+     * auditoria e não impede o controle caso
+     * a consulta falhe.
+     */
+    let deviceName:
+      string | null =
+      null;
+
+    try {
+      const config =
+        await briseRequest<DeviceConfig>(
+          `/device/${deviceId}/configs`,
+        );
+
+      const name =
+        typeof config.name ===
+        "string"
+          ? config.name.trim()
+          : "";
+
+      deviceName =
+        name || null;
+    } catch (error) {
+      console.error(
+        "Não foi possível obter o nome do equipamento para auditoria:",
+        error,
+      );
+    }
+
+    /*
+     * ==========================================
      * IDENTIFICA ALTERAÇÕES
      * ==========================================
      */
@@ -168,7 +207,8 @@ export async function PUT(
      * ==========================================
      *
      * Armazenamos apenas os campos
-     * realmente alterados.
+     * realmente alterados e, quando
+     * disponível, o nome do equipamento.
      */
     try {
       if (
@@ -199,9 +239,17 @@ export async function PUT(
             deviceId,
 
           description:
-            `Parâmetros do equipamento ${deviceId} atualizados.`,
+            deviceName
+              ? `Parâmetros do equipamento "${deviceName}" (${deviceId}) atualizados.`
+              : `Parâmetros do equipamento ${deviceId} atualizados.`,
 
           metadata: {
+            ...(deviceName
+              ? {
+                  deviceName,
+                }
+              : {}),
+
             changes,
           },
         });
@@ -237,9 +285,17 @@ export async function PUT(
             deviceId,
 
           description:
-            `Parâmetros do equipamento ${deviceId} atualizados.`,
+            deviceName
+              ? `Parâmetros do equipamento "${deviceName}" (${deviceId}) atualizados.`
+              : `Parâmetros do equipamento ${deviceId} atualizados.`,
 
           metadata: {
+            ...(deviceName
+              ? {
+                  deviceName,
+                }
+              : {}),
+
             comparisonUnavailable:
               true,
           },
