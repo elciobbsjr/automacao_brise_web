@@ -775,6 +775,20 @@ export function NotificationCenter({
     };
   }, [open]);
 
+  function openDeviceDetails(deviceId: number) {
+    setOpen(false);
+    dismissToast();
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("device", String(deviceId));
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+    window.dispatchEvent(new Event("brise:open-device"));
+  }
+
   const notificationCount =
     activeAlerts.length;
 
@@ -907,6 +921,9 @@ export function NotificationCenter({
                                 alert,
                               )
                             }
+                            onOpen={() =>
+                              openDeviceDetails(alert.deviceId)
+                            }
                           />
                         ),
                       )}
@@ -959,6 +976,9 @@ export function NotificationCenter({
                 }
                 onClose={
                   dismissToast
+                }
+                onOpenDevice={
+                  openDeviceDetails
                 }
               />
             )}
@@ -1062,12 +1082,14 @@ function TemperatureToast({
   toast,
   closing,
   onClose,
+  onOpenDevice,
 }: {
   toast: ToastMessage;
 
   closing: boolean;
 
   onClose: () => void;
+  onOpenDevice: (deviceId: number) => void;
 }) {
   const warning =
     toast.variant ===
@@ -1201,7 +1223,17 @@ function TemperatureToast({
 
             {singleAlert && (
               <div
-                className={`mt-4 overflow-hidden rounded-2xl border ${
+                role="button"
+                tabIndex={0}
+                aria-label={`Abrir detalhes de ${singleAlert.name}`}
+                onClick={() => onOpenDevice(singleAlert.deviceId)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onOpenDevice(singleAlert.deviceId);
+                  }
+                }}
+                className={`mt-4 cursor-pointer overflow-hidden rounded-2xl border transition hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 ${
                   warning
                     ? "border-amber-100 bg-gradient-to-r from-amber-50/85 via-white to-white"
                     : "border-emerald-100 bg-gradient-to-r from-emerald-50/85 via-white to-white"
@@ -1272,7 +1304,17 @@ function TemperatureToast({
                         key={
                           alert.deviceId
                         }
-                        className={`flex items-center gap-3 px-3.5 py-2.5 ${
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Abrir detalhes de ${alert.name}`}
+                        onClick={() => onOpenDevice(alert.deviceId)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            onOpenDevice(alert.deviceId);
+                          }
+                        }}
+                        className={`flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition hover:bg-amber-100/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 ${
                           index >
                           0
                             ? "border-t border-amber-100/70"
@@ -1357,13 +1399,27 @@ function TemperatureToast({
 function NotificationItem({
   alert,
   onResolve,
+  onOpen,
 }: {
   alert: TemperatureAlert;
 
   onResolve: () => void;
+  onOpen: () => void;
 }) {
   return (
-    <article className="group px-4 py-4 transition hover:bg-slate-50/80">
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`Abrir detalhes de ${alert.name}`}
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
+      className="group cursor-pointer px-4 py-4 transition hover:bg-slate-50/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500"
+    >
       <div className="flex items-start gap-3">
         <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
           <TemperatureWarningIcon />
@@ -1404,9 +1460,10 @@ function NotificationItem({
 
           <button
             type="button"
-            onClick={
-              onResolve
-            }
+            onClick={(event) => {
+              event.stopPropagation();
+              onResolve();
+            }}
             className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-bold text-slate-600 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
           >
             <CheckIcon />
