@@ -386,12 +386,6 @@ export function ScheduleEditModal({
                         </label>
                       </div>
                     )}
-                    {modeAC === 1 && (
-                      <label className="block">
-                        <FieldLabel>Setpoint de refrigeração</FieldLabel>
-                        <input type="number" min={18} max={28} value={setpointCool} onChange={(event) => setSetpointCool(Number(event.target.value))} className={inputClass} />
-                      </label>
-                    )}
                   </div>
                 )}
               </Section>
