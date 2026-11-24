@@ -43,90 +43,14 @@ export function DashboardGroupFilter({
   level4Groups,
   onChange,
 }: DashboardGroupFilterProps) {
-  const selectedPath =
-    getSelectedPath(
-      selection,
-    );
-
   return (
-    <section className="relative overflow-hidden rounded-[24px] border border-white/80 bg-white/75 shadow-[0_10px_35px_rgba(15,23,42,0.055)] backdrop-blur-xl">
-      {/* Fundo discreto */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white via-white/95 to-blue-50/45" />
-
-      <div className="relative">
-        {/* ======================================
-            CABEÇALHO COMPACTO
-            ====================================== */}
-
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-              <LocationIcon />
-            </div>
-
-            <div>
-              <p className="text-sm font-bold text-slate-900">
-                Navegação por local
-              </p>
-
-              <p className="mt-0.5 text-xs text-slate-500">
-                Refine os equipamentos pela
-                estrutura física.
-              </p>
-            </div>
-          </div>
-
-          {/* CAMINHO ATUAL */}
-
-          <div className="flex max-w-full items-center gap-2">
-            <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-400">
-              Seleção atual
-            </span>
-
-            <div className="hidden h-4 w-px bg-slate-200 sm:block" />
-
-            {selectedPath.length >
-            0 ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                {selectedPath.map(
-                  (
-                    item,
-                    index,
-                  ) => (
-                    <div
-                      key={`${item}-${index}`}
-                      className="flex items-center gap-1.5"
-                    >
-                      {index >
-                        0 && (
-                        <ChevronIcon />
-                      )}
-
-                      <span className="rounded-lg border border-blue-100 bg-blue-50/80 px-2.5 py-1 text-xs font-semibold text-blue-800">
-                        {item}
-                      </span>
-                    </div>
-                  ),
-                )}
-              </div>
-            ) : (
-              <span className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                Todos os locais
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* ======================================
-            NÍVEIS DA HIERARQUIA
-            ====================================== */}
-
+    <section className="relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white/85 shadow-[0_8px_24px_rgba(15,23,42,0.045)]">
+      <div>
         <div className="divide-y divide-slate-100">
           {/* LOCAL */}
 
           <GroupLevelRow
             title="Local"
-            description="Unidade ou prédio"
             tone="blue"
             icon={
               <BuildingIcon />
@@ -153,7 +77,6 @@ export function DashboardGroupFilter({
             0 && (
             <GroupLevelRow
               title="Setor"
-              description="Setor do local"
               tone="cyan"
               icon={
                 <SectorIcon />
@@ -181,7 +104,6 @@ export function DashboardGroupFilter({
             0 && (
             <GroupLevelRow
               title="Subdivisão"
-              description="Divisão do setor"
               tone="indigo"
               icon={
                 <SubdivisionIcon />
@@ -209,7 +131,6 @@ export function DashboardGroupFilter({
             0 && (
             <GroupLevelRow
               title="Área"
-              description="Área específica"
               tone="violet"
               icon={
                 <AreaIcon />
@@ -243,8 +164,6 @@ export function DashboardGroupFilter({
 interface GroupLevelRowProps {
   title: string;
 
-  description: string;
-
   tone: GroupTone;
 
   icon: ReactNode;
@@ -260,7 +179,6 @@ interface GroupLevelRowProps {
 
 function GroupLevelRow({
   title,
-  description,
   tone,
   icon,
   groups,
@@ -305,7 +223,7 @@ function GroupLevelRow({
     styles[tone];
 
   return (
-    <div className="grid gap-3 px-5 py-4 sm:px-6 lg:grid-cols-[155px_minmax(0,1fr)] lg:items-center">
+    <div className="grid gap-3 px-4 py-3 sm:px-5 lg:grid-cols-[120px_minmax(0,1fr)] lg:items-center">
       {/* TÍTULO DO NÍVEL */}
 
       <div className="flex items-center gap-3">
@@ -315,17 +233,9 @@ function GroupLevelRow({
           {icon}
         </div>
 
-        <div>
-          <p
-            className={`text-sm font-bold ${current.title}`}
-          >
-            {title}
-          </p>
-
-          <p className="text-[11px] text-slate-400">
-            {description}
-          </p>
-        </div>
+        <p className={`text-sm font-bold ${current.title}`}>
+          {title}
+        </p>
       </div>
 
       {/* OPÇÕES */}
@@ -465,7 +375,7 @@ function GroupButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-9 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition duration-200 ${
+      className={`flex h-9 items-center gap-2 rounded-lg border px-3.5 text-sm font-semibold transition duration-200 ${
         active
           ? current.active
           : current.inactive
@@ -479,61 +389,6 @@ function GroupButton({
         {label}
       </span>
     </button>
-  );
-}
-
-/* ==========================================
-   CAMINHO SELECIONADO
-   ========================================== */
-
-function getSelectedPath(
-  selection:
-    DeviceGroupSelection,
-) {
-  const values = [
-    selection.level1,
-    selection.level2,
-    selection.level3,
-    selection.level4,
-  ];
-
-  return values
-    .filter(
-      (value) =>
-        value !==
-        ALL_GROUPS_KEY,
-    )
-    .map((value) =>
-      formatDeviceGroupName(
-        value,
-      ),
-    );
-}
-
-/* ==========================================
-   ÍCONES
-   ========================================== */
-
-function LocationIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
-      <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-
-      <circle
-        cx="12"
-        cy="10"
-        r="2.5"
-      />
-    </svg>
   );
 }
 
@@ -684,23 +539,6 @@ function CheckIcon() {
       aria-hidden="true"
     >
       <path d="m5 12 4 4L19 6" />
-    </svg>
-  );
-}
-
-function ChevronIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-3 w-3 shrink-0 text-blue-300"
-      aria-hidden="true"
-    >
-      <path d="m9 18 6-6-6-6" />
     </svg>
   );
 }

@@ -49,21 +49,11 @@ export function DashboardSummary({
 
   return (
     <section className="mb-9">
-      {/* CABEÇALHO */}
-
-      <div className="mb-5">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-blue-600" />
-
-          <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">
-            Monitoramento
-          </h2>
-        </div>
-
-        <p className="mt-2 text-sm text-slate-500">
-          Situação atual dos
-          equipamentos selecionados.
-        </p>
+      <div className="mb-4 flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-blue-600" />
+        <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">
+          Monitoramento
+        </h2>
       </div>
 
       {/* CARDS */}

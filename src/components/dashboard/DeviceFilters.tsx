@@ -43,15 +43,12 @@ export function DeviceFilters({
   onFilterChange,
 }: DeviceFiltersProps) {
   return (
-    <div className="flex flex-col gap-4 xl:flex-row xl:items-end">
+    <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(230px,0.85fr)_minmax(0,1.65fr)] lg:items-center">
       {/* ==========================================
           BUSCA
           ========================================== */}
 
-      <div className="min-w-0 flex-1">
-        <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-          Buscar equipamento
-        </label>
+      <div className="min-w-0">
 
         <div className="group relative">
           <div className="pointer-events-none absolute left-4 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg bg-slate-100 text-slate-400 transition group-focus-within:bg-blue-50 group-focus-within:text-blue-600">
@@ -70,7 +67,7 @@ export function DeviceFilters({
               )
             }
             placeholder="Nome ou número do dispositivo"
-            className="h-12 w-full rounded-2xl border border-slate-200/90 bg-slate-50/80 pl-14 pr-12 text-sm font-medium text-slate-900 outline-none transition duration-200 placeholder:font-normal placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100/60"
+            className="h-11 w-full rounded-xl border border-slate-200/90 bg-slate-50/80 pl-14 pr-12 text-sm font-medium text-slate-900 outline-none transition duration-200 placeholder:font-normal placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100/60"
           />
 
           {search !== "" && (
@@ -92,12 +89,8 @@ export function DeviceFilters({
           FILTROS DE ESTADO
           ========================================== */}
 
-      <div className="shrink-0">
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-          Estado do equipamento
-        </p>
-
-        <div className="flex flex-wrap gap-2">
+      <div className="min-w-0">
+        <div className="flex flex-wrap gap-2 lg:justify-end">
           <FilterButton
             active={
               filter === "all"
@@ -290,7 +283,7 @@ function FilterButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-12 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition duration-200 ${
+      className={`flex h-11 items-center gap-2 rounded-xl border px-3 sm:px-3.5 text-xs sm:text-sm font-semibold transition duration-200 ${
         active
           ? current.active
           : current.inactive
