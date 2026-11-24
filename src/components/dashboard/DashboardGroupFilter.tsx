@@ -46,10 +46,6 @@ export function DashboardGroupFilter({
   return (
     <section className="relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white/85 shadow-[0_8px_24px_rgba(15,23,42,0.045)]">
       <div>
-        {/* ======================================
-            CABEÇALHO COMPACTO
-            ====================================== */}
-
         <div className="divide-y divide-slate-100">
           {/* LOCAL */}
 
@@ -427,29 +423,6 @@ function getSelectedPath(
 /* ==========================================
    ÍCONES
    ========================================== */
-
-function LocationIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
-      <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-
-      <circle
-        cx="12"
-        cy="10"
-        r="2.5"
-      />
-    </svg>
-  );
-}
 
 function BuildingIcon() {
   return (
