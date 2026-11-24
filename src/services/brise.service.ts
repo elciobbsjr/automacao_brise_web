@@ -219,11 +219,17 @@ async function getDeviceConfig(
 async function getDeviceDetails(
   deviceId: number,
 ) {
-  let [
-    configResult,
+  const [
+    initialConfigResult,
     variables,
     parameters,
   ] = await Promise.all([
+
+  ]);
+
+  let configResult = initialConfigResult;
+
+  /* PLACEHOLDER */
     getDeviceConfig(
       deviceId,
     ),
