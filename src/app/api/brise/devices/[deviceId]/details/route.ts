@@ -14,6 +14,8 @@ import {
   BRISE_READ_ROLES,
 } from "@/features/auth/permissions/roles";
 
+export const dynamic = "force-dynamic";
+
 interface RouteContext {
   params: Promise<{
     deviceId: string;
@@ -135,15 +137,17 @@ export async function GET(
         })()
       : config;
 
-  return NextResponse.json({
-    deviceId:
-      Number(deviceId),
-
-    config:
-      safeConfig,
-
-    variables,
-
-    parameters,
-  });
+  return NextResponse.json(
+    {
+      deviceId: Number(deviceId),
+      config: safeConfig,
+      variables,
+      parameters,
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store, max-age=0, must-revalidate",
+      },
+    },
+  );
 }
