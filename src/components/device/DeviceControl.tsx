@@ -5,10 +5,6 @@ import {
   useState,
 } from "react";
 
-import {
-  useRouter,
-} from "next/navigation";
-
 import type {
   DashboardDevice,
 } from "@/types/dashboard";
@@ -51,8 +47,6 @@ interface DeviceControlProps {
 export function DeviceControl({
   device,
 }: DeviceControlProps) {
-  const router = useRouter();
-
   const parameters =
     device.parameters;
 
@@ -391,7 +385,11 @@ export function DeviceControl({
           targetParameters,
         );
 
-      router.refresh();
+      window.dispatchEvent(
+        new CustomEvent("brise:refresh-device", {
+          detail: { deviceId: device.deviceId },
+        }),
+      );
 
       if (
         deviceConfirmed

@@ -19,9 +19,11 @@ export function AutoRefresh({
   const router = useRouter();
 
   const lastRefreshRef =
-    useRef(Date.now());
+    useRef(0);
 
   useEffect(() => {
+    lastRefreshRef.current = Date.now();
+
     function refreshIfNeeded() {
       /*
        * Não atualiza o dashboard
@@ -31,6 +33,20 @@ export function AutoRefresh({
         document.visibilityState !==
         "visible"
       ) {
+        return;
+      }
+
+      /*
+       * A tela de detalhes consulta somente o
+       * equipamento selecionado. Pausamos o
+       * refresh geral enquanto o modal estiver
+       * aberto para não recarregar todos os
+       * dispositivos em segundo plano.
+       */
+      if (
+        new URLSearchParams(window.location.search).has("device")
+      ) {
+        lastRefreshRef.current = Date.now();
         return;
       }
 
