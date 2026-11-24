@@ -50,8 +50,8 @@ const CONCURRENCY_LIMIT = 4;
  * e cria uma pequena pausa entre os lotes. Assim evitamos
  * disparar todas as chamadas à API no mesmo instante.
  */
-const DEVICE_START_STAGGER_MS = 100;
-const DEVICE_BATCH_DELAY_MS = 250;
+const DEVICE_START_STAGGER_MS = 50;
+const DEVICE_BATCH_DELAY_MS = 100;
 
 /*
  * Configurações do equipamento mudam
