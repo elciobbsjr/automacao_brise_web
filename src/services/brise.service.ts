@@ -274,11 +274,52 @@ async function getDeviceDetails(
   return {
     deviceId,
 
-    config,
+    /*
+     * Mantém a mesma ideia existente:
+     * basta um dos endpoints responder
+     * para considerarmos comunicação
+     * com o equipamento.
+     *
+     * A diferença é que um config
+     * simplesmente recuperado do cache
+     * não é usado cegamente para isso.
+     */
+    online:
+      config.success ||
+      variables.success ||
+      parameters.success,
 
-    variables,
+    config:
+      config.success
+        ? config.data
+        : null,
 
-    parameters,
+    variables:
+      variables.success
+        ? variables.data
+        : null,
+
+    parameters:
+      parameters.success
+        ? parameters.data
+        : null,
+
+    errors: {
+      config:
+        config.success
+          ? null
+          : config.error,
+
+      variables:
+        variables.success
+          ? null
+          : variables.error,
+
+      parameters:
+        parameters.success
+          ? null
+          : parameters.error,
+    },
   };
 }
 
