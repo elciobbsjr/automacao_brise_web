@@ -17,13 +17,18 @@ export function LoginScreen() {
         <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-white/70 to-transparent" />
       </div>
 
-      <section className="relative z-10 w-full max-w-[460px] overflow-hidden rounded-[26px] border border-white/90 bg-white/85 px-7 py-9 shadow-[0_24px_70px_rgba(30,64,175,0.10)] backdrop-blur-xl sm:px-11 sm:py-11">
+      <section className="relative z-10 isolate w-full max-w-[460px] overflow-hidden rounded-[26px] border border-white/90 bg-white/85 px-7 py-9 shadow-[0_24px_70px_rgba(30,64,175,0.10)] backdrop-blur-xl sm:px-11 sm:py-11">
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-600 via-blue-500 to-sky-400"
+          className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_left,rgba(219,234,254,0.48),transparent_58%),radial-gradient(ellipse_at_bottom_right,rgba(224,242,254,0.38),transparent_56%)]"
         />
 
-        <div className="mb-9 flex items-center justify-center gap-5">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 z-10 h-1 bg-gradient-to-r from-blue-600 via-blue-500 to-sky-400"
+        />
+
+        <div className="relative z-10 mb-9 flex items-center justify-center gap-5">
           <div className="relative h-[58px] w-[58px] shrink-0 sm:h-16 sm:w-16">
             <Image
               src="/tre-ma.png"
@@ -49,7 +54,7 @@ export function LoginScreen() {
           </div>
         </div>
 
-        <div className="mb-7">
+        <div className="relative z-10 mb-7">
           <h1 className="text-[30px] font-semibold tracking-[-0.045em] text-slate-950">
             Entrar
           </h1>
@@ -58,7 +63,9 @@ export function LoginScreen() {
           </p>
         </div>
 
-        <LoginForm />
+        <div className="relative z-10">
+          <LoginForm />
+        </div>
       </section>
     </main>
   );
