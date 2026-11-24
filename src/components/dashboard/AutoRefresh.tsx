@@ -19,9 +19,11 @@ export function AutoRefresh({
   const router = useRouter();
 
   const lastRefreshRef =
-    useRef(Date.now());
+    useRef(0);
 
   useEffect(() => {
+    lastRefreshRef.current = Date.now();
+
     function refreshIfNeeded() {
       /*
        * Não atualiza o dashboard
