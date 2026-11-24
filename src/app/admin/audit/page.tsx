@@ -1429,127 +1429,39 @@ function ResourceCell({
   metadata,
 }: {
   resource: string;
-
-  resourceId:
-    | string
-    | null;
-
+  resourceId: string | null;
   metadata: unknown;
 }) {
-  const data =
-    toObject(
-      metadata,
-    );
-
+  const data = toObject(metadata);
   const storedDeviceName =
-    resource === "DEVICE" &&
-    typeof data?.deviceName ===
-      "string"
+    resource === "DEVICE" && typeof data?.deviceName === "string"
       ? data.deviceName.trim()
       : "";
+  const resourceTitle = storedDeviceName || getResourceLabel(resource);
 
-  const resourceTitle =
-    storedDeviceName ||
-    getResourceLabel(
-      resource,
-    );
-
-  const styles:
-    Record<
-      string,
-      {
-        container: string;
-        icon: string;
-        dot: string;
-      }
-    > = {
-    USER: {
-      container:
-        "border-violet-200/65 bg-gradient-to-br from-white/90 to-violet-50/85",
-
-      icon:
-        "text-violet-600",
-
-      dot:
-        "bg-violet-500",
-    },
-
-    DEVICE: {
-      container:
-        "border-blue-200/65 bg-gradient-to-br from-white/90 to-blue-50/90",
-
-      icon:
-        "text-blue-600",
-
-      dot:
-        "bg-blue-500",
-    },
-
-    SCHEDULE: {
-      container:
-        "border-emerald-200/65 bg-gradient-to-br from-white/90 to-emerald-50/85",
-
-      icon:
-        "text-emerald-600",
-
-      dot:
-        "bg-emerald-500",
-    },
+  const styles: Record<string, { icon: string; dot: string }> = {
+    USER: { icon: "text-violet-600", dot: "bg-violet-500" },
+    DEVICE: { icon: "text-blue-700", dot: "bg-blue-600" },
+    SCHEDULE: { icon: "text-emerald-700", dot: "bg-emerald-600" },
+  };
+  const current = styles[resource] ?? {
+    icon: "text-slate-500",
+    dot: "bg-slate-400",
   };
 
-  const current =
-    styles[resource] ??
-    {
-      container:
-        "border-slate-200 bg-slate-50",
-
-      icon:
-        "text-slate-500",
-
-      dot:
-        "bg-slate-400",
-    };
-
   return (
-    <div
-      className={`inline-flex min-w-[205px] items-center gap-3 rounded-2xl border px-3.5 py-3 shadow-[0_5px_16px_rgba(15,23,42,0.04)] ${current.container}`}
-    >
-      <div
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/90 shadow-[0_4px_10px_rgba(15,23,42,0.06)] ${current.icon}`}
-      >
-        {resource ===
-        "DEVICE" ? (
-          <DeviceIcon />
-        ) : resource ===
-          "USER" ? (
-          <UserIcon />
-        ) : (
-          <CalendarSmallIcon />
-        )}
-      </div>
-
+    <div className="inline-flex min-w-[180px] items-center gap-2.5">
+      <span className={`h-2 w-2 shrink-0 rounded-full ${current.dot}`} aria-hidden="true" />
       <div className="min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span
-            className={`h-1.5 w-1.5 shrink-0 rounded-full ${current.dot}`}
-          />
-
-          <p
-            title={
-              resourceTitle
-            }
-            className="max-w-[165px] truncate text-[11px] font-bold text-slate-700"
-          >
-            {resourceTitle}
-          </p>
-        </div>
-
+        <p
+          title={resourceTitle}
+          className={`max-w-[165px] truncate text-xs font-semibold ${current.icon}`}
+        >
+          {resourceTitle}
+        </p>
         {resourceId && (
-          <p className="mt-0.5 max-w-[155px] truncate font-mono text-[10px] font-semibold text-slate-400">
-            {resource ===
-            "DEVICE"
-              ? `Nº ${resourceId}`
-              : `ID ${resourceId}`}
+          <p className="mt-0.5 max-w-[155px] truncate font-mono text-[10px] text-slate-500">
+            {resource === "DEVICE" ? `Nº ${resourceId}` : `ID ${resourceId}`}
           </p>
         )}
       </div>
@@ -1568,118 +1480,29 @@ function SummaryCard({
   tone,
 }: {
   label: string;
-
   value: number;
-
   description: string;
-
-  tone:
-    | "blue"
-    | "cyan"
-    | "green"
-    | "slate";
+  tone: "blue" | "cyan" | "green" | "slate";
 }) {
-  const styles = {
-    blue: {
-      card:
-        "border-blue-200/70 bg-gradient-to-br from-white via-blue-50/85 to-blue-100/60 shadow-[0_12px_30px_rgba(37,99,235,0.08)]",
-
-      accent:
-        "from-blue-600 to-sky-400",
-
-      icon:
-        "border-blue-100 bg-blue-50 text-blue-600",
-
-      badge:
-        "border-blue-100 bg-blue-50/80 text-blue-700",
-    },
-
-    cyan: {
-      card:
-        "border-cyan-200/70 bg-gradient-to-br from-white via-cyan-50/80 to-cyan-100/55 shadow-[0_12px_30px_rgba(8,145,178,0.08)]",
-
-      accent:
-        "from-cyan-500 to-sky-400",
-
-      icon:
-        "border-cyan-100 bg-cyan-50 text-cyan-600",
-
-      badge:
-        "border-cyan-100 bg-cyan-50/80 text-cyan-700",
-    },
-
-    green: {
-      card:
-        "border-emerald-200/70 bg-gradient-to-br from-white via-emerald-50/80 to-emerald-100/55 shadow-[0_12px_30px_rgba(5,150,105,0.08)]",
-
-      accent:
-        "from-emerald-500 to-teal-400",
-
-      icon:
-        "border-emerald-100 bg-emerald-50 text-emerald-600",
-
-      badge:
-        "border-emerald-100 bg-emerald-50/80 text-emerald-700",
-    },
-
-    slate: {
-      card:
-        "border-slate-200/80 bg-gradient-to-br from-white via-slate-50/90 to-slate-100/65 shadow-[0_12px_30px_rgba(15,23,42,0.065)]",
-
-      accent:
-        "from-slate-700 to-slate-400",
-
-      icon:
-        "border-slate-200 bg-slate-100 text-slate-600",
-
-      badge:
-        "border-slate-200 bg-white/75 text-slate-600",
-    },
-  };
-
-  const current =
-    styles[tone];
+  const marker = {
+    blue: "bg-blue-600",
+    cyan: "bg-cyan-600",
+    green: "bg-emerald-600",
+    slate: "bg-slate-500",
+  }[tone];
 
   return (
-    <div
-      className={`group relative overflow-hidden rounded-[22px] border px-5 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(15,23,42,0.09)] ${current.card}`}
-    >
-      <div
-        className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${current.accent}`}
-      />
-
-      <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/55 blur-2xl" />
-
-      <div className="relative flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-            {label}
-          </p>
-
-          <div className="mt-2 flex items-end gap-2.5">
-            <p className="text-[34px] font-bold leading-none tracking-[-0.05em] text-slate-950">
-              {value}
-            </p>
-
-            <p className="mb-1 truncate text-xs font-medium text-slate-500">
-              {description}
-            </p>
-          </div>
-        </div>
-
-        <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border shadow-[0_5px_14px_rgba(15,23,42,0.05)] ${current.icon}`}
-        >
-          <span className="h-2.5 w-2.5 rounded-full bg-current opacity-90" />
-        </div>
+    <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium text-slate-600">{label}</p>
+        <span className={`h-2 w-2 rounded-full ${marker}`} aria-hidden="true" />
       </div>
 
-      <div className="relative mt-3">
-        <span
-          className={`inline-flex rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.08em] ${current.badge}`}
-        >
-          Atualizado
-        </span>
+      <div className="mt-3 flex items-baseline gap-2.5">
+        <p className="text-3xl font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
+          {value}
+        </p>
+        <p className="text-xs text-slate-500">{description}</p>
       </div>
     </div>
   );
@@ -1712,33 +1535,17 @@ function ActionBadge({
   action: string;
 }) {
   const style =
-    action.includes(
-      "DELETE",
-    ) ||
-    action.includes(
-      "DEACTIVATE",
-    )
-      ? "border-red-100 bg-red-50 text-red-700"
-      : action.includes(
-            "CREATE",
-          ) ||
-          action.includes(
-            "ACTIVATE",
-          )
-        ? "border-emerald-100 bg-emerald-50 text-emerald-700"
-        : action.includes(
-              "RESET",
-            )
-          ? "border-amber-100 bg-amber-50 text-amber-700"
-          : "border-blue-100 bg-blue-50 text-blue-700";
+    action.includes("DELETE") || action.includes("DEACTIVATE")
+      ? "border-red-200 bg-red-50 text-red-700"
+      : action.includes("CREATE") || action.includes("ACTIVATE")
+        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+        : action.includes("RESET")
+          ? "border-amber-200 bg-amber-50 text-amber-700"
+          : "border-blue-200 bg-blue-50 text-blue-700";
 
   return (
-    <span
-      className={`inline-flex whitespace-nowrap rounded-xl border px-2.5 py-1.5 text-[10px] font-bold shadow-[0_2px_8px_rgba(15,23,42,0.035)] ${style}`}
-    >
-      {getActionLabel(
-        action,
-      )}
+    <span className={`inline-flex whitespace-nowrap rounded-md border px-2.5 py-1.5 text-[11px] font-medium ${style}`}>
+      {getActionLabel(action)}
     </span>
   );
 }
