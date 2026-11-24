@@ -125,339 +125,504 @@ export default async function AuditPage({
         timeTo,
     );
 
-  const firstRecord = total === 0 ? 0 : (auditData.page - 1) * auditData.pageSize + 1;
-  const lastRecord = Math.min(auditData.page * auditData.pageSize, total);
-  const invalidTimeRange = Boolean(date && timeFrom && timeTo && timeFrom > timeTo);
-
   return (
-    <main className="min-h-screen bg-[#f4f7fb]">
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <header className="mb-6 flex flex-col gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-blue-700">
-              <span className="h-2 w-2 rounded-full bg-blue-700" />
-              ADMINISTRAÇÃO <span className="text-slate-300">/</span> BRISE
-            </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-[34px]">
-              Auditoria
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Acompanhe as operações realizadas na plataforma e consulte o histórico de alterações.
-            </p>
-          </div>
+    <main className="min-h-screen bg-[#f3f6fa]">
+      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        {/* ==========================================
+            CABEÇALHO
+            ========================================== */}
 
-          <nav aria-label="Navegação administrativa" className="flex flex-wrap gap-2">
-            <Link
-              href="/admin/users"
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            >
-              <UsersIcon />
-              Gerenciar usuários
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
-            >
-              <BackIcon />
-              Painel principal
-            </Link>
-          </nav>
+        <header className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-blue-700" />
+
+          <div className="relative flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-7">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-blue-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+
+                  Administração
+                </span>
+
+                <span className="text-[11px] font-medium text-slate-400">
+                  Brise · SEMEQ
+                </span>
+              </div>
+
+              <h1 className="mt-2 text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[30px]">
+                Auditoria do sistema
+              </h1>
+
+              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
+                Consulte o histórico de
+                alterações realizadas por
+                usuários na plataforma.
+              </p>
+            </div>
+
+            <div className="flex shrink-0 flex-wrap items-center gap-3">
+              <Link
+                href="/admin/users"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              >
+                <UsersIcon />
+
+                Usuários
+              </Link>
+
+              <Link
+                href="/"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+              >
+                <BackIcon />
+
+                Voltar ao painel
+              </Link>
+            </div>
+          </div>
         </header>
 
-        <section aria-labelledby="overview-heading" className="mb-6">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 id="overview-heading" className="text-sm font-semibold text-slate-900">
-              Visão geral
-            </h2>
-            <p className="text-xs text-slate-500">
-              Totais de todo o histórico, independentemente dos filtros
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <SummaryCard label="Eventos registrados" value={stats.total} description="em todo o sistema" tone="blue" icon={<HistoryIcon />} />
-            <SummaryCard label="Ações sobre usuários" value={stats.users} description="contas e permissões" tone="violet" icon={<UserIcon />} />
-            <SummaryCard label="Eventos de equipamentos" value={stats.devices} description="parâmetros e controle" tone="cyan" icon={<DeviceIcon />} />
-            <SummaryCard label="Eventos de agendamentos" value={stats.schedules} description="programações registradas" tone="green" icon={<CalendarSmallIcon />} />
-          </div>
+        {/* ==========================================
+            RESUMO
+            ========================================== */}
+
+        <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryCard
+            label="Eventos"
+            value={
+              stats.total
+            }
+            description="registros totais"
+            tone="blue"
+          />
+
+          <SummaryCard
+            label="Usuários"
+            value={
+              stats.users
+            }
+            description="ações administrativas"
+            tone="slate"
+          />
+
+          <SummaryCard
+            label="Equipamentos"
+            value={
+              stats.devices
+            }
+            description="alterações de controle"
+            tone="cyan"
+          />
+
+          <SummaryCard
+            label="Agendamentos"
+            value={
+              stats.schedules
+            }
+            description="operações registradas"
+            tone="green"
+          />
         </section>
 
-        <section aria-labelledby="filters-heading" className="mb-6 rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-1 border-b border-slate-200 px-5 py-4 sm:px-6">
-            <h2 id="filters-heading" className="text-base font-semibold text-slate-900">
-              Localizar registros
-            </h2>
-            <p className="text-sm text-slate-500">
-              Combine os campos para encontrar uma operação específica.
-            </p>
-          </div>
+        {/* ==========================================
+            FILTROS
+            ========================================== */}
 
-          <form action="/admin/audit" method="get" className="p-5 sm:p-6">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
-              <div className="xl:col-span-4">
-                <label htmlFor="q" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Busca
-                </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-                    <SearchIcon />
-                  </span>
-                  <input
-                    id="q"
-                    name="q"
-                    type="search"
-                    defaultValue={search}
-                    placeholder="Nome, e-mail, descrição ou ID do recurso"
-                    className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                  />
-                </div>
-              </div>
-
-              <div className="xl:col-span-2">
-                <label htmlFor="action" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Tipo de ação
-                </label>
-                <select
-                  id="action"
-                  name="action"
-                  defaultValue={action}
-                  className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                >
-                  <option value="">Todas as ações</option>
-                  {filterOptions.actions.map((option) => (
-                    <option key={option} value={option}>{getActionLabel(option)}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="xl:col-span-2">
-                <label htmlFor="date" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Data
-                </label>
-                <input
-                  id="date"
-                  name="date"
-                  type="date"
-                  required={Boolean(timeFrom || timeTo)}
-                  defaultValue={date}
-                  className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-
-              <div className="xl:col-span-2">
-                <label htmlFor="timeFrom" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Horário inicial
-                </label>
-                <input
-                  id="timeFrom"
-                  name="timeFrom"
-                  type="time"
-                  defaultValue={timeFrom}
-                  className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-
-              <div className="xl:col-span-2">
-                <label htmlFor="timeTo" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Horário final
-                </label>
-                <input
-                  id="timeTo"
-                  name="timeTo"
-                  type="time"
-                  defaultValue={timeTo}
-                  className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-5 text-slate-500">
-                Os horários são considerados quando uma data é informada. Sem horário, a consulta considera o dia inteiro.
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                {hasFilters && (
-                  <Link
-                    href="/admin/audit"
-                    className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                  >
-                    Limpar filtros
-                  </Link>
-                )}
-                <button
-                  type="submit"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-700 px-5 text-sm font-semibold text-white transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                >
-                  <SearchIcon />
-                  Aplicar filtros
-                </button>
-              </div>
-            </div>
-            {invalidTimeRange && (
-              <p role="alert" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                O horário final deve ser igual ou posterior ao horário inicial.
-              </p>
-            )}
-          </form>
-        </section>
-
-        <section aria-labelledby="history-heading" className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <form
+            action="/admin/audit"
+            method="get"
+            className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_200px_160px_140px_140px_auto]"
+          >
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 id="history-heading" className="text-base font-semibold text-slate-900">
-                  Histórico de atividades
-                </h2>
-                {hasFilters && (
-                  <span className="rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700">
-                    Filtros aplicados
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 text-sm text-slate-500">
-                {total.toLocaleString("pt-BR")} {total === 1 ? "registro encontrado" : "registros encontrados"}
-                {total > 0 && <span> · Exibindo {firstRecord}–{lastRecord}</span>}
-              </p>
-            </div>
-            {totalPages > 1 && (
-              <span className="text-xs font-medium tabular-nums text-slate-500">
-                Página {auditData.page} de {totalPages}
-              </span>
-            )}
-          </div>
+              <label
+                htmlFor="q"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
+              >
+                Buscar
+              </label>
 
-          {logs.length === 0 ? (
-            <div className="px-6 py-16 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                <HistoryIcon />
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                  <SearchIcon />
+                </span>
+
+                <input
+                  id="q"
+                  name="q"
+                  defaultValue={
+                    search
+                  }
+                  placeholder="Usuário, e-mail, descrição ou ID..."
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
               </div>
-              <h3 className="mt-4 text-sm font-semibold text-slate-900">
-                {hasFilters ? "Nenhum registro corresponde à pesquisa" : "Ainda não há atividades registradas"}
-              </h3>
-              <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500">
-                {hasFilters
-                  ? "Altere os critérios ou limpe os filtros para consultar outros registros."
-                  : "As operações realizadas na plataforma aparecerão aqui."}
-              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="action"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
+              >
+                Ação
+              </label>
+
+              <select
+                id="action"
+                name="action"
+                defaultValue={
+                  action
+                }
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="">
+                  Todas as ações
+                </option>
+
+                {filterOptions.actions.map(
+                  (
+                    option,
+                  ) => (
+                    <option
+                      key={
+                        option
+                      }
+                      value={
+                        option
+                      }
+                    >
+                      {getActionLabel(
+                        option,
+                      )}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="date"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
+              >
+                Data
+              </label>
+
+              <input
+                id="date"
+                name="date"
+                type="date"
+                defaultValue={
+                  date
+                }
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="timeFrom"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
+              >
+                A partir de
+              </label>
+
+              <input
+                id="timeFrom"
+                name="timeFrom"
+                type="time"
+                defaultValue={
+                  timeFrom
+                }
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="timeTo"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
+              >
+                Até
+              </label>
+
+              <input
+                id="timeTo"
+                name="timeTo"
+                type="time"
+                defaultValue={
+                  timeTo
+                }
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <div className="flex items-end gap-2">
+              <button
+                type="submit"
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-blue-700 px-5 text-sm font-semibold text-white transition hover:bg-blue-800"
+              >
+                Filtrar
+              </button>
+
               {hasFilters && (
-                <Link href="/admin/audit" className="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-800">
-                  Remover todos os filtros
+                <Link
+                  href="/admin/audit"
+                  className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  Limpar
                 </Link>
               )}
             </div>
+          </form>
+        </section>
+
+        {/* ==========================================
+            TABELA
+            ========================================== */}
+
+        <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">
+                Histórico de atividades
+              </h2>
+
+              <p className="mt-0.5 text-xs text-slate-500">
+                {total}{" "}
+                {total ===
+                1
+                  ? "registro encontrado"
+                  : "registros encontrados"}
+              </p>
+            </div>
+
+            <span className="hidden rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 sm:inline-flex">
+              Página{" "}
+              {
+                auditData.page
+              }{" "}
+              de{" "}
+              {totalPages}
+            </span>
+          </div>
+
+          {logs.length ===
+          0 ? (
+            <div className="px-6 py-16 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                <HistoryIcon />
+              </div>
+
+              <p className="mt-3 text-base font-bold text-slate-700">
+                Nenhum registro encontrado
+              </p>
+
+              <p className="mt-1 text-sm text-slate-400">
+                Tente alterar os filtros de
+                pesquisa.
+              </p>
+            </div>
           ) : (
-            <>
-              <div className="hidden xl:block">
-                <table className="w-full table-fixed border-collapse">
-                  <colgroup>
-                    <col className="w-[170px]" />
-                    <col className="w-[210px]" />
-                    <col />
-                    <col className="w-[190px]" />
-                    <col className="w-[170px]" />
-                  </colgroup>
-                  <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50">
-                      <TableHeader>Data e hora</TableHeader>
-                      <TableHeader>Responsável</TableHeader>
-                      <TableHeader>Evento</TableHeader>
-                      <TableHeader>Recurso</TableHeader>
-                      <TableHeader>Registro</TableHeader>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((log) => (
-                      <tr key={log.id} className="border-b border-slate-100 align-top last:border-b-0 hover:bg-slate-50/70">
-                        <td className="px-5 py-4 text-xs leading-5 tabular-nums text-slate-600">
-                          {formatDateTime(log.createdAt)}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1240px] border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <TableHeader>
+                      Data e hora
+                    </TableHeader>
+
+                    <TableHeader>
+                      Responsável
+                    </TableHeader>
+
+                    <TableHeader>
+                      Ação
+                    </TableHeader>
+
+                    <TableHeader>
+                      Recurso
+                    </TableHeader>
+
+                    <TableHeader>
+                      Descrição
+                    </TableHeader>
+
+                    <TableHeader>
+                      Detalhes
+                    </TableHeader>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {logs.map(
+                    (
+                      log,
+                      index,
+                    ) => (
+                      <tr
+                        key={
+                          log.id
+                        }
+                        className={`border-b border-slate-100 align-top transition-colors last:border-b-0 ${
+                          index %
+                            2 ===
+                          0
+                            ? "bg-white/80"
+                            : "bg-slate-100/55"
+                        } hover:bg-blue-50/60`}
+                      >
+                        {/* DATA */}
+
+                        <td className="whitespace-nowrap px-5 py-4 align-top text-xs font-medium tabular-nums text-slate-600 sm:px-6">
+                          {formatDateTime(
+                            log.createdAt,
+                          )}
                         </td>
-                        <td className="px-5 py-4">
-                          <div className="flex min-w-0 items-start gap-2.5">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700">
-                              {getActorInitials(log.actorName)}
-                            </span>
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-slate-900" title={log.actorName}>{log.actorName}</p>
-                              <p className="mt-0.5 truncate text-xs text-slate-500" title={log.actorEmail}>{log.actorEmail}</p>
+
+                        {/* RESPONSÁVEL */}
+
+                        <td className="px-5 py-4 align-top sm:px-6">
+                          <div className="min-w-[150px]">
+                            <p className="max-w-[210px] truncate text-sm font-bold text-slate-900">
+                              {
+                                log.actorName
+                              }
+                            </p>
+
+                            <p className="mt-1 max-w-[210px] truncate text-[11px] font-medium text-slate-400">
+                              {
+                                log.actorEmail
+                              }
+                            </p>
+                          </div>
+                        </td>
+
+                        {/* AÇÃO */}
+
+                        <td className="px-5 py-4 align-top sm:px-6">
+                          <ActionBadge
+                            action={
+                              log.action
+                            }
+                          />
+                        </td>
+
+                        {/* RECURSO */}
+
+                        <td className="px-5 py-4 align-top sm:px-6">
+                          <ResourceCell
+                            resource={
+                              log.resource
+                            }
+                            resourceId={
+                              log.resourceId
+                            }
+                            metadata={
+                              log.metadata
+                            }
+                          />
+                        </td>
+
+                        {/* DESCRIÇÃO */}
+
+                        <td className="px-5 py-4 align-top sm:px-6">
+                          <div className="max-w-[390px] px-1 py-1">
+                            <div className="space-y-1.5">
+                              {getAuditDescriptionLines(log).map(
+                                (line, index) => (
+                                  <p
+                                    key={`${log.id}-description-${index}`}
+                                    className="text-[13px] leading-5 text-slate-700"
+                                  >
+                                    {line}
+                                  </p>
+                                ),
+                              )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-4">
-                          <div className="space-y-2">
-                            <ActionBadge action={log.action} />
-                            <div className="space-y-1">
-                              {getAuditDescriptionLines(log).map((line, index) => (
-                                <p key={`${log.id}-description-${index}`} className="text-[13px] leading-5 text-slate-700">
-                                  {line}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <ResourceCell resource={log.resource} resourceId={log.resourceId} metadata={log.metadata} />
-                        </td>
-                        <td className="px-5 py-4">
-                          <AuditDetails action={log.action} metadata={log.metadata} />
+
+                        {/* DETALHES */}
+
+                        <td className="px-5 py-4 align-top sm:px-6">
+                          <AuditDetails
+                            action={
+                              log.action
+                            }
+                            metadata={
+                              log.metadata
+                            }
+                          />
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="divide-y divide-slate-200 xl:hidden">
-                {logs.map((log) => (
-                  <article key={log.id} className="px-4 py-4 sm:px-5">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <ActionBadge action={log.action} />
-                      <time className="text-xs tabular-nums text-slate-500">
-                        {formatDateTime(log.createdAt)}
-                      </time>
-                    </div>
-                    <div className="mt-3 flex items-start gap-2.5">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-700">
-                        {getActorInitials(log.actorName)}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900">{log.actorName}</p>
-                        <p className="mt-0.5 break-all text-xs text-slate-500">{log.actorEmail}</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 space-y-1.5">
-                      {getAuditDescriptionLines(log).map((line, index) => (
-                        <p key={`${log.id}-mobile-description-${index}`} className="text-sm leading-5 text-slate-700">
-                          {line}
-                        </p>
-                      ))}
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                      <ResourceCell resource={log.resource} resourceId={log.resourceId} metadata={log.metadata} />
-                      <AuditDetails action={log.action} metadata={log.metadata} />
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </>
+                    ),
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
 
-          {totalPages > 1 && (
-            <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <p className="text-xs text-slate-600">
-                Página {auditData.page} de {totalPages} · {total.toLocaleString("pt-BR")} registros no resultado
+          {/* ======================================
+              PAGINAÇÃO
+              ====================================== */}
+
+          {totalPages >
+            1 && (
+            <div className="flex flex-col gap-3 border-t border-slate-200/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <p className="text-xs font-medium text-slate-400">
+                Exibindo página{" "}
+                {
+                  auditData.page
+                }{" "}
+                de{" "}
+                {totalPages}
               </p>
+
               <div className="flex items-center gap-2">
-                {auditData.page > 1 && (
+                {auditData.page >
+                  1 && (
                   <Link
-                    href={buildPageHref({ page: auditData.page - 1, search, action, date, timeFrom, timeTo })}
-                    className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                    href={buildPageHref({
+                      page:
+                        auditData.page -
+                        1,
+
+                      search,
+
+                      action,
+
+                      date,
+
+                      timeFrom,
+
+                      timeTo,
+                    })}
+                    className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
                   >
                     Anterior
                   </Link>
                 )}
-                {auditData.page < totalPages && (
+
+                {auditData.page <
+                  totalPages && (
                   <Link
-                    href={buildPageHref({ page: auditData.page + 1, search, action, date, timeFrom, timeTo })}
-                    className="inline-flex h-9 items-center justify-center rounded-lg bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
+                    href={buildPageHref({
+                      page:
+                        auditData.page +
+                        1,
+
+                      search,
+
+                      action,
+
+                      date,
+
+                      timeFrom,
+
+                      timeTo,
+                    })}
+                    className="inline-flex h-9 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-bold text-white transition hover:bg-slate-800"
                   >
                     Próxima
                   </Link>
@@ -467,10 +632,16 @@ export default async function AuditPage({
           )}
         </section>
 
-        <footer className="mt-5 flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
-          <span>Brise · SEMEQ</span>
-          <span>Registro de operações administrativas</span>
-        </footer>
+        {/* ==========================================
+            RODAPÉ
+            ========================================== */}
+
+        <div className="mt-3 flex justify-end px-1">
+          <p className="text-[11px] font-medium text-slate-400">
+            Histórico administrativo ·
+            SEMEQ
+          </p>
+        </div>
       </div>
     </main>
   );
@@ -898,78 +1069,273 @@ function AuditDetails({
   metadata,
 }: {
   action: string;
+
   metadata: unknown;
 }) {
-  const data = toObject(metadata);
+  const data =
+    toObject(
+      metadata,
+    );
+
   if (!data) {
-    return <span className="text-xs text-slate-400">Sem detalhes adicionais</span>;
+    return (
+      <span className="text-xs text-slate-300">
+        —
+      </span>
+    );
   }
 
-  const changes = toObject(data.changes);
-  if (changes && Object.keys(changes).length > 0) {
+  const changes =
+    toObject(
+      data.changes,
+    );
+
+  /*
+   * Quando existem alterações
+   * reais, mostramos somente elas.
+   */
+  if (
+    changes &&
+    Object.keys(
+      changes,
+    ).length > 0
+  ) {
     return (
-      <details className="min-w-0">
-        <summary className="inline-flex cursor-pointer select-none items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+      <details className="group">
+        <summary className="inline-flex cursor-pointer select-none items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-50">
           <DetailsIcon />
-          Consultar alterações
+
+          Ver alterações
         </summary>
-        <div className="mt-2 w-full max-w-[360px] space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-          {Object.entries(changes).map(([key, value]) => {
-            const change = toObject(value);
-            if (!change) return null;
-            return (
-              <ChangeItem
-                key={key}
-                label={getFieldLabel(key)}
-                from={formatAuditValue(key, change.from)}
-                to={formatAuditValue(key, change.to)}
-              />
-            );
-          })}
+
+        <div className="mt-2 w-[320px] space-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+          {Object.entries(
+            changes,
+          ).map(
+            ([
+              key,
+              value,
+            ]) => {
+              const change =
+                toObject(
+                  value,
+                );
+
+              if (!change) {
+                return null;
+              }
+
+              return (
+                <ChangeItem
+                  key={
+                    key
+                  }
+                  label={
+                    getFieldLabel(
+                      key,
+                    )
+                  }
+                  from={
+                    formatAuditValue(
+                      key,
+                      change.from,
+                    )
+                  }
+                  to={
+                    formatAuditValue(
+                      key,
+                      change.to,
+                    )
+                  }
+                />
+              );
+            },
+          )}
         </div>
       </details>
     );
   }
 
-  if (action === "ACTIVATE_USER" || action === "DEACTIVATE_USER") {
-    return <SimpleDetail label="Status da conta" value={action === "ACTIVATE_USER" ? "Ativada" : "Desativada"} />;
-  }
+  /*
+   * ATIVAÇÃO / DESATIVAÇÃO
+   * DE USUÁRIO
+   */
 
-  if (action === "RESET_USER_PASSWORD") {
-    return <SimpleDetail label="Segurança" value="Senha redefinida" />;
-  }
-
-  if (action === "CREATE_USER") {
-    return <SimpleDetail label="Perfil atribuído" value={getRoleLabel(data.role)} />;
-  }
-
-  if (action === "UPDATE_DEVICE_PARAMETERS" || action === "UPDATE_SCHEDULE") {
-    return <LegacyDetail message="Este registro foi criado antes do detalhamento de alterações estar disponível." />;
-  }
-
-  if (action === "CREATE_SCHEDULE") {
+  if (
+    action ===
+      "ACTIVATE_USER" ||
+    action ===
+      "DEACTIVATE_USER"
+  ) {
     return (
-      <div className="space-y-2">
-        <SimpleDetail label="Agendamento" value={toText(data.scheduleName)} />
-        <SimpleDetail label="Dispositivos" value={formatCount(data.successCount)} />
+      <SimpleDetail
+        label="Status"
+        value={
+          action ===
+          "ACTIVATE_USER"
+            ? "Ativado"
+            : "Desativado"
+        }
+      />
+    );
+  }
+
+  /*
+   * RESET DE SENHA
+   */
+
+  if (
+    action ===
+    "RESET_USER_PASSWORD"
+  ) {
+    return (
+      <SimpleDetail
+        label="Segurança"
+        value="Senha redefinida"
+      />
+    );
+  }
+
+  /*
+   * CRIAÇÃO DE USUÁRIO
+   */
+
+  if (
+    action ===
+    "CREATE_USER"
+  ) {
+    return (
+      <SimpleDetail
+        label="Perfil"
+        value={
+          getRoleLabel(
+            data.role,
+          )
+        }
+      />
+    );
+  }
+
+  /*
+   * ALTERAÇÃO DE EQUIPAMENTO ANTIGA
+   */
+
+  if (
+    action ===
+    "UPDATE_DEVICE_PARAMETERS"
+  ) {
+    return (
+      <LegacyDetail
+        message="Registro anterior ao histórico de diferenças."
+      />
+    );
+  }
+
+  /*
+   * CRIAÇÃO DE AGENDAMENTO
+   */
+
+  if (
+    action ===
+    "CREATE_SCHEDULE"
+  ) {
+    return (
+      <div className="space-y-1.5">
+        <SimpleDetail
+          label="Agendamento"
+          value={
+            toText(
+              data.scheduleName,
+            )
+          }
+        />
+
+        <SimpleDetail
+          label="Dispositivos"
+          value={
+            formatCount(
+              data.successCount,
+            )
+          }
+        />
       </div>
     );
   }
 
-  if (action === "ACTIVATE_SCHEDULE" || action === "DEACTIVATE_SCHEDULE") {
+  /*
+   * EDIÇÃO DE AGENDAMENTO
+   */
+
+  if (
+    action ===
+    "UPDATE_SCHEDULE"
+  ) {
     return (
-      <div className="space-y-2">
-        <SimpleDetail label="Status" value={action === "ACTIVATE_SCHEDULE" ? "Ativado" : "Desativado"} />
-        <SimpleDetail label="Dispositivos" value={formatCount(data.successCount)} />
+      <LegacyDetail
+        message="Registro anterior ao histórico de diferenças."
+      />
+    );
+  }
+
+  /*
+   * STATUS DO AGENDAMENTO
+   */
+
+  if (
+    action ===
+      "ACTIVATE_SCHEDULE" ||
+    action ===
+      "DEACTIVATE_SCHEDULE"
+  ) {
+    return (
+      <div className="space-y-1.5">
+        <SimpleDetail
+          label="Status"
+          value={
+            action ===
+            "ACTIVATE_SCHEDULE"
+              ? "Ativado"
+              : "Desativado"
+          }
+        />
+
+        <SimpleDetail
+          label="Dispositivos"
+          value={
+            formatCount(
+              data.successCount,
+            )
+          }
+        />
       </div>
     );
   }
 
-  if (action === "DELETE_SCHEDULE") {
-    return <SimpleDetail label="Removido de" value={formatCount(data.successCount)} />;
+  /*
+   * EXCLUSÃO
+   */
+
+  if (
+    action ===
+    "DELETE_SCHEDULE"
+  ) {
+    return (
+      <SimpleDetail
+        label="Removido de"
+        value={
+          formatCount(
+            data.successCount,
+          )
+        }
+      />
+    );
   }
 
-  return <span className="text-xs text-slate-400">Sem detalhes adicionais</span>;
+  return (
+    <span className="text-xs text-slate-300">
+      —
+    </span>
+  );
 }
 
 /* ==========================================
@@ -982,16 +1348,29 @@ function ChangeItem({
   to,
 }: {
   label: string;
+
   from: string;
+
   to: string;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5">
-      <p className="text-[11px] font-medium text-slate-600">{label}</p>
-      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
-        <span className="max-w-full break-words rounded bg-red-50 px-2 py-1 font-medium text-red-700">{from}</span>
-        <span className="text-slate-400" aria-hidden="true">→</span>
-        <span className="max-w-full break-words rounded bg-emerald-50 px-2 py-1 font-medium text-emerald-700">{to}</span>
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-slate-500">
+        {label}
+      </p>
+
+      <div className="mt-1.5 flex items-center gap-2 text-xs font-semibold">
+        <span className="max-w-[110px] truncate rounded-md bg-red-50 px-2.5 py-1 text-red-700">
+          {from}
+        </span>
+
+        <span className="text-slate-300">
+          →
+        </span>
+
+        <span className="max-w-[110px] truncate rounded-md bg-emerald-50 px-2.5 py-1 text-emerald-700">
+          {to}
+        </span>
       </div>
     </div>
   );
@@ -1060,24 +1439,28 @@ function ResourceCell({
       : "";
   const resourceTitle = storedDeviceName || getResourceLabel(resource);
 
-  const resourceStyle: Record<string, string> = {
-    USER: "bg-violet-50 text-violet-700",
-    DEVICE: "bg-blue-50 text-blue-700",
-    SCHEDULE: "bg-emerald-50 text-emerald-700",
+  const styles: Record<string, { icon: string; dot: string }> = {
+    USER: { icon: "text-violet-600", dot: "bg-violet-500" },
+    DEVICE: { icon: "text-blue-700", dot: "bg-blue-600" },
+    SCHEDULE: { icon: "text-emerald-700", dot: "bg-emerald-600" },
   };
-  const iconStyle = resourceStyle[resource] ?? "bg-slate-100 text-slate-600";
+  const current = styles[resource] ?? {
+    icon: "text-slate-500",
+    dot: "bg-slate-400",
+  };
 
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
-      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconStyle}`}>
-        {resource === "DEVICE" ? <DeviceIcon /> : resource === "USER" ? <UserIcon /> : <CalendarSmallIcon />}
-      </span>
+    <div className="inline-flex min-w-[180px] items-center gap-2.5">
+      <span className={`h-2 w-2 shrink-0 rounded-full ${current.dot}`} aria-hidden="true" />
       <div className="min-w-0">
-        <p title={resourceTitle} className="truncate text-xs font-semibold text-slate-800">
+        <p
+          title={resourceTitle}
+          className={`max-w-[165px] truncate text-xs font-semibold ${current.icon}`}
+        >
           {resourceTitle}
         </p>
         {resourceId && (
-          <p className="mt-0.5 truncate font-mono text-[10px] text-slate-500">
+          <p className="mt-0.5 max-w-[155px] truncate font-mono text-[10px] text-slate-500">
             {resource === "DEVICE" ? `Nº ${resourceId}` : `ID ${resourceId}`}
           </p>
         )}
@@ -1095,34 +1478,33 @@ function SummaryCard({
   value,
   description,
   tone,
-  icon,
 }: {
   label: string;
   value: number;
   description: string;
-  tone: "blue" | "violet" | "cyan" | "green";
-  icon: React.ReactNode;
+  tone: "blue" | "cyan" | "green" | "slate";
 }) {
-  const iconStyle = {
-    blue: "bg-blue-50 text-blue-700",
-    violet: "bg-violet-50 text-violet-700",
-    cyan: "bg-cyan-50 text-cyan-700",
-    green: "bg-emerald-50 text-emerald-700",
+  const marker = {
+    blue: "bg-blue-600",
+    cyan: "bg-cyan-600",
+    green: "bg-emerald-600",
+    slate: "bg-slate-500",
   }[tone];
 
   return (
-    <article className="flex min-h-[112px] items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="min-w-0">
+    <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-slate-600">{label}</p>
-        <p className="mt-2 text-[28px] font-semibold leading-none tracking-tight text-slate-950 tabular-nums">
-          {value.toLocaleString("pt-BR")}
+        <span className={`h-2 w-2 rounded-full ${marker}`} aria-hidden="true" />
+      </div>
+
+      <div className="mt-3 flex items-baseline gap-2.5">
+        <p className="text-3xl font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
+          {value}
         </p>
-        <p className="mt-2 text-xs leading-4 text-slate-500">{description}</p>
+        <p className="text-xs text-slate-500">{description}</p>
       </div>
-      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconStyle}`}>
-        {icon}
-      </div>
-    </article>
+    </div>
   );
 }
 
@@ -1137,7 +1519,7 @@ function TableHeader({
     React.ReactNode;
 }) {
   return (
-    <th scope="col" className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500 sm:px-6">
+    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500 sm:px-6">
       {children}
     </th>
   );
@@ -1172,13 +1554,6 @@ function ActionBadge({
    LABELS
    ========================================== */
 
-function getActorInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "US";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
 function getActionLabel(
   action: string,
 ) {
@@ -1188,37 +1563,37 @@ function getActionLabel(
       string
     > = {
     CREATE_USER:
-      "Criação de usuário",
+      "Criou usuário",
 
     UPDATE_USER:
-      "Atualização de usuário",
+      "Editou usuário",
 
     RESET_USER_PASSWORD:
-      "Redefinição de senha",
+      "Redefiniu senha",
 
     ACTIVATE_USER:
-      "Ativação de usuário",
+      "Ativou usuário",
 
     DEACTIVATE_USER:
-      "Desativação de usuário",
+      "Desativou usuário",
 
     UPDATE_DEVICE_PARAMETERS:
-      "Alteração de equipamento",
+      "Alterou equipamento",
 
     CREATE_SCHEDULE:
-      "Criação de agendamento",
+      "Criou agendamento",
 
     UPDATE_SCHEDULE:
-      "Atualização de agendamento",
+      "Editou agendamento",
 
     ACTIVATE_SCHEDULE:
-      "Ativação de agendamento",
+      "Ativou agendamento",
 
     DEACTIVATE_SCHEDULE:
-      "Desativação de agendamento",
+      "Desativou agendamento",
 
     DELETE_SCHEDULE:
-      "Exclusão de agendamento",
+      "Excluiu agendamento",
   };
 
   return (
@@ -1710,6 +2085,9 @@ function formatDateTime(
         "2-digit",
 
       minute:
+        "2-digit",
+
+      second:
         "2-digit",
 
       timeZone:
