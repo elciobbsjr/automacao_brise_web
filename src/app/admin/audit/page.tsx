@@ -206,7 +206,7 @@ export default async function AuditPage({
                     name="q"
                     type="search"
                     defaultValue={search}
-                    placeholder="Nome, e-mail, descrição ou identificador"
+                    placeholder="Nome, e-mail, descrição ou ID do recurso"
                     className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
@@ -1136,7 +1136,7 @@ function TableHeader({
     React.ReactNode;
 }) {
   return (
-    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500 sm:px-6">
+    <th scope="col" className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500 sm:px-6">
       {children}
     </th>
   );
@@ -1187,37 +1187,37 @@ function getActionLabel(
       string
     > = {
     CREATE_USER:
-      "Criou usuário",
+      "Criação de usuário",
 
     UPDATE_USER:
-      "Editou usuário",
+      "Atualização de usuário",
 
     RESET_USER_PASSWORD:
-      "Redefiniu senha",
+      "Redefinição de senha",
 
     ACTIVATE_USER:
-      "Ativou usuário",
+      "Ativação de usuário",
 
     DEACTIVATE_USER:
-      "Desativou usuário",
+      "Desativação de usuário",
 
     UPDATE_DEVICE_PARAMETERS:
-      "Alterou equipamento",
+      "Alteração de equipamento",
 
     CREATE_SCHEDULE:
-      "Criou agendamento",
+      "Criação de agendamento",
 
     UPDATE_SCHEDULE:
-      "Editou agendamento",
+      "Atualização de agendamento",
 
     ACTIVATE_SCHEDULE:
-      "Ativou agendamento",
+      "Ativação de agendamento",
 
     DEACTIVATE_SCHEDULE:
-      "Desativou agendamento",
+      "Desativação de agendamento",
 
     DELETE_SCHEDULE:
-      "Excluiu agendamento",
+      "Exclusão de agendamento",
   };
 
   return (
@@ -1709,9 +1709,6 @@ function formatDateTime(
         "2-digit",
 
       minute:
-        "2-digit",
-
-      second:
         "2-digit",
 
       timeZone:
