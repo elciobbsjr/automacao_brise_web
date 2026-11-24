@@ -127,7 +127,7 @@ export function UserMenu({
               !current,
           )
         }
-        className={`group flex h-16 w-full items-center justify-center gap-1 rounded-2xl border bg-white/80 px-2 shadow-sm backdrop-blur transition duration-200 ${
+        className={`group flex h-10 w-auto items-center justify-center gap-1.5 rounded-lg border border-transparent bg-transparent px-2 transition-colors duration-200 ${
           open
             ? "border-slate-200 bg-slate-50"
             : "hover:border-slate-200 hover:bg-slate-50"
