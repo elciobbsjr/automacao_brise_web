@@ -474,7 +474,7 @@ export default async function AuditPage({
                       >
                         {/* DATA */}
 
-                        <td className="whitespace-nowrap px-5 py-5 align-top text-xs font-semibold tabular-nums text-slate-500 sm:px-6">
+                        <td className="whitespace-nowrap px-5 py-4 align-top text-xs font-medium tabular-nums text-slate-600 sm:px-6">
                           {formatDateTime(
                             log.createdAt,
                           )}
@@ -482,7 +482,7 @@ export default async function AuditPage({
 
                         {/* RESPONSÁVEL */}
 
-                        <td className="px-5 py-5 align-top sm:px-6">
+                        <td className="px-5 py-4 align-top sm:px-6">
                           <div className="min-w-[150px]">
                             <p className="max-w-[210px] truncate text-sm font-bold text-slate-900">
                               {
@@ -500,7 +500,7 @@ export default async function AuditPage({
 
                         {/* AÇÃO */}
 
-                        <td className="px-5 py-5 align-top sm:px-6">
+                        <td className="px-5 py-4 align-top sm:px-6">
                           <ActionBadge
                             action={
                               log.action
@@ -510,7 +510,7 @@ export default async function AuditPage({
 
                         {/* RECURSO */}
 
-                        <td className="px-5 py-5 align-top sm:px-6">
+                        <td className="px-5 py-4 align-top sm:px-6">
                           <ResourceCell
                             resource={
                               log.resource
@@ -526,7 +526,7 @@ export default async function AuditPage({
 
                         {/* DESCRIÇÃO */}
 
-                        <td className="px-5 py-5 align-top sm:px-6">
+                        <td className="px-5 py-4 align-top sm:px-6">
                           <div className="max-w-[390px] px-1 py-1">
                             <div className="space-y-1.5">
                               {getAuditDescriptionLines(log).map(
@@ -545,7 +545,7 @@ export default async function AuditPage({
 
                         {/* DETALHES */}
 
-                        <td className="px-5 py-5 align-top sm:px-6">
+                        <td className="px-5 py-4 align-top sm:px-6">
                           <AuditDetails
                             action={
                               log.action
@@ -1102,13 +1102,13 @@ function AuditDetails({
   ) {
     return (
       <details className="group">
-        <summary className="inline-flex cursor-pointer select-none items-center gap-1.5 rounded-xl border border-transparent px-2.5 py-1.5 text-xs font-bold text-blue-600 transition hover:border-blue-100 hover:bg-blue-50/90 hover:text-blue-700">
+        <summary className="inline-flex cursor-pointer select-none items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-50">
           <DetailsIcon />
 
           Ver alterações
         </summary>
 
-        <div className="mt-2 w-[320px] space-y-2 rounded-[20px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(247,250,253,0.98)_100%)] p-3.5 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
+        <div className="mt-2 w-[320px] space-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
           {Object.entries(
             changes,
           ).map(
@@ -1354,13 +1354,13 @@ function ChangeItem({
   to: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white px-3.5 py-3 shadow-[0_4px_14px_rgba(15,23,42,0.045)]">
-      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-slate-500">
         {label}
       </p>
 
       <div className="mt-1.5 flex items-center gap-2 text-xs font-semibold">
-        <span className="max-w-[110px] truncate rounded-lg border border-red-100 bg-red-50 px-2.5 py-1 text-red-600">
+        <span className="max-w-[110px] truncate rounded-md bg-red-50 px-2.5 py-1 text-red-700">
           {from}
         </span>
 
@@ -1368,7 +1368,7 @@ function ChangeItem({
           →
         </span>
 
-        <span className="max-w-[110px] truncate rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-emerald-700">
+        <span className="max-w-[110px] truncate rounded-md bg-emerald-50 px-2.5 py-1 text-emerald-700">
           {to}
         </span>
       </div>
@@ -1389,7 +1389,7 @@ function SimpleDetail({
   value: string;
 }) {
   return (
-    <div className="inline-flex max-w-[240px] flex-col rounded-2xl border border-slate-200/80 bg-white/80 px-3.5 py-2.5 shadow-[0_3px_12px_rgba(15,23,42,0.035)]">
+    <div className="inline-flex max-w-[240px] flex-col rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
       <span className="text-[9px] font-bold uppercase tracking-[0.11em] text-slate-400">
         {label}
       </span>
@@ -1411,7 +1411,7 @@ function LegacyDetail({
   message: string;
 }) {
   return (
-    <div className="max-w-[240px] rounded-2xl border border-amber-200/70 bg-amber-50/85 px-3.5 py-2.5 shadow-[0_3px_12px_rgba(180,83,9,0.05)]">
+    <div className="max-w-[240px] rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
       <p className="text-[10px] leading-4 font-medium text-amber-700">
         {message}
       </p>
@@ -1519,7 +1519,7 @@ function TableHeader({
     React.ReactNode;
 }) {
   return (
-    <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 sm:px-6">
+    <th className="px-5 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500 sm:px-6">
       {children}
     </th>
   );
