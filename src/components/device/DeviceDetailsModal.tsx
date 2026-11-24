@@ -129,7 +129,10 @@ export function DeviceDetailsModal({
   useEffect(() => {
     if (!open) return;
 
-    void refreshDevice();
+    const initialRefreshTimer = window.setTimeout(() => {
+      void refreshDevice();
+    }, 0);
+
     const timer = window.setInterval(() => {
       void refreshDevice();
     }, 60_000);
@@ -144,6 +147,7 @@ export function DeviceDetailsModal({
     window.addEventListener("brise:refresh-device", handleDeviceRefresh);
 
     return () => {
+      window.clearTimeout(initialRefreshTimer);
       window.clearInterval(timer);
       window.removeEventListener("brise:refresh-device", handleDeviceRefresh);
     };
