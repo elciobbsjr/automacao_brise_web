@@ -237,6 +237,7 @@ export default async function AuditPage({
                   id="date"
                   name="date"
                   type="date"
+                  required={Boolean(timeFrom || timeTo)}
                   defaultValue={date}
                   className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                 />
