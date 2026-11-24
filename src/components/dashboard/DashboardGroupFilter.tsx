@@ -392,38 +392,6 @@ function GroupButton({
   );
 }
 
-/* ==========================================
-   CAMINHO SELECIONADO
-   ========================================== */
-
-function getSelectedPath(
-  selection:
-    DeviceGroupSelection,
-) {
-  const values = [
-    selection.level1,
-    selection.level2,
-    selection.level3,
-    selection.level4,
-  ];
-
-  return values
-    .filter(
-      (value) =>
-        value !==
-        ALL_GROUPS_KEY,
-    )
-    .map((value) =>
-      formatDeviceGroupName(
-        value,
-      ),
-    );
-}
-
-/* ==========================================
-   ÍCONES
-   ========================================== */
-
 function BuildingIcon() {
   return (
     <svg
