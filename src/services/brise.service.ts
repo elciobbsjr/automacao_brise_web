@@ -46,6 +46,14 @@ interface ConfigCacheEntry {
 const CONCURRENCY_LIMIT = 4;
 
 /*
+ * Distribui o início das consultas dentro de cada lote
+ * e cria uma pequena pausa entre os lotes. Assim evitamos
+ * disparar todas as chamadas à API no mesmo instante.
+ */
+const DEVICE_START_STAGGER_MS = 100;
+const DEVICE_BATCH_DELAY_MS = 250;
+
+/*
  * Configurações do equipamento mudam
  * com pouca frequência.
  *
@@ -328,53 +336,44 @@ async function processWithConcurrencyLimit<
     item: T,
   ) => Promise<R>,
 ): Promise<R[]> {
-  const results: R[] =
-    new Array(items.length);
+  const results: R[] = [];
 
-  let nextIndex = 0;
+  for (
+    let offset = 0;
+    offset < items.length;
+    offset += limit
+  ) {
+    const batch = items.slice(
+      offset,
+      offset + limit,
+    );
 
-  async function runWorker() {
-    while (true) {
-      const currentIndex =
-        nextIndex;
+    const batchResults = await Promise.all(
+      batch.map(async (item, index) => {
+        if (index > 0) {
+          await wait(
+            index * DEVICE_START_STAGGER_MS,
+          );
+        }
 
-      if (
-        currentIndex >=
-        items.length
-      ) {
-        return;
-      }
+        return worker(item);
+      }),
+    );
 
-      nextIndex += 1;
+    results.push(...batchResults);
 
-      results[currentIndex] =
-        await worker(
-          items[
-            currentIndex
-          ],
-        );
+    if (offset + limit < items.length) {
+      await wait(DEVICE_BATCH_DELAY_MS);
     }
   }
 
-  const workerCount =
-    Math.min(
-      limit,
-      items.length,
-    );
-
-  await Promise.all(
-    Array.from(
-      {
-        length:
-          workerCount,
-      },
-
-      () =>
-        runWorker(),
-    ),
-  );
-
   return results;
+}
+
+function wait(milliseconds: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
 }
 
 export async function getDashboard(): Promise<DashboardResponse> {
