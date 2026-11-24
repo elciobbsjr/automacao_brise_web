@@ -1,5 +1,8 @@
 "use client";
 import {
+  useCallback,
+  useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -52,16 +55,104 @@ interface DeviceDetailsModalProps {
   onManageSchedules?: () => void;
 }
 export function DeviceDetailsModal({
-  device,
+  device: initialDevice,
   open,
   canControl,
   onClose,
   onCreateSchedule,
   onManageSchedules,
 }: DeviceDetailsModalProps) {
+  const [device, setDevice] = useState(initialDevice);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const refreshInFlightRef = useRef(false);
+
+  const refreshDevice = useCallback(async () => {
+    if (refreshInFlightRef.current) return;
+
+    refreshInFlightRef.current = true;
+    setIsRefreshing(true);
+    setRefreshError(null);
+
+    try {
+      const response = await fetch(
+        `/api/brise/devices/${device.deviceId}/details`,
+        { cache: "no-store" },
+      );
+
+      if (!response.ok) {
+        throw new Error("Não foi possível consultar este dispositivo.");
+      }
+
+      const payload = await response.json() as {
+        deviceId: number;
+        config: { success: boolean; data?: unknown };
+        variables: { success: boolean; data?: unknown };
+        parameters: { success: boolean; data?: unknown };
+      };
+
+      const configOk = payload.config?.success === true;
+      const variablesOk = payload.variables?.success === true;
+      const parametersOk = payload.parameters?.success === true;
+
+      if (!configOk && !variablesOk && !parametersOk) {
+        throw new Error("O dispositivo não respondeu à consulta.");
+      }
+
+      setDevice((current) => ({
+        ...current,
+        online: true,
+        config: configOk
+          ? payload.config.data as DashboardDevice["config"]
+          : current.config,
+        variables: variablesOk
+          ? payload.variables.data as DashboardDevice["variables"]
+          : current.variables,
+        parameters: parametersOk
+          ? payload.parameters.data as DashboardDevice["parameters"]
+          : current.parameters,
+      }));
+      setLastUpdated(new Date());
+    } catch (error) {
+      setRefreshError(
+        error instanceof Error
+          ? error.message
+          : "Erro ao atualizar o dispositivo.",
+      );
+    } finally {
+      refreshInFlightRef.current = false;
+      setIsRefreshing(false);
+    }
+  }, [device.deviceId]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    void refreshDevice();
+    const timer = window.setInterval(() => {
+      void refreshDevice();
+    }, 60_000);
+
+    function handleDeviceRefresh(event: Event) {
+      const customEvent = event as CustomEvent<{ deviceId?: number }>;
+      if (customEvent.detail?.deviceId === device.deviceId) {
+        void refreshDevice();
+      }
+    }
+
+    window.addEventListener("brise:refresh-device", handleDeviceRefresh);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("brise:refresh-device", handleDeviceRefresh);
+    };
+  }, [device.deviceId, open, refreshDevice]);
+
   if (!open) {
     return null;
   }
+
   const name =
     device.config?.name ||
     `Dispositivo ${device.deviceId}`;
@@ -169,6 +260,41 @@ export function DeviceDetailsModal({
                   <p className="mt-0.5 text-sm text-slate-500">
                     {model}
                   </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2.5">
+                    <span className="text-[11px] text-slate-500">
+                      {lastUpdated
+                        ? `Atualizado às ${lastUpdated.toLocaleTimeString("pt-BR")}`
+                        : "Aguardando atualização"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void refreshDevice()}
+                      disabled={isRefreshing}
+                      className="inline-flex h-8 items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
+                        aria-hidden="true"
+                      >
+                        <path d="M20 7v5h-5" />
+                        <path d="M4 17v-5h5" />
+                        <path d="M5.6 9A7 7 0 0 1 18 6l2 6" />
+                        <path d="M18.4 15A7 7 0 0 1 6 18l-2-6" />
+                      </svg>
+                      {isRefreshing ? "Atualizando..." : "Atualizar"}
+                    </button>
+                    {refreshError && (
+                      <span role="status" className="text-[11px] text-amber-700">
+                        {refreshError}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <button
