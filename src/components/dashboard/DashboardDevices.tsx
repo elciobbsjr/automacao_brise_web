@@ -388,24 +388,13 @@ export function DashboardDevices({
   }
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-6">
       <div>
-        <div className="mb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-blue-600" />
-
-              <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">
-                Locais
-              </h2>
-            </div>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Selecione o prédio,
-              setor ou área que
-              deseja visualizar.
-            </p>
-          </div>
+        <div className="mb-3 flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-blue-600" />
+          <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">
+            Locais
+          </h2>
         </div>
 
         <DashboardGroupFilter
@@ -434,20 +423,11 @@ export function DashboardDevices({
         id="dispositivos"
         className="scroll-mt-6"
       >
-        <div className="mb-5">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-cyan-600" />
-
-            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-cyan-700">
-              Dispositivos
-            </h2>
-          </div>
-
-          <p className="mt-2 text-sm text-slate-500">
-            {statusNavigationActive
-              ? "Selecione um grupo para localizar os equipamentos desejados."
-              : "Consulte o estado, temperatura e operação dos equipamentos encontrados."}
-          </p>
+        <div className="mb-3 flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-cyan-600" />
+          <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-cyan-700">
+            Dispositivos
+          </h2>
         </div>
 
         {statusNavigationActive ? (
@@ -632,68 +612,29 @@ export function DashboardDevices({
                 </section>
               )}
 
-            <div className="relative mb-6 overflow-hidden rounded-[24px] border border-white/80 bg-white/70 shadow-[0_10px_35px_rgba(15,23,42,0.055)] backdrop-blur-xl">
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white via-white/90 to-slate-50/70" />
-
-              <div className="relative p-4 sm:p-5">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                      <FilterIcon />
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">
-                        Busca e filtros
-                      </p>
-
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        Refine os
-                        equipamentos
-                        exibidos abaixo.
-                      </p>
-                    </div>
-                  </div>
-
-                  {(search !== "" ||
-                    filter !==
-                      "all") && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSearch("");
-                        setFilter("all");
-                      }}
-                      className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-                    >
-                      Limpar filtros
-                    </button>
-                  )}
-                </div>
-
-                <DeviceFilters
-                  search={search}
-                  filter={filter}
-                  total={
-                    devicesByGroup.length
-                  }
-                  onCount={
-                    onCount
-                  }
-                  offCount={
-                    offCount
-                  }
-                  offlineCount={
-                    offlineCount
-                  }
-                  onSearchChange={
-                    setSearch
-                  }
-                  onFilterChange={
-                    setFilter
-                  }
-                />
-              </div>
+            <div className="relative mb-6 overflow-hidden rounded-[20px] border border-slate-200/80 bg-white/85 p-3 shadow-[0_8px_24px_rgba(15,23,42,0.045)] sm:p-4">
+              <DeviceFilters
+                search={search}
+                filter={filter}
+                total={
+                  devicesByGroup.length
+                }
+                onCount={
+                  onCount
+                }
+                offCount={
+                  offCount
+                }
+                offlineCount={
+                  offlineCount
+                }
+                onSearchChange={
+                  setSearch
+                }
+                onFilterChange={
+                  setFilter
+                }
+              />
             </div>
 
             {filteredDevices.length >
