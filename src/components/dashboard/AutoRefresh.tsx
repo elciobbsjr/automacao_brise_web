@@ -34,6 +34,20 @@ export function AutoRefresh({
         return;
       }
 
+      /*
+       * A tela de detalhes consulta somente o
+       * equipamento selecionado. Pausamos o
+       * refresh geral enquanto o modal estiver
+       * aberto para não recarregar todos os
+       * dispositivos em segundo plano.
+       */
+      if (
+        new URLSearchParams(window.location.search).has("device")
+      ) {
+        lastRefreshRef.current = Date.now();
+        return;
+      }
+
       const now = Date.now();
 
       const elapsed =
