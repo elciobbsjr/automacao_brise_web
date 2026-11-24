@@ -126,41 +126,19 @@ export default async function AuditPage({
     );
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f4f8fc_0%,#eef5fb_45%,#eaf2fa_100%)]">
-      {/* ==========================================
-          FUNDO
-          ========================================== */}
-
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-40 -top-44 h-[560px] w-[560px] rounded-full bg-blue-200/35 blur-3xl" />
-
-        <div className="absolute -right-36 top-10 h-[520px] w-[520px] rounded-full bg-sky-200/30 blur-3xl" />
-
-        <div className="absolute left-[18%] top-[360px] h-[360px] w-[360px] rounded-full bg-cyan-100/30 blur-3xl" />
-
-        <div className="absolute bottom-[-180px] right-[16%] h-[420px] w-[420px] rounded-full bg-blue-100/25 blur-3xl" />
-
-        <div className="absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-white/80 via-white/35 to-transparent" />
-      </div>
-
-      <div className="relative z-10 mx-auto w-full max-w-[1380px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+    <main className="min-h-screen bg-[#f3f6fa]">
+      <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         {/* ==========================================
             CABEÇALHO
             ========================================== */}
 
-        <header className="relative overflow-hidden rounded-[28px] border border-white/70 bg-[linear-gradient(110deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0.94)_58%,rgba(231,243,255,0.88)_100%)] shadow-[0_18px_48px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 to-blue-50/45" />
-
-            <div className="absolute -right-16 -top-32 h-80 w-80 rounded-full bg-blue-300/25 blur-3xl" />
-
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-slate-900 via-blue-700 to-sky-400" />
-          </div>
+        <header className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-blue-700" />
 
           <div className="relative flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-7">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-blue-700">
+                <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-blue-700">
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
 
                   Administração
@@ -171,11 +149,11 @@ export default async function AuditPage({
                 </span>
               </div>
 
-              <h1 className="mt-3 text-[28px] font-bold tracking-[-0.04em] text-slate-950 sm:text-[30px]">
+              <h1 className="mt-2 text-[28px] font-semibold tracking-tight text-slate-900 sm:text-[30px]">
                 Auditoria do sistema
               </h1>
 
-              <p className="mt-1.5 max-w-2xl text-[13px] leading-5 text-slate-500">
+              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
                 Consulte o histórico de
                 alterações realizadas por
                 usuários na plataforma.
@@ -185,7 +163,7 @@ export default async function AuditPage({
             <div className="flex shrink-0 flex-wrap items-center gap-3">
               <Link
                 href="/admin/users"
-                className="inline-flex h-11 min-w-[164px] items-center justify-center gap-2 rounded-[16px] border border-white/80 bg-white/80 px-5 text-sm font-semibold text-slate-600 shadow-[0_8px_22px_rgba(15,23,42,0.075)] backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/90 hover:text-blue-700"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
               >
                 <UsersIcon />
 
@@ -194,7 +172,7 @@ export default async function AuditPage({
 
               <Link
                 href="/"
-                className="inline-flex h-11 min-w-[164px] items-center justify-center gap-2 rounded-[16px] bg-[linear-gradient(135deg,#0f172a_0%,#172554_100%)] px-5 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(15,23,42,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.22)]"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-medium text-white transition-colors hover:bg-slate-800"
               >
                 <BackIcon />
 
@@ -208,7 +186,7 @@ export default async function AuditPage({
             RESUMO
             ========================================== */}
 
-        <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <SummaryCard
             label="Eventos"
             value={
@@ -250,16 +228,16 @@ export default async function AuditPage({
             FILTROS
             ========================================== */}
 
-        <section className="mt-4 rounded-[24px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.93)_0%,rgba(247,250,254,0.96)_100%)] p-4 shadow-[0_14px_38px_rgba(15,23,42,0.065)] backdrop-blur-xl sm:p-5">
+        <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <form
             action="/admin/audit"
             method="get"
-            className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_220px_170px_150px_150px_auto]"
+            className="grid gap-3 xl:grid-cols-[minmax(260px,1fr)_200px_160px_140px_140px_auto]"
           >
             <div>
               <label
                 htmlFor="q"
-                className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
               >
                 Buscar
               </label>
@@ -276,7 +254,7 @@ export default async function AuditPage({
                     search
                   }
                   placeholder="Usuário, e-mail, descrição ou ID..."
-                  className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/90 pl-10 pr-3 text-sm text-slate-700 shadow-[0_2px_10px_rgba(15,23,42,0.035)] outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
             </div>
@@ -284,7 +262,7 @@ export default async function AuditPage({
             <div>
               <label
                 htmlFor="action"
-                className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
               >
                 Ação
               </label>
@@ -295,7 +273,7 @@ export default async function AuditPage({
                 defaultValue={
                   action
                 }
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/90 px-3 text-sm font-medium text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.035)] outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
                 <option value="">
                   Todas as ações
@@ -325,7 +303,7 @@ export default async function AuditPage({
             <div>
               <label
                 htmlFor="date"
-                className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
               >
                 Data
               </label>
@@ -337,14 +315,14 @@ export default async function AuditPage({
                 defaultValue={
                   date
                 }
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/90 px-3 text-sm font-medium text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.035)] outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
             <div>
               <label
                 htmlFor="timeFrom"
-                className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
               >
                 A partir de
               </label>
@@ -356,14 +334,14 @@ export default async function AuditPage({
                 defaultValue={
                   timeFrom
                 }
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/90 px-3 text-sm font-medium text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.035)] outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
             <div>
               <label
                 htmlFor="timeTo"
-                className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400"
+                className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.07em] text-slate-500"
               >
                 Até
               </label>
@@ -375,14 +353,14 @@ export default async function AuditPage({
                 defaultValue={
                   timeTo
                 }
-                className="h-11 w-full rounded-xl border border-slate-200/80 bg-white/90 px-3 text-sm font-medium text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.035)] outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
 
             <div className="flex items-end gap-2">
               <button
                 type="submit"
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-blue-700 px-5 text-sm font-semibold text-white transition hover:bg-blue-800"
               >
                 Filtrar
               </button>
@@ -390,7 +368,7 @@ export default async function AuditPage({
               {hasFilters && (
                 <Link
                   href="/admin/audit"
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                  className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
                 >
                   Limpar
                 </Link>
@@ -403,10 +381,10 @@ export default async function AuditPage({
             TABELA
             ========================================== */}
 
-        <section className="mt-4 overflow-hidden rounded-[28px] border border-white/75 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(247,250,254,0.97)_100%)] shadow-[0_20px_52px_rgba(15,23,42,0.075)] backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-4 border-b border-slate-200/70 px-5 py-4 sm:px-6">
+        <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
             <div>
-              <h2 className="text-base font-bold text-slate-950">
+              <h2 className="text-base font-semibold text-slate-900">
                 Histórico de atividades
               </h2>
 
@@ -419,7 +397,7 @@ export default async function AuditPage({
               </p>
             </div>
 
-            <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-500 sm:inline-flex">
+            <span className="hidden rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 sm:inline-flex">
               Página{" "}
               {
                 auditData.page
@@ -449,7 +427,7 @@ export default async function AuditPage({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1240px] border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(238,244,251,0.96)_0%,rgba(247,250,253,0.96)_100%)]">
+                  <tr className="border-b border-slate-200 bg-slate-50">
                     <TableHeader>
                       Data e hora
                     </TableHeader>
@@ -486,13 +464,13 @@ export default async function AuditPage({
                         key={
                           log.id
                         }
-                        className={`border-b border-slate-200/80 align-top transition-colors last:border-b-0 ${
+                        className={`border-b border-slate-100 align-top transition-colors last:border-b-0 ${
                           index %
                             2 ===
                           0
                             ? "bg-white/80"
                             : "bg-slate-100/55"
-                        } hover:bg-blue-50/75`}
+                        } hover:bg-blue-50/60`}
                       >
                         {/* DATA */}
 
@@ -549,13 +527,13 @@ export default async function AuditPage({
                         {/* DESCRIÇÃO */}
 
                         <td className="px-5 py-5 align-top sm:px-6">
-                          <div className="max-w-[390px] rounded-2xl border border-slate-200/65 bg-white/60 px-3.5 py-3 shadow-[0_3px_12px_rgba(15,23,42,0.035)] backdrop-blur-sm">
+                          <div className="max-w-[390px] px-1 py-1">
                             <div className="space-y-1.5">
                               {getAuditDescriptionLines(log).map(
                                 (line, index) => (
                                   <p
                                     key={`${log.id}-description-${index}`}
-                                    className="text-[14px] leading-6 font-medium text-slate-600"
+                                    className="text-[13px] leading-5 text-slate-700"
                                   >
                                     {line}
                                   </p>
