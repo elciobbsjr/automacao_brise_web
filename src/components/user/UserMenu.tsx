@@ -105,7 +105,7 @@ export function UserMenu({
       ref={
         containerRef
       }
-      className="relative h-16"
+      className="relative h-10"
     >
       {/* ==========================================
           BOTÃO
@@ -129,20 +129,20 @@ export function UserMenu({
         }
         className={`group flex h-16 w-full items-center justify-center gap-1 rounded-2xl border bg-white/80 px-2 shadow-sm backdrop-blur transition duration-200 ${
           open
-            ? "border-slate-300 bg-white shadow-[0_8px_20px_rgba(15,23,42,0.08)]"
-            : "border-slate-200/80 hover:border-slate-300 hover:bg-white"
+            ? "border-slate-200 bg-slate-50"
+            : "hover:border-slate-200 hover:bg-slate-50"
         }`}
       >
         {/* AVATAR */}
 
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold tracking-[0.04em] text-white shadow-sm">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[10px] font-bold tracking-[0.04em] text-white">
           {initials}
         </span>
 
         {/* SETA */}
 
         <span
-          className={`flex h-5 w-5 shrink-0 items-center justify-center text-slate-400 transition duration-200 group-hover:text-slate-600 ${
+          className={`flex h-4 w-4 shrink-0 items-center justify-center text-slate-400 transition duration-200 group-hover:text-slate-600 ${
             open
               ? "rotate-180 text-slate-700"
               : ""
