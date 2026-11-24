@@ -224,12 +224,6 @@ async function getDeviceDetails(
     variables,
     parameters,
   ] = await Promise.all([
-
-  ]);
-
-  let configResult = initialConfigResult;
-
-  /* PLACEHOLDER */
     getDeviceConfig(
       deviceId,
     ),
@@ -242,6 +236,8 @@ async function getDeviceDetails(
       `/device/${deviceId}/parameters`,
     ),
   ]);
+
+  let configResult = initialConfigResult;
 
   /*
    * Caso variables e parameters falhem
@@ -278,60 +274,14 @@ async function getDeviceDetails(
   return {
     deviceId,
 
-    /*
-     * Mantém a mesma ideia existente:
-     * basta um dos endpoints responder
-     * para considerarmos comunicação
-     * com o equipamento.
-     *
-     * A diferença é que um config
-     * simplesmente recuperado do cache
-     * não é usado cegamente para isso.
-     */
-    online:
-      config.success ||
-      variables.success ||
-      parameters.success,
+    config,
 
-    config:
-      config.success
-        ? config.data
-        : null,
+    variables,
 
-    variables:
-      variables.success
-        ? variables.data
-        : null,
-
-    parameters:
-      parameters.success
-        ? parameters.data
-        : null,
-
-    errors: {
-      config:
-        config.success
-          ? null
-          : config.error,
-
-      variables:
-        variables.success
-          ? null
-          : variables.error,
-
-      parameters:
-        parameters.success
-          ? null
-          : parameters.error,
-    },
+    parameters,
   };
 }
 
-/*
- * Executa o processamento de vários
- * equipamentos sem liberar todas as
- * requisições simultaneamente.
- */
 async function processWithConcurrencyLimit<
   T,
   R,
