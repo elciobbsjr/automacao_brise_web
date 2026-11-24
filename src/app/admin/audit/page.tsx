@@ -897,273 +897,78 @@ function AuditDetails({
   metadata,
 }: {
   action: string;
-
   metadata: unknown;
 }) {
-  const data =
-    toObject(
-      metadata,
-    );
-
+  const data = toObject(metadata);
   if (!data) {
-    return (
-      <span className="text-xs text-slate-300">
-        —
-      </span>
-    );
+    return <span className="text-xs text-slate-400">Sem detalhes adicionais</span>;
   }
 
-  const changes =
-    toObject(
-      data.changes,
-    );
-
-  /*
-   * Quando existem alterações
-   * reais, mostramos somente elas.
-   */
-  if (
-    changes &&
-    Object.keys(
-      changes,
-    ).length > 0
-  ) {
+  const changes = toObject(data.changes);
+  if (changes && Object.keys(changes).length > 0) {
     return (
-      <details className="group">
-        <summary className="inline-flex cursor-pointer select-none items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-50">
+      <details className="min-w-0">
+        <summary className="inline-flex cursor-pointer select-none items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
           <DetailsIcon />
-
-          Ver alterações
+          Consultar alterações
         </summary>
-
-        <div className="mt-2 w-[320px] space-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
-          {Object.entries(
-            changes,
-          ).map(
-            ([
-              key,
-              value,
-            ]) => {
-              const change =
-                toObject(
-                  value,
-                );
-
-              if (!change) {
-                return null;
-              }
-
-              return (
-                <ChangeItem
-                  key={
-                    key
-                  }
-                  label={
-                    getFieldLabel(
-                      key,
-                    )
-                  }
-                  from={
-                    formatAuditValue(
-                      key,
-                      change.from,
-                    )
-                  }
-                  to={
-                    formatAuditValue(
-                      key,
-                      change.to,
-                    )
-                  }
-                />
-              );
-            },
-          )}
+        <div className="mt-2 w-full max-w-[360px] space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+          {Object.entries(changes).map(([key, value]) => {
+            const change = toObject(value);
+            if (!change) return null;
+            return (
+              <ChangeItem
+                key={key}
+                label={getFieldLabel(key)}
+                from={formatAuditValue(key, change.from)}
+                to={formatAuditValue(key, change.to)}
+              />
+            );
+          })}
         </div>
       </details>
     );
   }
 
-  /*
-   * ATIVAÇÃO / DESATIVAÇÃO
-   * DE USUÁRIO
-   */
-
-  if (
-    action ===
-      "ACTIVATE_USER" ||
-    action ===
-      "DEACTIVATE_USER"
-  ) {
-    return (
-      <SimpleDetail
-        label="Status"
-        value={
-          action ===
-          "ACTIVATE_USER"
-            ? "Ativado"
-            : "Desativado"
-        }
-      />
-    );
+  if (action === "ACTIVATE_USER" || action === "DEACTIVATE_USER") {
+    return <SimpleDetail label="Status da conta" value={action === "ACTIVATE_USER" ? "Ativada" : "Desativada"} />;
   }
 
-  /*
-   * RESET DE SENHA
-   */
-
-  if (
-    action ===
-    "RESET_USER_PASSWORD"
-  ) {
-    return (
-      <SimpleDetail
-        label="Segurança"
-        value="Senha redefinida"
-      />
-    );
+  if (action === "RESET_USER_PASSWORD") {
+    return <SimpleDetail label="Segurança" value="Senha redefinida" />;
   }
 
-  /*
-   * CRIAÇÃO DE USUÁRIO
-   */
-
-  if (
-    action ===
-    "CREATE_USER"
-  ) {
-    return (
-      <SimpleDetail
-        label="Perfil"
-        value={
-          getRoleLabel(
-            data.role,
-          )
-        }
-      />
-    );
+  if (action === "CREATE_USER") {
+    return <SimpleDetail label="Perfil atribuído" value={getRoleLabel(data.role)} />;
   }
 
-  /*
-   * ALTERAÇÃO DE EQUIPAMENTO ANTIGA
-   */
-
-  if (
-    action ===
-    "UPDATE_DEVICE_PARAMETERS"
-  ) {
-    return (
-      <LegacyDetail
-        message="Registro anterior ao histórico de diferenças."
-      />
-    );
+  if (action === "UPDATE_DEVICE_PARAMETERS" || action === "UPDATE_SCHEDULE") {
+    return <LegacyDetail message="Este registro foi criado antes do detalhamento de alterações estar disponível." />;
   }
 
-  /*
-   * CRIAÇÃO DE AGENDAMENTO
-   */
-
-  if (
-    action ===
-    "CREATE_SCHEDULE"
-  ) {
+  if (action === "CREATE_SCHEDULE") {
     return (
-      <div className="space-y-1.5">
-        <SimpleDetail
-          label="Agendamento"
-          value={
-            toText(
-              data.scheduleName,
-            )
-          }
-        />
-
-        <SimpleDetail
-          label="Dispositivos"
-          value={
-            formatCount(
-              data.successCount,
-            )
-          }
-        />
+      <div className="space-y-2">
+        <SimpleDetail label="Agendamento" value={toText(data.scheduleName)} />
+        <SimpleDetail label="Dispositivos" value={formatCount(data.successCount)} />
       </div>
     );
   }
 
-  /*
-   * EDIÇÃO DE AGENDAMENTO
-   */
-
-  if (
-    action ===
-    "UPDATE_SCHEDULE"
-  ) {
+  if (action === "ACTIVATE_SCHEDULE" || action === "DEACTIVATE_SCHEDULE") {
     return (
-      <LegacyDetail
-        message="Registro anterior ao histórico de diferenças."
-      />
-    );
-  }
-
-  /*
-   * STATUS DO AGENDAMENTO
-   */
-
-  if (
-    action ===
-      "ACTIVATE_SCHEDULE" ||
-    action ===
-      "DEACTIVATE_SCHEDULE"
-  ) {
-    return (
-      <div className="space-y-1.5">
-        <SimpleDetail
-          label="Status"
-          value={
-            action ===
-            "ACTIVATE_SCHEDULE"
-              ? "Ativado"
-              : "Desativado"
-          }
-        />
-
-        <SimpleDetail
-          label="Dispositivos"
-          value={
-            formatCount(
-              data.successCount,
-            )
-          }
-        />
+      <div className="space-y-2">
+        <SimpleDetail label="Status" value={action === "ACTIVATE_SCHEDULE" ? "Ativado" : "Desativado"} />
+        <SimpleDetail label="Dispositivos" value={formatCount(data.successCount)} />
       </div>
     );
   }
 
-  /*
-   * EXCLUSÃO
-   */
-
-  if (
-    action ===
-    "DELETE_SCHEDULE"
-  ) {
-    return (
-      <SimpleDetail
-        label="Removido de"
-        value={
-          formatCount(
-            data.successCount,
-          )
-        }
-      />
-    );
+  if (action === "DELETE_SCHEDULE") {
+    return <SimpleDetail label="Removido de" value={formatCount(data.successCount)} />;
   }
 
-  return (
-    <span className="text-xs text-slate-300">
-      —
-    </span>
-  );
+  return <span className="text-xs text-slate-400">Sem detalhes adicionais</span>;
 }
 
 /* ==========================================
@@ -1176,29 +981,16 @@ function ChangeItem({
   to,
 }: {
   label: string;
-
   from: string;
-
   to: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-slate-500">
-        {label}
-      </p>
-
-      <div className="mt-1.5 flex items-center gap-2 text-xs font-semibold">
-        <span className="max-w-[110px] truncate rounded-md bg-red-50 px-2.5 py-1 text-red-700">
-          {from}
-        </span>
-
-        <span className="text-slate-300">
-          →
-        </span>
-
-        <span className="max-w-[110px] truncate rounded-md bg-emerald-50 px-2.5 py-1 text-emerald-700">
-          {to}
-        </span>
+    <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5">
+      <p className="text-[11px] font-medium text-slate-600">{label}</p>
+      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+        <span className="max-w-full break-words rounded bg-red-50 px-2 py-1 font-medium text-red-700">{from}</span>
+        <span className="text-slate-400" aria-hidden="true">→</span>
+        <span className="max-w-full break-words rounded bg-emerald-50 px-2 py-1 font-medium text-emerald-700">{to}</span>
       </div>
     </div>
   );
@@ -1267,28 +1059,24 @@ function ResourceCell({
       : "";
   const resourceTitle = storedDeviceName || getResourceLabel(resource);
 
-  const styles: Record<string, { icon: string; dot: string }> = {
-    USER: { icon: "text-violet-600", dot: "bg-violet-500" },
-    DEVICE: { icon: "text-blue-700", dot: "bg-blue-600" },
-    SCHEDULE: { icon: "text-emerald-700", dot: "bg-emerald-600" },
+  const resourceStyle: Record<string, string> = {
+    USER: "bg-violet-50 text-violet-700",
+    DEVICE: "bg-blue-50 text-blue-700",
+    SCHEDULE: "bg-emerald-50 text-emerald-700",
   };
-  const current = styles[resource] ?? {
-    icon: "text-slate-500",
-    dot: "bg-slate-400",
-  };
+  const iconStyle = resourceStyle[resource] ?? "bg-slate-100 text-slate-600";
 
   return (
-    <div className="inline-flex min-w-[180px] items-center gap-2.5">
-      <span className={`h-2 w-2 shrink-0 rounded-full ${current.dot}`} aria-hidden="true" />
+    <div className="flex min-w-0 items-center gap-2.5">
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconStyle}`}>
+        {resource === "DEVICE" ? <DeviceIcon /> : resource === "USER" ? <UserIcon /> : <CalendarSmallIcon />}
+      </span>
       <div className="min-w-0">
-        <p
-          title={resourceTitle}
-          className={`max-w-[165px] truncate text-xs font-semibold ${current.icon}`}
-        >
+        <p title={resourceTitle} className="truncate text-xs font-semibold text-slate-800">
           {resourceTitle}
         </p>
         {resourceId && (
-          <p className="mt-0.5 max-w-[155px] truncate font-mono text-[10px] text-slate-500">
+          <p className="mt-0.5 truncate font-mono text-[10px] text-slate-500">
             {resource === "DEVICE" ? `Nº ${resourceId}` : `ID ${resourceId}`}
           </p>
         )}
@@ -1306,33 +1094,34 @@ function SummaryCard({
   value,
   description,
   tone,
+  icon,
 }: {
   label: string;
   value: number;
   description: string;
-  tone: "blue" | "cyan" | "green" | "slate";
+  tone: "blue" | "violet" | "cyan" | "green";
+  icon: React.ReactNode;
 }) {
-  const marker = {
-    blue: "bg-blue-600",
-    cyan: "bg-cyan-600",
-    green: "bg-emerald-600",
-    slate: "bg-slate-500",
+  const iconStyle = {
+    blue: "bg-blue-50 text-blue-700",
+    violet: "bg-violet-50 text-violet-700",
+    cyan: "bg-cyan-50 text-cyan-700",
+    green: "bg-emerald-50 text-emerald-700",
   }[tone];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
+    <article className="flex min-h-[112px] items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="min-w-0">
         <p className="text-sm font-medium text-slate-600">{label}</p>
-        <span className={`h-2 w-2 rounded-full ${marker}`} aria-hidden="true" />
-      </div>
-
-      <div className="mt-3 flex items-baseline gap-2.5">
-        <p className="text-3xl font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
-          {value}
+        <p className="mt-2 text-[28px] font-semibold leading-none tracking-tight text-slate-950 tabular-nums">
+          {value.toLocaleString("pt-BR")}
         </p>
-        <p className="text-xs text-slate-500">{description}</p>
+        <p className="mt-2 text-xs leading-4 text-slate-500">{description}</p>
       </div>
-    </div>
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconStyle}`}>
+        {icon}
+      </div>
+    </article>
   );
 }
 
@@ -1381,6 +1170,13 @@ function ActionBadge({
 /* ==========================================
    LABELS
    ========================================== */
+
+function getActorInitials(name: string) {
+  const parts = name.trim().split(/\\s+/).filter(Boolean);
+  if (parts.length === 0) return "US";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 function getActionLabel(
   action: string,
