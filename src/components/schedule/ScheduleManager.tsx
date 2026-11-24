@@ -34,7 +34,7 @@ export function ScheduleManager({
         onClick={() =>
           setOpen(true)
         }
-        className="group flex h-11 w-full items-center justify-between gap-3 rounded-xl bg-slate-900 px-4 text-sm font-bold text-white shadow-[0_6px_18px_rgba(15,23,42,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-[0_10px_24px_rgba(15,23,42,0.18)] active:translate-y-0"
+        className="group flex h-11 w-full items-center justify-between gap-3 rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white shadow-[0_3px_10px_rgba(15,23,42,0.10)] transition-colors duration-200 hover:bg-slate-800 active:bg-slate-950"
       >
         <span className="flex items-center gap-2.5">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white">
