@@ -34,10 +34,10 @@ export function ScheduleManager({
         onClick={() =>
           setOpen(true)
         }
-        className="group flex h-11 w-full items-center justify-between gap-3 rounded-xl bg-slate-900 px-4 text-sm font-bold text-white shadow-[0_6px_18px_rgba(15,23,42,0.14)] transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-[0_10px_24px_rgba(15,23,42,0.18)] active:translate-y-0"
+        className="group inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100 sm:px-3.5"
       >
         <span className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-white">
+          <span className="flex h-6 w-6 items-center justify-center text-slate-500 transition-colors group-hover:text-blue-700">
             <CalendarIcon />
           </span>
 
@@ -46,7 +46,7 @@ export function ScheduleManager({
           </span>
         </span>
 
-        <span className="text-slate-400 transition duration-200 group-hover:translate-x-0.5 group-hover:text-white">
+        <span className="text-slate-400 transition-colors group-hover:text-blue-700">
           <ArrowRightIcon />
         </span>
       </button>
