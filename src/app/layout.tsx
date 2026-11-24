@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   title: "Brise - SEMEQ",
   description:
     "Sistema de monitoramento e controle de climatização da SEMEQ/TRE-MA",
+  icons: {
+    icon: [{ url: "/semeq.png", type: "image/png" }],
+    shortcut: ["/semeq.png"],
+    apple: [{ url: "/semeq.png", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
