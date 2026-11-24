@@ -55,19 +55,19 @@ export function DashboardHeader({
       : 0;
 
   return (
-    <header className="relative z-10 overflow-visible rounded-[28px] border border-white/80 bg-white/80 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+    <header className="relative z-10 overflow-visible rounded-[28px] border border-slate-200/80 bg-white/90 shadow-[0_14px_42px_rgba(15,23,42,0.065)] backdrop-blur-xl">
       {/* ==========================================
           FUNDO
           ========================================== */}
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-blue-50/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-blue-50/65" />
 
-        <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-blue-200/20 blur-3xl" />
 
-        <div className="absolute -bottom-28 left-1/3 h-60 w-60 rounded-full bg-sky-100/40 blur-3xl" />
+        <div className="absolute -bottom-28 left-1/3 h-60 w-60 rounded-full bg-sky-100/25 blur-3xl" />
 
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-slate-900 via-blue-700 to-sky-400" />
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-700 via-blue-600 to-sky-400" />
       </div>
 
       <div className="relative z-10 p-5 sm:p-6 lg:p-7">
@@ -82,7 +82,7 @@ export function DashboardHeader({
                 ===================================== */}
 
             <div className="flex shrink-0 items-center">
-              <div className="flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
+              <div className="flex items-center gap-4 rounded-2xl border border-slate-200/90 bg-white/90 px-4 py-3 shadow-[0_2px_8px_rgba(15,23,42,0.035)] backdrop-blur">
                 <div className="relative h-16 w-16 sm:h-[72px] sm:w-[72px]">
                   <Image
                     src="/tre-ma.png"
@@ -117,7 +117,7 @@ export function DashboardHeader({
 
             <div className="min-w-0">
               <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/90 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-blue-700">
+                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.11em] text-blue-700">
                   <span className="h-2 w-2 rounded-full bg-blue-600" />
 
                   Central de climatização
@@ -128,7 +128,7 @@ export function DashboardHeader({
                 </span>
               </div>
 
-              <h1 className="text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[34px]">
+              <h1 className="text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-[34px]">
                 Brise{" "}
 
                 <span className="font-medium text-slate-400">
@@ -140,7 +140,7 @@ export function DashboardHeader({
                 </span>
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-[15px]">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-[15px]">
                 Monitoramento e controle
                 dos dispositivos de
                 climatização do Tribunal
@@ -182,7 +182,7 @@ export function DashboardHeader({
                 GERENCIAMENTO
                 ===================================== */}
 
-            <div className="rounded-2xl border border-slate-200/80 bg-white/75 px-4 py-3 shadow-sm backdrop-blur">
+            <div className="rounded-2xl border border-slate-200/90 bg-white/85 px-4 py-3 shadow-[0_2px_8px_rgba(15,23,42,0.035)] backdrop-blur">
               <div className="mb-2">
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                   Gerenciamento
@@ -211,7 +211,7 @@ export function DashboardHeader({
             <div className="grid grid-cols-[minmax(132px,1fr)_56px_72px] items-stretch gap-2">
               {/* DISPONIBILIDADE */}
 
-              <div className="flex h-16 min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white/80 px-3 shadow-sm backdrop-blur">
+              <div className="flex h-16 min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white/90 px-3 shadow-[0_2px_8px_rgba(15,23,42,0.035)] backdrop-blur">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                   <AvailabilityIcon />
                 </div>
@@ -229,7 +229,7 @@ export function DashboardHeader({
 
               {/* NOTIFICAÇÕES */}
 
-              <div className="flex h-16 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur">
+              <div className="flex h-16 items-center justify-center rounded-2xl border border-slate-200/90 bg-white/90 shadow-[0_2px_8px_rgba(15,23,42,0.035)] backdrop-blur">
                 <NotificationCenter
                   devices={
                     devices
