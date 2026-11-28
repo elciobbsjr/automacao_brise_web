@@ -123,9 +123,7 @@ export function DashboardHeader({
                   Central de climatização
                 </span>
 
-                <span className="hidden text-xs font-medium text-slate-400 sm:inline">
-                  TRE-MA
-                </span>
+                
               </div>
 
               <h1 className="text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[34px]">
@@ -149,26 +147,8 @@ export function DashboardHeader({
               </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-                <HeaderInfo
-                  icon={
-                    <EquipmentIcon />
-                  }
-                >
-                  {devices.length}{" "}
 
-                  {devices.length ===
-                  1
-                    ? "equipamento"
-                    : "equipamentos"}
-                </HeaderInfo>
 
-                <HeaderInfo
-                  icon={
-                    <MonitoringIcon />
-                  }
-                >
-                  Painel de monitoramento
-                </HeaderInfo>
               </div>
             </div>
           </div>
