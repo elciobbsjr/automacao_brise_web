@@ -82,7 +82,7 @@ export function DashboardHeader({
                 ===================================== */}
 
             <div className="flex shrink-0 items-center">
-              <div className="flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
+              <div className="flex items-center gap-4 px-4 py-3">
                 <div className="relative h-16 w-16 sm:h-[72px] sm:w-[72px]">
                   <Image
                     src="/tre-ma.png"
@@ -162,27 +162,10 @@ export function DashboardHeader({
                 GERENCIAMENTO
                 ===================================== */}
 
-            <div className="rounded-2xl border border-slate-200/80 bg-white/75 px-4 py-3 shadow-sm backdrop-blur">
-              <div className="mb-2">
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                  Gerenciamento
-                </p>
-
-                <p className="mt-0.5 text-xs text-slate-500">
-                  Programação dos
-                  equipamentos
-                </p>
-              </div>
-
-              <ScheduleManager
-                devices={
-                  devices
-                }
-                canManageSchedules={
-                  canManageSchedules
-                }
-              />
-            </div>
+            <ScheduleManager
+              devices={devices}
+              canManageSchedules={canManageSchedules}
+            />
 
             {/* =====================================
                 STATUS + NOTIFICAÇÕES + USUÁRIO
