@@ -55,56 +55,214 @@ export function DashboardHeader({
       : 0;
 
   return (
-    <header className="relative z-10 overflow-visible rounded-[24px] border border-white/90 bg-gradient-to-r from-white via-white to-blue-50/80 shadow-[0_10px_32px_rgba(15,23,42,0.06)]">
-      <div className="relative flex flex-col gap-7 p-6 sm:p-8 xl:min-h-[210px] xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex min-w-0 flex-1 flex-col gap-6 lg:flex-row lg:items-center lg:gap-8">
-          <div className="flex shrink-0 items-center gap-4">
-            <div className="relative h-16 w-16 sm:h-[72px] sm:w-[72px]">
-              <Image src="/tre-ma.png" alt="TRE-MA" fill sizes="72px" priority className="object-contain" />
-            </div>
-            <div className="h-12 w-px bg-slate-200" aria-hidden="true" />
-            <div className="relative h-16 w-[150px] sm:h-[72px] sm:w-[215px]">
-              <Image src="/semeq-completo.png" alt="SEMEQ - Seção de Manutenção de Equipamentos" fill sizes="215px" priority className="object-contain" />
-            </div>
-          </div>
+    <header className="relative z-10 overflow-visible rounded-[28px] border border-white/80 bg-white/80 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+      {/* ==========================================
+          FUNDO
+          ========================================== */}
 
-          <div className="hidden h-28 w-px shrink-0 bg-slate-200 lg:block" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-blue-50/80" />
 
-          <div className="min-w-0">
-            <p className="mb-1 text-sm font-medium text-slate-500">
-              Central de climatização
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-[34px]">
-              Brise <span className="font-medium text-slate-400">/</span>{" "}
-              <span className="text-blue-700">SEMEQ</span>
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Monitoramento e controle de climatização do TRE-MA
-            </p>
-            <p className="mt-4 text-sm text-slate-500">
-              <span className="font-semibold tabular-nums text-slate-800">{total}</span>{" "}
-              {total === 1 ? "equipamento" : "equipamentos"}
-            </p>
-          </div>
-        </div>
+        <div className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-blue-200/30 blur-3xl" />
 
-        <div className="flex w-full shrink-0 flex-col gap-3 sm:max-w-[290px]">
-          <ScheduleManager devices={devices} canManageSchedules={canManageSchedules} />
-          <div className="grid grid-cols-[minmax(0,1fr)_56px_72px] items-stretch gap-2">
-            <div className="flex h-16 min-w-0 items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-white/65 px-2">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
-              <div className="min-w-0">
-                <p className="text-xl font-semibold leading-tight tabular-nums text-slate-900">{availability}%</p>
-                <p className="text-xs text-slate-500">Online</p>
+        <div className="absolute -bottom-28 left-1/3 h-60 w-60 rounded-full bg-sky-100/40 blur-3xl" />
+
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-slate-900 via-blue-700 to-sky-400" />
+      </div>
+
+      <div className="relative z-10 p-5 sm:p-6 lg:p-7 xl:min-h-[220px] xl:flex xl:flex-col xl:justify-center">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+          {/* =====================================
+              CONTEÚDO PRINCIPAL
+              ===================================== */}
+
+          <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-center">
+            {/* =====================================
+                LOGOS
+                ===================================== */}
+
+            <div className="flex shrink-0 items-center">
+              <div className="flex items-center gap-4">
+                <div className="relative h-16 w-16 sm:h-[72px] sm:w-[72px]">
+                  <Image
+                    src="/tre-ma.png"
+                    alt="TRE-MA"
+                    fill
+                    sizes="72px"
+                    priority
+                    className="object-contain"
+                  />
+                </div>
+
+                <div className="h-12 w-px bg-slate-200 sm:h-14" />
+
+                <div className="relative h-16 w-[180px] sm:h-[72px] sm:w-[215px]">
+                  <Image
+                    src="/semeq-completo.png"
+                    alt="SEMEQ - Seção de Manutenção de Equipamentos"
+                    fill
+                    sizes="215px"
+                    priority
+                    className="object-contain"
+                  />
+                </div>
               </div>
             </div>
-            <div className="flex h-16 items-center justify-center rounded-xl border border-slate-200/80 bg-white/65">
-              <NotificationCenter devices={devices} />
+
+            <div className="hidden h-20 w-px bg-gradient-to-b from-transparent via-slate-200 to-transparent lg:block" />
+
+            {/* =====================================
+                TÍTULO
+                ===================================== */}
+
+            <div className="min-w-0">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/90 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-blue-700">
+                  <span className="h-2 w-2 rounded-full bg-blue-600" />
+
+                  Central de climatização
+                </span>
+
+                <span className="hidden text-xs font-medium text-slate-400 sm:inline">
+                  TRE-MA
+                </span>
+              </div>
+
+              <h1 className="text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[34px]">
+                Brise{" "}
+
+                <span className="font-medium text-slate-400">
+                  /
+                </span>{" "}
+
+                <span className="text-blue-700">
+                  SEMEQ
+                </span>
+              </h1>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-[15px]">
+                Monitoramento e controle de climatização do TRE-MA
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+                <span className="text-xs font-medium text-slate-500">
+                  <span className="font-semibold tabular-nums text-slate-800">{total}</span>{" "}
+                  {total === 1 ? "equipamento" : "equipamentos"}
+                </span>
+
+                <HeaderInfo
+                  icon={
+                    <MonitoringIcon />
+                  }
+                >
+                  Painel de monitoramento
+                </HeaderInfo>
+              </div>
             </div>
-            <UserMenu name={userName} role={userRole} />
+          </div>
+
+          {/* =====================================
+              COLUNA DIREITA
+              ===================================== */}
+
+          <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto xl:w-[290px]">
+            {/* =====================================
+                GERENCIAMENTO
+                ===================================== */}
+
+            <ScheduleManager devices={devices} canManageSchedules={canManageSchedules} />
+
+            {/* =====================================
+                STATUS + NOTIFICAÇÕES + USUÁRIO
+                ===================================== */}
+
+            <div className="grid grid-cols-[minmax(0,1fr)_56px_72px] items-stretch gap-2">
+              {/* DISPONIBILIDADE */}
+
+              <div className="flex h-16 min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white/80 px-3 shadow-sm backdrop-blur">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
+
+                <div className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
+                  <span className="text-xl font-bold tracking-tight text-slate-900">
+                    {availability}%
+                  </span>
+
+                  <span className="text-[10px] font-medium text-slate-400">
+                    online
+                  </span>
+                </div>
+              </div>
+
+              {/* NOTIFICAÇÕES */}
+
+              <div className="flex h-16 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur">
+                <NotificationCenter
+                  devices={
+                    devices
+                  }
+                />
+              </div>
+
+              {/* USUÁRIO */}
+
+              <UserMenu
+                name={
+                  userName
+                }
+                role={
+                  userRole
+                }
+              />
+            </div>
           </div>
         </div>
       </div>
     </header>
+  );
+}
+
+/* ==========================================
+   INFORMAÇÕES AUXILIARES
+   ========================================== */
+
+function HeaderInfo({
+  icon,
+  children,
+}: {
+  icon: React.ReactNode;
+
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+        {icon}
+      </span>
+
+      <span>
+        {children}
+      </span>
+    </div>
+  );
+}
+
+/* ==========================================
+   ÍCONES
+   ========================================== */
+
+function MonitoringIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-3.5 w-3.5"
+      aria-hidden="true"
+    >
+      <path d="M3 12h4l2-6 4 12 2-6h6" />
+    </svg>
   );
 }
