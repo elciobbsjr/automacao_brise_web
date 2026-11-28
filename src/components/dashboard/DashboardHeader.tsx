@@ -116,18 +116,6 @@ export function DashboardHeader({
                 ===================================== */}
 
             <div className="min-w-0">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/90 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-blue-700">
-                  <span className="h-2 w-2 rounded-full bg-blue-600" />
-
-                  Central de climatização
-                </span>
-
-                <span className="hidden text-xs font-medium text-slate-400 sm:inline">
-                  TRE-MA
-                </span>
-              </div>
-
               <h1 className="text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[34px]">
                 Brise{" "}
 
@@ -144,20 +132,7 @@ export function DashboardHeader({
                 Monitoramento e controle de climatização do TRE-MA
               </p>
 
-              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-                <span className="text-xs font-medium text-slate-500">
-                  <span className="font-semibold tabular-nums text-slate-800">{total}</span>{" "}
-                  {total === 1 ? "equipamento" : "equipamentos"}
-                </span>
 
-                <HeaderInfo
-                  icon={
-                    <MonitoringIcon />
-                  }
-                >
-                  Painel de monitoramento
-                </HeaderInfo>
-              </div>
             </div>
           </div>
 
@@ -218,51 +193,5 @@ export function DashboardHeader({
         </div>
       </div>
     </header>
-  );
-}
-
-/* ==========================================
-   INFORMAÇÕES AUXILIARES
-   ========================================== */
-
-function HeaderInfo({
-  icon,
-  children,
-}: {
-  icon: React.ReactNode;
-
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
-        {icon}
-      </span>
-
-      <span>
-        {children}
-      </span>
-    </div>
-  );
-}
-
-/* ==========================================
-   ÍCONES
-   ========================================== */
-
-function MonitoringIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-3.5 w-3.5"
-      aria-hidden="true"
-    >
-      <path d="M3 12h4l2-6 4 12 2-6h6" />
-    </svg>
   );
 }
